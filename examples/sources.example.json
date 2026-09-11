@@ -1,0 +1,4 @@
+{
+  "sources": [],
+  "instructions": "Add entries such as {\"type\": \"greenhouse\", \"board\": \"company-board-id\"}, {\"type\": \"lever\", \"board\": \"company-board-id\", \"region\": \"global\"}, or {\"type\": \"job_url\", \"url\": \"https://company.example/careers/a-specific-job\"}. Real company sources will be selected after your job preferences are known."
+}

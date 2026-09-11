@@ -1,0 +1,12 @@
+{
+  "title": "Example vacancy — replace before importing",
+  "company": "Example company",
+  "location": "Oslo, Norway",
+  "description": "Paste the original vacancy description here. This is sample data, not a real opportunity.",
+  "source": "manual",
+  "source_id": "",
+  "source_url": "https://example.com/jobs/example",
+  "apply_url": "https://example.com/jobs/example/apply",
+  "employment_type": "",
+  "deadline": ""
+}

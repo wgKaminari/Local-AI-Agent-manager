@@ -1,0 +1,20 @@
+From: Demo Alerts <alerts@example.com>
+To: Alex Example <alex@example.com>
+Subject: Your Norway job alerts (fictional demo)
+Date: Thu, 10 Sep 2026 09:00:00 +0200
+Message-ID: <fictional-norway-demo@example.com>
+MIME-Version: 1.0
+Content-Type: text/html; charset=utf-8
+
+<html><body>
+<p>Fictional sample message for trying the email importer.</p>
+<div><a href="https://example.com/jobs/demo-ai-engineer">AI Engineer</a>
+<p>Company: Northstar Labs (Demo)</p><p>Location: Oslo, Norway</p>
+<p>Build Python services and practical AI agents. This is fictional preview data.</p></div>
+<div><a href="https://example.com/jobs/demo-data-scientist">Data Scientist</a>
+<p>Company: Fjord Analytics (Demo)</p><p>Location: Bergen, Norway</p>
+<p>Apply statistics and machine learning to research problems. This is fictional preview data.</p></div>
+<div><a href="https://example.com/jobs/demo-data-engineer">Data Engineer</a>
+<p>Company: Aurora Systems (Demo)</p><p>Location: Trondheim, Norway</p>
+<p>Develop Python and SQL pipelines. This is fictional preview data.</p></div>
+</body></html>

@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.env
+data/
+private/
+exports/
+*.db
+*.db-shm
+*.db-wal
+.pytest_cache/
+*client_secret*.json
+credentials.json
+*token*.json
