@@ -5,9 +5,9 @@ from __future__ import annotations
 import tkinter as tk
 from tkinter import ttk
 from tkinter import font as tkfont
-from tkinter.scrolledtext import ScrolledText
 
-from .ui_components import OpportunityList, RoundedButton, SearchEntry, TabDeck
+from .ui_components import OpportunityList, RoundedButton, SearchEntry, TabDeck, ThemedScrolledText as ScrolledText
+from .text_interactions import SelectableLabel
 
 INK = "#202123"
 MUTED = "#6b6b6b"
@@ -76,40 +76,8 @@ class DesktopLayout:
         self.root.configure(background=WHITE)
         for name in ("TkDefaultFont", "TkTextFont", "TkMenuFont"):
             tkfont.nametofont(name, root=self.root).configure(family="Segoe UI", size=10)
-        style = ttk.Style(self.root)
-        style.theme_use("clam")
-        style.configure(".", font=("Segoe UI", 10), background=WHITE, foreground=INK, bordercolor=BORDER)
-        style.configure("TFrame", background=WHITE)
-        style.configure("TLabel", background=WHITE)
-        style.configure("Muted.TLabel", foreground=MUTED)
-        style.configure("Section.TLabel", font=("Segoe UI", 11, "bold"))
-        style.configure("Title.TLabel", font=("Segoe UI", 24, "bold"))
-        style.configure("Eyebrow.TLabel", font=("Segoe UI", 9, "bold"), foreground=MUTED)
-        style.configure("TButton", padding=(12, 8), background=WHITE, bordercolor=BORDER)
-        style.map("TButton", background=[("active", "#f0f0f0")])
-        style.configure("TEntry", padding=(10, 8), fieldbackground=WHITE, borderwidth=1,
-                        lightcolor=BORDER, darkcolor=BORDER)
-        style.map("TEntry", bordercolor=[("focus", "#888888")])
-        style.configure("TCombobox", padding=(8, 7), arrowsize=12, fieldbackground=WHITE,
-                        background=WHITE, bordercolor=BORDER, lightcolor=BORDER, darkcolor=BORDER)
-        style.map("TCombobox", fieldbackground=[("readonly", WHITE)], selectbackground=[("readonly", WHITE)],
-                  selectforeground=[("readonly", INK)])
-        style.configure("TNotebook", borderwidth=0, tabmargins=(0, 0, 0, 12))
-        style.configure("TNotebook.Tab", padding=(16, 9), background=WHITE, foreground=MUTED,
-                        borderwidth=0, lightcolor=WHITE)
-        style.map("TNotebook.Tab", background=[("selected", "#efefef"), ("active", "#f7f7f7")],
-                  foreground=[("selected", INK)])
-        style.layout("Shell.TNotebook.Tab", [])
-        style.configure("Shell.TNotebook", borderwidth=0, tabmargins=0)
-        style.configure("Shell.TNotebook", bordercolor=WHITE, lightcolor=WHITE, darkcolor=WHITE)
-        style.configure("Treeview", rowheight=42, borderwidth=0, background=WHITE, fieldbackground=WHITE)
-        style.configure("Treeview.Heading", font=("Segoe UI", 9, "bold"), padding=(10, 10),
-                        relief="flat", background=SIDEBAR, foreground=MUTED)
-        style.map("Treeview", background=[("selected", "#eeeeee")], foreground=[("selected", INK)])
-        style.configure("Vertical.TScrollbar", arrowsize=10, width=10, borderwidth=0,
-                        background="#d9d9d9", troughcolor=WHITE, arrowcolor=MUTED)
-        style.configure("Horizontal.TProgressbar", background="#777777", troughcolor="#eeeeee", borderwidth=0)
-        style.configure("TLabelframe", bordercolor=BORDER, borderwidth=1)
+        from .theme import apply_theme
+        apply_theme(self.root, self.theme_name)
 
     def _button(self, parent, label, command, *, primary=False, async_action=False):
         button = RoundedButton(parent, text=label, command=command, primary=primary)
@@ -123,15 +91,14 @@ class DesktopLayout:
                             insertbackground=INK, selectbackground="#dcece6", selectforeground=INK,
                             font=("Segoe UI", 11), spacing1=3, spacing3=7, highlightthickness=1,
                             highlightbackground=BORDER, highlightcolor="#aaaaaa")
-        text.vbar.configure(width=10, relief="flat", borderwidth=0)
         return text
 
     def _page_header(self, parent, title, subtitle):
         heading = ttk.Frame(parent)
         heading.pack(fill="x", pady=(0, 22))
-        ttk.Label(heading, text=title, style="Title.TLabel").pack(anchor="w")
-        label = ttk.Label(heading, text=subtitle, style="Muted.TLabel", wraplength=850)
-        label.pack(anchor="w", pady=(6, 0))
+        SelectableLabel(heading, text=title, style="Title.TLabel").pack(fill="x")
+        label = SelectableLabel(heading, text=subtitle, style="Muted.TLabel", wraplength=850)
+        label.pack(fill="x", pady=(6, 0))
         heading.bind("<Configure>", lambda e: label.configure(wraplength=max(250, e.width - 10)))
         return heading
 
@@ -140,18 +107,18 @@ class DesktopLayout:
         self.search_after = None
         self.nav_buttons = {}
         self.job_buttons = []
-        self.sidebar = tk.Frame(self.root, background=SIDEBAR, width=206, padx=14, pady=20)
+        self.sidebar = tk.Frame(self.root, background=SIDEBAR, width=220, padx=14, pady=22)
         self.sidebar.pack(side="left", fill="y")
         self.sidebar.pack_propagate(False)
         brand = tk.Frame(self.sidebar, background=SIDEBAR)
         brand.pack(fill="x", padx=8, pady=(2, 26))
-        tk.Label(brand, text="N", font=("Segoe UI", 17, "bold"), bg=SIDEBAR, fg=INK).pack(side="left")
-        tk.Label(brand, text="Norway", font=("Segoe UI", 15, "bold"), bg=SIDEBAR, fg=INK).pack(side="left", padx=10)
-        self._button(self.sidebar, "+  Add opportunity", self._manual_vacancy).pack(fill="x", pady=(0, 26))
+        tk.Label(brand, text="n.", font=("Segoe UI", 26, "bold"), bg=SIDEBAR, fg=INK).pack(side="left")
+        tk.Label(brand, text="Norway\nJob workspace", justify="left", font=("Segoe UI", 10), bg=SIDEBAR, fg=INK).pack(side="left", padx=10)
+        self._button(self.sidebar, "+  Add opportunity", self._manual_vacancy, primary=True).pack(fill="x", pady=(0, 26))
         tk.Label(self.sidebar, text="WORKSPACE", font=("Segoe UI", 8, "bold"), bg=SIDEBAR, fg=MUTED,
                  anchor="w", padx=10).pack(fill="x", pady=(0, 9))
-        for key, icon, label in (("all", "○", "Discover"), ("foryou", "✧", "For you"),
-                                 ("saved", "♡", "Saved"), ("progress", "▤", "Applications")):
+        for key, icon, label in (("all", "◈", "Discover"), ("foryou", "✧", "For you"),
+                                 ("saved", "♡", "Saved"), ("progress", "≡", "Applications")):
             self._nav_button(key, f"{icon}   {label}", lambda k=key: self._navigate(k))
         tk.Frame(self.sidebar, bg=BORDER, height=1).pack(fill="x", padx=9, pady=21)
         self._nav_button("profile", "☷   Profile & CV", lambda: self._navigate("profile"))
@@ -162,22 +129,23 @@ class DesktopLayout:
         first_name = str(self.profile.get("name") or "Your workspace").split()[0]
         tk.Label(account, text=first_name, font=("Segoe UI", 10, "bold"), bg=SIDEBAR, fg=INK, anchor="w").pack(fill="x")
         tk.Label(account, text="Personal workspace", bg=SIDEBAR, fg=MUTED, font=("Segoe UI", 9), anchor="w").pack(fill="x", pady=(3, 16))
-        tk.Label(account, text="Ctrl K  Search\nCtrl S  Save current work", justify="left", bg=SIDEBAR,
+        tk.Label(account, text="Ctrl K  Search\nCtrl B  Hide sidebar", justify="left", bg=SIDEBAR,
                  fg=MUTED, font=("Segoe UI", 8)).pack(anchor="w")
-        main = ttk.Frame(self.root)
+        main = self.main = ttk.Frame(self.root)
         main.pack(side="left", fill="both", expand=True)
         footer = ttk.Frame(main, padding=(26, 8))
         footer.pack(side="bottom", fill="x")
         self.progress = ttk.Progressbar(footer, mode="indeterminate", length=50)
-        status = ttk.Label(footer, textvariable=self.status_message, style="Muted.TLabel", font=("Segoe UI", 9))
+        status = SelectableLabel(footer, textvariable=self.status_message, style="Muted.TLabel", font=("Segoe UI", 9))
         status.pack(side="left", fill="x", expand=True)
         footer.bind("<Configure>", lambda e: status.configure(wraplength=max(250, e.width - 120)))
+        self._appearance_toolbar(main)
         self.notebook = ttk.Notebook(main, style="Shell.TNotebook")
         self.notebook.pack(fill="both", expand=True)
-        self.vacancies_page = ttk.Frame(self.notebook, padding=(26, 24, 22, 0))
-        self.profile_page = ttk.Frame(self.notebook, padding=(32, 28, 32, 0))
-        self.settings_page = ttk.Frame(self.notebook, padding=(32, 28, 32, 0))
-        self.gmail_page = ttk.Frame(self.notebook, padding=(32, 28, 32, 0))
+        self.vacancies_page = ttk.Frame(self.notebook, padding=(26, 20, 26, 0))
+        self.profile_page = ttk.Frame(self.notebook, padding=(32, 20, 32, 0))
+        self.settings_page = ttk.Frame(self.notebook, padding=(32, 20, 32, 0))
+        self.gmail_page = ttk.Frame(self.notebook, padding=(32, 20, 32, 0))
         self.notebook.add(self.vacancies_page, text="Opportunities")
         self.notebook.add(self.profile_page, text="Profile & CV")
         self.notebook.add(self.settings_page, text="Sources & AI")
@@ -192,16 +160,13 @@ class DesktopLayout:
         self.root.bind("<Control-1>", lambda _e: self._navigate("all"))
         self.root.bind("<Control-2>", lambda _e: self._navigate("profile"))
         self.root.bind("<Control-3>", lambda _e: self._navigate("settings"))
+        self.root.bind("<Control-4>", lambda _e: self._navigate("gmail"))
         self._update_navigation()
 
     def _nav_button(self, key, text, command):
-        button = tk.Button(self.sidebar, text=text, command=command, relief="flat", borderwidth=0,
-                           bg=SIDEBAR, fg=INK, activebackground="#eaeaea", activeforeground=INK,
-                           anchor="w", padx=12, pady=11, cursor="hand2", font=("Segoe UI", 10),
-                           highlightthickness=1, highlightbackground=SIDEBAR, highlightcolor="#999999")
-        button.pack(fill="x", pady=2)
-        button.bind("<Enter>", lambda _e: button.configure(bg="#ededed"))
-        button.bind("<Leave>", lambda _e: self._update_navigation())
+        button = RoundedButton(self.sidebar, text=text, command=command, subtle=True,
+                               anchor="w", height=43, font=("Segoe UI", 10))
+        button.pack(fill="x", pady=3)
         self.nav_buttons[key] = button
 
     def _navigate(self, view):
@@ -213,7 +178,7 @@ class DesktopLayout:
             self.track_filter.set("All vacancies")
             self.status_filter.set("All statuses")
             self.notebook.select(self.vacancies_page)
-            titles = {"all": ("Discover opportunities", "Your next step in Norway, one opportunity at a time."),
+            titles = {"all": ("Discover", "Find the right next step for your skills and ambitions."),
                       "foryou": ("Picked for your profile", "Target roles and related directions worth exploring."),
                       "saved": ("Your shortlist", "The opportunities you want to come back to."),
                       "progress": ("Applications", "Keep track of preparation, applications and interviews.")}
@@ -227,8 +192,11 @@ class DesktopLayout:
         selected = self.notebook.select()
         key = "profile" if selected == str(self.profile_page) else "settings" if selected == str(self.settings_page) else "gmail" if selected == str(self.gmail_page) else self.view_filter
         for name, button in self.nav_buttons.items():
-            button.configure(bg="#e9e9e9" if name == key else SIDEBAR,
+            button.configure(selected=name == key,
                              font=("Segoe UI", 10, "bold" if name == key else "normal"))
+        labels = {"all": "Discover", "foryou": "For you", "saved": "Saved", "progress": "Applications", "profile": "Profile", "settings": "Sources & AI", "gmail": "Gmail alerts"}
+        if hasattr(self, "workspace_location"):
+            self.workspace_location.set("Workspace / " + labels.get(key, "Discover"))
 
     def _vacancies_page(self):
         header = ttk.Frame(self.vacancies_page)
@@ -236,13 +204,13 @@ class DesktopLayout:
         self._button(header, "Find opportunities", self._collect, primary=True, async_action=True).pack(side="right", padx=(14, 0))
         titles = ttk.Frame(header)
         titles.pack(side="left", fill="x", expand=True)
-        self.page_title = tk.StringVar(value="Discover opportunities")
-        self.page_subtitle = tk.StringVar(value="Your next step in Norway, one opportunity at a time.")
-        ttk.Label(titles, textvariable=self.page_title, font=("Segoe UI", 22, "bold")).pack(anchor="w")
-        subtitle = ttk.Label(titles, textvariable=self.page_subtitle, style="Muted.TLabel")
-        subtitle.pack(anchor="w", pady=(6, 0))
+        self.page_title = tk.StringVar(value="Discover")
+        self.page_subtitle = tk.StringVar(value="Find the right next step for your skills and ambitions.")
+        SelectableLabel(titles, textvariable=self.page_title, font=("Segoe UI", 26, "bold")).pack(fill="x")
+        subtitle = SelectableLabel(titles, textvariable=self.page_subtitle, style="Muted.TLabel")
+        subtitle.pack(fill="x", pady=(4, 0))
         titles.bind("<Configure>", lambda e: subtitle.configure(wraplength=max(220, e.width)))
-        split = tk.PanedWindow(self.vacancies_page, orient="horizontal", bg=WHITE, sashwidth=12,
+        split = self.opportunity_split = tk.PanedWindow(self.vacancies_page, orient="horizontal", bg=WHITE, sashwidth=12,
                               sashrelief="flat", borderwidth=0, opaqueresize=True)
         split.pack(fill="both", expand=True)
         browse = ttk.Frame(split)
@@ -251,7 +219,7 @@ class DesktopLayout:
         search_box.pack(fill="x", pady=(0, 10))
         ttk.Label(search_box, text="Search opportunities", style="Eyebrow.TLabel").pack(anchor="w", pady=(0, 6))
         self.query = tk.StringVar()
-        self.search_entry = SearchEntry(search_box, textvariable=self.query)
+        self.search_entry = SearchEntry(search_box, textvariable=self.query, placeholder="Search title, company or skill…")
         self.search_entry.pack(fill="x")
         self.search_entry.bind("<Return>", lambda _e: self._search_now())
         self.search_entry.bind("<Escape>", lambda _e: self._clear_search())
@@ -281,7 +249,7 @@ class DesktopLayout:
         self.tree.bind("<<TreeviewSelect>>", self._select_job)
         ttk.Label(browse, text="Scores reflect keyword overlap with your profile.", style="Muted.TLabel", font=("Segoe UI", 8),
                   wraplength=300).pack(anchor="w", pady=(10, 0))
-        self.detail_frame = ttk.Frame(split, padding=(20, 0, 0, 0))
+        self.detail_frame = ttk.Frame(split, padding=(18, 0, 0, 0))
         split.add(self.detail_frame, minsize=480, stretch="always")
         self.detail_empty = ttk.Frame(self.detail_frame)
         ttk.Label(self.detail_empty, text="A little closer to your next role", font=("Segoe UI", 20, "bold"),
@@ -297,16 +265,17 @@ class DesktopLayout:
         self.detail_heading = ttk.Frame(self.detail_content)
         self.detail_heading.pack(fill="x", pady=(0, 16))
         self.job_heading = tk.StringVar(value="Choose an opportunity")
-        heading = ttk.Label(self.detail_heading, textvariable=self.job_heading, font=("Segoe UI", 18, "bold"), wraplength=580)
+        heading = self.job_title_label = SelectableLabel(self.detail_heading, textvariable=self.job_heading, font=("Segoe UI", 20, "bold"), wraplength=580)
         heading.pack(anchor="w", fill="x")
         self.job_meta = tk.StringVar()
-        meta = ttk.Label(self.detail_heading, textvariable=self.job_meta, style="Muted.TLabel", wraplength=580)
-        meta.pack(anchor="w", pady=(7, 0))
+        meta = self.job_meta_label = SelectableLabel(self.detail_heading, textvariable=self.job_meta, style="Muted.TLabel", wraplength=580)
+        meta.pack(fill="x", pady=(7, 0))
         self.detail_heading.bind("<Configure>", lambda e: (heading.configure(wraplength=max(200, e.width)), meta.configure(wraplength=max(200, e.width))))
         action_row = ttk.Frame(self.detail_content)
         action_row.pack(fill="x", pady=(0, 16))
         for text, command in (("View original  ↗", lambda: self._open_job_link("source_url")),
-                               ("Application page  ↗", lambda: self._open_job_link("apply_url"))):
+                               ("Apply manually  ↗", lambda: self._open_job_link("apply_url")),
+                               ("Copy details", self._copy_opportunity)):
             button = self._button(action_row, text, command)
             button.pack(side="left", padx=(0, 8))
             self.job_buttons.append(button)

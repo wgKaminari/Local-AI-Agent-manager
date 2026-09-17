@@ -16,7 +16,7 @@ On a fresh Python installation, run `python -m pip install -r requirements.txt` 
 
 ## What works
 
-- A ChatGPT-inspired Windows workspace with a quiet sidebar, opportunity cards, focused reading and writing panes, and keyboard navigation.
+- A modern Windows workspace with light and dark themes, a collapsible sidebar, opportunity cards, selectable headings, copy menus and keyboard navigation.
 - NAV/Arbeidsplassen collection using its free experimental feed, with resumable pagination, updates and withdrawal handling.
 - Greenhouse and Lever company-board connectors; configurable location filters.
 - Individual public company job pages with `JobPosting` structured data, plus manual vacancy import for unsupported sites.
@@ -39,6 +39,10 @@ The app has no application-submission or messaging function. You open the origin
 5. Open **Cover letter → Draft with AI**, review every claim, edit the letter, and save a version or export it.
 
 Use **Ctrl K** to focus search and **Ctrl S** to save the current profile, settings, notes or cover letter. **Ctrl 1/2/3** opens opportunities, profile and settings. Use arrow keys in the opportunity list. Drag the divider to adjust the reading pane. Fields show unsaved changes; switching to another opportunity asks before replacing your edited notes or letter. If a filter hides an opportunity with unsaved edits, its editor remains open with a notice.
+
+Use **Dark mode / Light mode** in the top toolbar, or **Ctrl Shift L**, to switch appearance. **Hide sidebar / Show sidebar** or **Ctrl B** gives the reading pane more room. These preferences are saved separately in `appearance.json` in your private data folder and restored on restart; changing them keeps unsaved drafts, form edits and editor undo history. **Ctrl 4** opens Gmail alerts. **Shortcuts** or **Ctrl /** opens the keyboard guide.
+
+Page headings, job titles and employer details support mouse selection and **Ctrl C**. Right-click other labels to copy their text, or a table cell to copy the cell or selected rows. Opportunity cards support **Ctrl C** and a context menu; **Copy details** includes the original vacancy link. Text fields have Cut, Copy, Paste and Select all menus; read-only content supports copying without editing.
 
 Profile fields are grouped into **About you**, **Search preferences** and **Your CV**. Source configuration, local model setup and collection activity have their own tabs. These page changes keep form edits in memory until you save or close the app.
 
@@ -126,6 +130,7 @@ Requires Python 3.12+ with Tkinter and `pypdf` for PDF import. Gmail/OAuth, coll
 ```powershell
 python -m unittest discover -s tests -v
 python scripts/preview-ui.py
+python scripts/preview-ui.py --dark --compact
 ```
 
 Tests use temporary databases and mocked source/model responses. They cover duplicate identity, preservation of notes/status/drafts, resumable NAV state, withdrawals, source URL restrictions, local-only model checks, grounded evidence, truthful language claims and the offline workflow. The design preview opens fictional sample opportunities in a temporary workspace without changing personal data. Live collection and desktop checks are separate.

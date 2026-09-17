@@ -15,6 +15,8 @@ def main():
     with tempfile.TemporaryDirectory(prefix="norway-ui-preview-") as directory:
         data = Path(directory)
         service.initialize(data)
+        if "--dark" in sys.argv:
+            service._write_json(data / "appearance.json", {"theme": "dark", "sidebar_visible": True})
         profile = service.read_profile(data)
         profile.update(name="Alex Example", summary="AI engineer with a background in statistics and applied machine learning.",
                        target_roles=["AI Engineer", "Data Scientist", "ML Engineer"],
@@ -61,6 +63,8 @@ def main():
             app._navigate("gmail")
         if "--compact" in sys.argv:
             root.geometry("1120x720")
+        if "--collapsed" in sys.argv:
+            app._show_sidebar(False)
         if "--library" in sys.argv:
             app._navigate("settings")
             app.settings_tabs.select(3)

@@ -9,6 +9,9 @@ from __future__ import annotations
 import tkinter as tk
 from tkinter import font as tkfont
 from tkinter import ttk
+from tkinter.scrolledtext import ScrolledText
+
+from .theme import palette_for
 
 
 PAPER = "#ffffff"
@@ -16,6 +19,21 @@ INK = "#202123"
 MUTED = "#6b6b6b"
 BORDER = "#e6e6e6"
 HOVER = "#ececec"
+
+
+class ThemedScrolledText(ScrolledText):
+    """ScrolledText's complete text/geometry API with a themed scrollbar."""
+
+    def __init__(self, master=None, **kwargs):
+        super().__init__(master, **kwargs)
+        self.vbar.destroy()
+        self.vbar = ttk.Scrollbar(self.frame, orient="vertical", command=self.yview)
+        # ScrolledText.__str__ returns its outer frame, so use the actual Text
+        # widget path when ordering the new scrollbar before its packed editor.
+        self.vbar.pack(side="right", fill="y", before=self._w)
+        self.configure(yscrollcommand=self.vbar.set)
+        self.frame._theme_surface = "surface"
+        self.frame.configure(background=palette_for(self)["surface"])
 
 
 def _background(widget: tk.Misc) -> str:
@@ -44,11 +62,13 @@ class RoundedButton(tk.Canvas):
     """A compact rounded action with mouse, focus and keyboard feedback."""
 
     def __init__(self, parent, text: str, command=None, *, primary: bool = False,
-                 subtle: bool = False, **kwargs):
+                 subtle: bool = False, selected: bool = False, anchor: str = "center", **kwargs):
         self._label = text
         self._command = command
         self._primary = primary
         self._subtle = subtle
+        self._selected = selected
+        self._anchor = anchor
         self._disabled = kwargs.pop("state", "normal") == "disabled"
         self._hovered = False
         self._pressed = False
@@ -56,7 +76,7 @@ class RoundedButton(tk.Canvas):
         self._font = tkfont.Font(parent, font=kwargs.pop("font", ("Segoe UI", 10)))
         self._auto_width = "width" not in kwargs
         kwargs.setdefault("width", self._font.measure(text) + 32)
-        kwargs.setdefault("height", 38)
+        kwargs.setdefault("height", 40)
         kwargs.setdefault("background", _background(parent))
         kwargs.setdefault("highlightthickness", 0)
         kwargs.setdefault("borderwidth", 0)
@@ -150,6 +170,10 @@ class RoundedButton(tk.Canvas):
             self._primary = bool(options.pop("primary"))
         if "subtle" in options:
             self._subtle = bool(options.pop("subtle"))
+        if "selected" in options:
+            self._selected = bool(options.pop("selected"))
+        if "anchor" in options:
+            self._anchor = str(options.pop("anchor"))
         if "font" in options:
             self._font = tkfont.Font(self, font=options.pop("font"))
             if self._auto_width and "width" not in options:
@@ -169,9 +193,17 @@ class RoundedButton(tk.Canvas):
             return "disabled" if self._disabled else "normal"
         if key == "command":
             return self._command
+        if key == "selected":
+            return self._selected
+        if key == "anchor":
+            return self._anchor
         return super().cget(key)
 
     __getitem__ = cget
+
+    def apply_theme(self):
+        super().configure(background=_background(self.master))
+        self._draw()
 
     def _draw(self, _event=None):
         if not self.winfo_exists():
@@ -179,19 +211,28 @@ class RoundedButton(tk.Canvas):
         self.delete("all")
         width = max(self.winfo_width(), int(float(super().cget("width")))) if self.winfo_width() <= 1 else self.winfo_width()
         height = max(self.winfo_height(), int(float(super().cget("height")))) if self.winfo_height() <= 1 else self.winfo_height()
+        palette = palette_for(self)
         if self._disabled:
-            fill, foreground, outline = "#f1f1f1", "#999999", "#f1f1f1"
+            fill, foreground, outline = palette["disabled"], palette["disabled_text"], palette["disabled"]
         elif self._primary:
-            fill = "#414141" if self._hovered or self._pressed else "#212121"
-            foreground, outline = PAPER, fill
+            fill = palette["accent"]
+            foreground, outline = palette["accent_text"], palette["accent"]
+            if self._pressed:
+                outline = palette["text"]
+        elif self._selected:
+            fill, foreground, outline = palette["selected"], palette["text"], palette["selected"]
         else:
-            fill = HOVER if self._hovered or self._pressed else (_background(self.master) if self._subtle else PAPER)
-            foreground = INK
-            outline = fill if self._subtle else BORDER
-        _rounded(self, 2, 2, width - 2, height - 2, 13, fill=fill, outline=outline, width=1)
+            fill = palette["selected"] if self._pressed else palette["hover"] if self._hovered else (_background(self.master) if self._subtle else palette["surface"])
+            foreground = palette["text"]
+            outline = fill if self._subtle else palette["border"]
+        _rounded(self, 2, 2, width - 2, height - 2, 11, fill=fill, outline=outline, width=1)
+        if self._primary and self._hovered and not self._disabled:
+            _rounded(self, 3, 3, width - 3, height - 3, 10, fill="", outline=palette["accent_text"], width=1)
         if self._focused and not self._disabled:
-            _rounded(self, 1, 1, width - 1, height - 1, 14, fill="", outline="#777777", width=1)
-        self.create_text(width / 2, height / 2 - 1, text=self._label, font=self._font, fill=foreground)
+            _rounded(self, 0.5, 0.5, width - 0.5, height - 0.5, 12, fill="", outline=palette["accent"], width=1)
+        x = 14 if self._anchor == "w" else width - 14 if self._anchor == "e" else width / 2
+        self.create_text(x, height / 2 + (1 if self._pressed else 0), anchor=self._anchor,
+                         text=self._label, font=self._font, fill=foreground)
 
 
 class _TabButton(RoundedButton):
@@ -205,11 +246,12 @@ class _TabButton(RoundedButton):
         self.delete("all")
         width = self.winfo_width() if self.winfo_width() > 1 else int(float(super().cget("width")))
         height = self.winfo_height() if self.winfo_height() > 1 else 38
-        fill = "#eeeeee" if self.selected else ("#f6f6f6" if self._hovered else _background(self.master))
-        outline = "#929292" if self._focused else fill
-        _rounded(self, 1, 1, width - 1, height - 1, 12, fill=fill, outline=outline, width=1)
+        palette = palette_for(self)
+        fill = palette["selected"] if self.selected else (palette["hover"] if self._hovered else _background(self.master))
+        outline = palette["accent"] if self._focused else fill
+        _rounded(self, 1, 1, width - 1, height - 1, 10, fill=fill, outline=outline, width=1)
         self.create_text(width / 2, height / 2 - 1, text=self._label,
-                         font=self._font, fill=INK if self.selected else MUTED)
+                         font=self._font, fill=palette["text"] if self.selected else palette["muted"])
 
 
 class TabDeck(ttk.Frame):
@@ -224,8 +266,9 @@ class TabDeck(ttk.Frame):
         self._buttons: dict[str, _TabButton] = {}
         style = ttk.Style(self)
         style.layout("FlatDeck.TNotebook.Tab", [])
+        background = palette_for(self)["bg"]
         style.configure("FlatDeck.TNotebook", borderwidth=0, tabmargins=0,
-                        background=PAPER, bordercolor=PAPER, lightcolor=PAPER, darkcolor=PAPER)
+                        background=background, bordercolor=background, lightcolor=background, darkcolor=background)
         self._strip = ttk.Frame(self)
         self._strip.pack(fill="x", pady=(0, 12))
         self._notebook = ttk.Notebook(self, style="FlatDeck.TNotebook", takefocus=False)
@@ -282,6 +325,7 @@ class SearchEntry(tk.Canvas):
     """A rounded search field that delegates editing and key events to Entry."""
 
     def __init__(self, parent, textvariable=None, **kwargs):
+        self._placeholder = str(kwargs.pop("placeholder", ""))
         entry_font = kwargs.pop("font", ("Segoe UI", 10))
         kwargs.setdefault("background", _background(parent))
         kwargs.setdefault("height", 42)
@@ -290,15 +334,23 @@ class SearchEntry(tk.Canvas):
         kwargs.setdefault("borderwidth", 0)
         kwargs.setdefault("takefocus", False)
         super().__init__(parent, **kwargs)
-        self._entry = tk.Entry(self, textvariable=textvariable, font=entry_font,
-                               background=PAPER, foreground=INK, insertbackground=INK,
+        self._variable = textvariable if textvariable is not None else tk.StringVar(self)
+        palette = palette_for(self)
+        self._entry = tk.Entry(self, textvariable=self._variable, font=entry_font,
+                               background=palette["surface"], foreground=palette["text"], insertbackground=palette["text"],
                                relief="flat", borderwidth=0, highlightthickness=0,
-                               selectbackground="#d9e7f5", selectforeground=INK)
+                               selectbackground=palette["selection"], selectforeground=palette["text"])
         self._entry.place(x=15, y=10, relwidth=1, width=-30, relheight=1, height=-20)
+        self._placeholder_label = tk.Label(self, text=self._placeholder, font=entry_font, anchor="w",
+                                          background=palette["surface"], foreground=palette["muted"],
+                                          borderwidth=0, padx=0, pady=0, cursor="xterm")
+        self._placeholder_label._theme_surface = "surface"
+        self._placeholder_label.bind("<Button-1>", lambda _event: self._entry.focus_set())
         super().bind("<Configure>", self._draw)
         super().bind("<Button-1>", lambda _event: self._entry.focus_set())
         self._entry.bind("<FocusIn>", self._draw, add="+")
         self._entry.bind("<FocusOut>", self._draw, add="+")
+        self._variable_trace = self._variable.trace_add("write", lambda *_args: self._draw())
         self._draw()
 
     def bind(self, sequence=None, func=None, add=None):
@@ -322,22 +374,41 @@ class SearchEntry(tk.Canvas):
     def icursor(self, index):
         return self._entry.icursor(index)
 
+    def apply_theme(self):
+        palette = palette_for(self)
+        super().configure(background=_background(self.master))
+        self._entry.configure(background=palette["surface"], foreground=palette["text"],
+                              insertbackground=palette["text"], selectbackground=palette["selection"],
+                              selectforeground=palette["text"])
+        self._placeholder_label.configure(background=palette["surface"], foreground=palette["muted"])
+        self._draw()
+
     def _draw(self, _event=None):
         if not self.winfo_exists():
             return
         super().delete("search-border")
         width = self.winfo_width() if self.winfo_width() > 1 else int(float(self.cget("width")))
         height = self.winfo_height() if self.winfo_height() > 1 else int(float(self.cget("height")))
-        outline = "#929292" if self._entry.focus_get() == self._entry else BORDER
-        _rounded(self, 1, 1, width - 1, height - 1, 15, fill=PAPER, outline=outline,
+        palette = palette_for(self)
+        outline = palette["accent"] if self._entry.focus_get() == self._entry else palette["border"]
+        _rounded(self, 1, 1, width - 1, height - 1, 12, fill=palette["surface"], outline=outline,
                  width=1, tags="search-border")
+        if self._placeholder and not self._entry.get() and self._entry.focus_get() is not self._entry:
+            self._placeholder_label.place(x=15, y=10, relwidth=1, width=-30, relheight=1, height=-20)
+            self._placeholder_label.lift()
+        else:
+            self._placeholder_label.place_forget()
+
+    def destroy(self):
+        self._variable.trace_remove("write", self._variable_trace)
+        super().destroy()
 
 
 class OpportunityList(tk.Frame):
     """A scrolling, keyboard-friendly list of complete opportunity summaries."""
 
     def __init__(self, parent, **kwargs):
-        kwargs.setdefault("background", PAPER)
+        kwargs.setdefault("background", palette_for(parent)["bg"])
         super().__init__(parent, **kwargs)
         self._items: dict[str, tuple] = {}
         self._order: list[str] = []
@@ -370,7 +441,58 @@ class OpportunityList(tk.Frame):
         self._canvas.bind("<Next>", lambda _event: self._move(4))
         self._canvas.bind("<FocusIn>", self._focus_changed)
         self._canvas.bind("<FocusOut>", self._focus_changed)
+        self._canvas.bind("<Control-c>", self._copy_selected)
+        self._canvas.bind("<Control-C>", self._copy_selected)
+        self._canvas.bind("<Button-3>", self._context_menu)
+        self._canvas.bind("<Shift-F10>", self._context_menu)
         self._schedule_draw()
+
+    def apply_theme(self):
+        self.configure(background=palette_for(self)["bg"])
+        self._canvas.configure(background=palette_for(self)["bg"])
+        self._schedule_draw()
+
+    def copy_summary(self, iid=None):
+        """Copy one card without changing selection or touching an open draft."""
+        iid = str(iid) if iid is not None else self._selected
+        if iid not in self._items:
+            return "break"
+        values = self._items[iid] + ("",) * 6
+        lines = [str(value) for value in values[:3] if value]
+        if values[3] and str(values[3]) != "—":
+            lines.append(f"Keyword match: {values[3]}")
+        if values[4]:
+            lines.append(str(values[4]))
+        if values[5]:
+            lines.append("Stage: " + str(values[5]).replace("_", " "))
+        self.clipboard_clear()
+        self.clipboard_append("\n".join(lines))
+        return "break"
+
+    def _copy_selected(self, _event=None):
+        return self.copy_summary()
+
+    def _context_menu(self, event):
+        keyboard = getattr(event, "keysym", "") == "F10"
+        iid = self._selected if keyboard else self._item_at(event)
+        if iid is None:
+            return "break"
+        previous = getattr(self, "_copy_menu", None)
+        if previous is not None:
+            previous.destroy()
+        palette = palette_for(self)
+        menu = tk.Menu(self, tearoff=False, background=palette["surface"], foreground=palette["text"],
+                       activebackground=palette["selected"], activeforeground=palette["text"],
+                       relief="flat", borderwidth=0)
+        self._copy_menu = menu
+        menu.add_command(label="Copy opportunity summary", command=lambda: self.copy_summary(iid))
+        try:
+            x = self._canvas.winfo_rootx() + 24 if keyboard else event.x_root
+            y = self._canvas.winfo_rooty() + 24 if keyboard else event.y_root
+            menu.tk_popup(x, y)
+        finally:
+            menu.grab_release()
+        return "break"
 
     def get_children(self, item=None):
         return tuple(self._order) if not item else ()
@@ -522,8 +644,9 @@ class OpportunityList(tk.Frame):
         if iid not in self._backgrounds:
             return
         selected = iid == self._selected
-        fill = "#eeeeee" if selected else ("#f7f7f7" if iid == self._hovered else PAPER)
-        outline = "#bdbdbd" if selected and self._canvas.focus_get() == self._canvas else fill
+        palette = palette_for(self)
+        fill = palette["selected"] if selected else (palette["hover"] if iid == self._hovered else palette["surface"])
+        outline = palette["accent"] if selected and self._canvas.focus_get() == self._canvas else palette["border"] if selected else fill
         self._canvas.itemconfigure(self._backgrounds[iid], fill=fill, outline=outline)
 
     def _schedule_draw(self, _event=None):
@@ -537,17 +660,18 @@ class OpportunityList(tk.Frame):
         self._canvas.delete("all")
         self._bounds.clear()
         self._backgrounds.clear()
+        palette = palette_for(self)
         width = max(160, self._canvas.winfo_width())
         text_width = width - 42
         y = 7
         if not self._order:
             y = max(52, self._canvas.winfo_height() * 0.22)
             item = self._canvas.create_text(width / 2, y, text=self._empty[0], anchor="n",
-                                           width=text_width, justify="center", fill=INK,
+                                           width=text_width, justify="center", fill=palette["text"],
                                            font=("Segoe UI", 13, "bold"))
             bottom = self._canvas.bbox(item)[3]
             item = self._canvas.create_text(width / 2, bottom + 12, text=self._empty[1], anchor="n",
-                                           width=text_width, justify="center", fill=MUTED,
+                                           width=text_width, justify="center", fill=palette["muted"],
                                            font=("Segoe UI", 10))
             self._canvas.configure(scrollregion=(0, 0, width, self._canvas.bbox(item)[3] + 30))
             return
@@ -555,34 +679,34 @@ class OpportunityList(tk.Frame):
             values = self._items[iid] + ("",) * 6
             title, company, location, score, track, status = (str(value) if value is not None else "" for value in values[:6])
             top = y
-            heading = self._canvas.create_text(21, y + 15, anchor="nw", width=text_width,
-                                               text=title or "Untitled opportunity", fill=INK,
+            heading = self._canvas.create_text(21, y + 13, anchor="nw", width=text_width,
+                                               text=title or "Untitled opportunity", fill=palette["text"],
                                                font=("Segoe UI", 11, "bold"))
-            y = self._canvas.bbox(heading)[3] + 7
+            y = self._canvas.bbox(heading)[3] + 5
             company_line = company or "Company not specified"
             item = self._canvas.create_text(21, y, anchor="nw", width=text_width,
-                                           text=company_line, fill="#4e4e4e", font=("Segoe UI", 10))
+                                           text=company_line, fill=palette["text"], font=("Segoe UI", 10))
             y = self._canvas.bbox(item)[3] + 3
             if location:
                 item = self._canvas.create_text(21, y, anchor="nw", width=text_width,
-                                               text=location, fill=MUTED, font=("Segoe UI", 9))
-                y = self._canvas.bbox(item)[3] + 8
+                                               text=location, fill=palette["muted"], font=("Segoe UI", 9))
+                y = self._canvas.bbox(item)[3] + 7
             else:
                 y += 5
             match = f"{score} keyword match" if score and score != "—" else "Match not available"
             info = "  ·  ".join(part for part in (match, track) if part)
             item = self._canvas.create_text(21, y, anchor="nw", width=text_width,
-                                           text=info, fill=MUTED, font=("Segoe UI", 9))
-            y = self._canvas.bbox(item)[3] + 8
+                                           text=info, fill=palette["muted"], font=("Segoe UI", 9))
+            y = self._canvas.bbox(item)[3] + 5
             if status and status.lower() != "new":
                 item = self._canvas.create_text(21, y, anchor="nw", width=text_width,
                                                text=status.replace("_", " ").capitalize(),
-                                               fill="#37765c", font=("Segoe UI", 9, "bold"))
+                                               fill=palette["success"], font=("Segoe UI", 9, "bold"))
                 y = self._canvas.bbox(item)[3] + 7
             bottom = y + 9
             self._bounds[iid] = (top, bottom)
             self._backgrounds[iid] = _rounded(self._canvas, 5, top, width - 5, bottom,
-                                              13, fill=PAPER, outline=PAPER, width=1)
+                                              11, fill=palette["surface"], outline=palette["surface"], width=1)
             self._canvas.tag_lower(self._backgrounds[iid])
             self._paint_card(iid)
             y = bottom + 7

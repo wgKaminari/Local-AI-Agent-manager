@@ -14,12 +14,15 @@ import tkinter as tk
 import webbrowser
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
-from tkinter.scrolledtext import ScrolledText
+from .ui_components import ThemedScrolledText as ScrolledText
 from urllib.parse import urlsplit
 
 from . import service
 from .desktop_layout import DesktopLayout, ScrollForm as _ScrollForm
 from .desktop_connections import ConnectionPages
+from .desktop_appearance import AppearanceControls
+from .theme import palette_for
+from .text_interactions import install_text_actions
 
 
 STATUSES = ("new", "saved", "preparing", "ready", "applied", "interview", "rejected", "archived")
@@ -82,7 +85,7 @@ def _format_report(report: dict) -> str:
     return "\n".join(rows)
 
 
-class Desktop(DesktopLayout, ConnectionPages):
+class Desktop(DesktopLayout, ConnectionPages, AppearanceControls):
     def __init__(self, root: tk.Tk, data_dir: Path):
         self.root = root
         self.data_dir = data_dir
@@ -101,6 +104,7 @@ class Desktop(DesktopLayout, ConnectionPages):
         self.jobs: dict[int, dict] = {}
         self.fields: dict[str, tk.Text | tk.StringVar] = {}
         self.status_message = tk.StringVar(value="Your workspace is ready.")
+        self._load_appearance()
         self._style()
         self._build()
         self._fill_profile(self.profile)
@@ -112,6 +116,7 @@ class Desktop(DesktopLayout, ConnectionPages):
             except (OSError, ValueError):
                 pass
         self._refresh_jobs()
+        self._finish_appearance()
         self.root.protocol("WM_DELETE_WINDOW", self._close)
         self.root.after(100, self._poll)
         self.root.after(500, self._sync_ui_state)
@@ -842,13 +847,14 @@ class Desktop(DesktopLayout, ConnectionPages):
         actual_width = min(width, self.root.winfo_screenwidth() - 80)
         actual_height = min(height, self.root.winfo_screenheight() - 100)
         dialog.geometry(f"{actual_width}x{actual_height}")
-        dialog.configure(background="white")
+        dialog.configure(background=palette_for(self.root)["bg"])
         x = max(0, self.root.winfo_rootx() + (self.root.winfo_width() - actual_width) // 2)
         y = max(0, self.root.winfo_rooty() + (self.root.winfo_height() - actual_height) // 2)
         dialog.geometry(f"+{x}+{y}")
         dialog.minsize(min(480, actual_width), min(320, actual_height))
         dialog.grab_set()
         dialog.bind("<Escape>", lambda _event: dialog.destroy())
+        dialog.after_idle(lambda: install_text_actions(dialog) if dialog.winfo_exists() else None)
         return dialog
 
     def _close(self):

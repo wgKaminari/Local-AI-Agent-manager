@@ -1,0 +1,15 @@
+---
+description: Commit and push significant completed project updates
+alwaysApply: true
+---
+
+# Git updates
+
+- The user authorizes creating commits and pushing to the configured GitHub remote after significant completed project updates, without asking again each time.
+- Significant updates include completed features, meaningful bug fixes, and substantial improvements. Group related changes into coherent commits; avoid commits for every small edit.
+- Run checks appropriate to the change and inspect the staged diff before committing. Use descriptive messages explaining the actual update.
+- Stage only the intended changes. Keep CVs, personal profiles, databases, emails, credentials, tokens, and other private data out of Git.
+- Respect unrelated user changes. Never overwrite remote history or force-push without explicit authorization.
+- Use the current branch and its configured upstream. If the destination is missing or ambiguous, resolve it with the user before pushing.
+- Report the commit and whether the push succeeded. If authentication or another error blocks the push, preserve the local commit and explain the remaining step.
+- A later explicit request to leave work uncommitted or unpushed overrides this default.
