@@ -1,0 +1,322 @@
+arbeidsplassen	NAV Arbeidsplassen	job_board	general norway	https://arbeidsplassen.nav.no/stillinger
+finn	FINN Jobb	job_board	general norway	https://www.finn.no/job/search
+webcruiter	Webcruiter	job_board	general public-sector norway	https://candidate.webcruiter.com/nb-no/Home/alladverts#search
+jobbnorge	Jobbnorge	job_board	research public-sector norway	https://www.jobbnorge.no/search/en
+linkedin	LinkedIn Jobs	job_board	professional job-alerts	https://www.linkedin.com/jobs/
+indeed	Indeed Norway	job_board	general norway	https://no.indeed.com/
+the-hub	The Hub	job_board	startups nordics technology	https://thehub.io/jobs
+teknojobb	Teknojobb	job_board	technology engineering norway	https://www.teknojobb.no/
+kode24-jobb	Kode24 jobs	job_board	software technology norway	https://www.kode24.no/jobb
+tu-jobb	TU Jobb	job_board	engineering technology norway	https://www.tu.no/jobb
+academic-positions	Academic Positions	job_board	research academic norway	https://academicpositions.com/jobs/country/norway
+euraxess	EURAXESS Jobs	job_board	research fellowships europe	https://euraxess.ec.europa.eu/jobs
+eures	EURES	job_board	general europe mobility	https://eures.europa.eu/jobseekers_en
+jobbsafari	Jobbsafari Norway	job_board	general norway	https://www.jobbsafari.no/
+careerjet	Careerjet Norway	job_board	general norway	https://www.careerjet.no/
+jobbi	Jobbi	job_board	general norway	https://www.jobbi.no/
+medrec	Medrec	job_board	health norway	https://www.medrec.no/
+karriere-start	KarriereStart	job_board	graduate internships norway	https://karrierestart.no/
+graduateland	Graduateland	job_board	graduate internships europe	https://graduateland.com/
+european-job-days	European Job Days	job_board	events mobility europe	https://europeanjobdays.eu/en/events
+work-in-norway	Work in Norway	job_board	guidance mobility norway	https://www.workinnorway.no/
+oslo-business-region	Oslo Business Region	job_board	startups ecosystem oslo	https://oslobusinessregion.no/
+equinor	Equinor	employer	energy engineering data	https://www.equinor.com/careers
+dnv	DNV	employer	engineering data research	https://jobs.dnv.com/
+tieto	Tieto	employer	consulting technology data	https://careers.tieto.com/
+google	Google	employer	ai software cloud	https://www.google.com/about/careers/applications/
+autostore	AutoStore	employer	robotics software engineering	https://www.autostoresystem.com/careers
+cognite	Cognite	employer	ai data industrial-software	https://www.cognite.com/en/company/careers
+bekk	Bekk	employer	consulting software data	https://jobs.lever.co/bekk
+netlight	Netlight	employer	consulting software	https://jobs.lever.co/netlight
+crayon	Crayon	employer	cloud data ai	https://job-boards.greenhouse.io/crayon
+sopra-steria	Sopra Steria	employer	consulting data ai	https://careers.soprasteria.no/jobs
+bouvet	Bouvet	employer	consulting data software	https://www.bouvet.no/ledige-stillinger
+statkraft	Statkraft	employer	energy trading data	https://www.statkraft.com/careers/
+tomra	TOMRA	employer	robotics machine-learning recycling	https://www.tomra.com/careers
+kongsberg	KONGSBERG	employer	engineering robotics software	https://www.kongsberg.com/careers/
+aker-solutions	Aker Solutions	employer	energy engineering	https://www.akersolutions.com/careers/
+telenor	Telenor	employer	telecom data ai	https://www.telenor.com/career/open-positions/
+telenor-cyberdefence	Telenor Cyberdefence	employer	cybersecurity technology	https://jobs.telenorcyberdefence.com/jobs
+storebrand	Storebrand	employer	finance insurance data	https://www.storebrand.no/om-storebrand/jobb-i-storebrand
+dnb	DNB	employer	finance data ai	https://www.dnb.no/om-oss/jobb-og-karriere
+nordea	Nordea	employer	finance data technology	https://www.nordea.com/en/careers
+capgemini	Capgemini	employer	consulting data ai	https://www.capgemini.com/no-no/careers/
+accenture	Accenture	employer	consulting data ai	https://www.accenture.com/no-en/careers
+microsoft	Microsoft	employer	software ai cloud	https://careers.microsoft.com/
+schibsted	Schibsted	employer	media software data	https://schibsted.com/career/
+statnett	Statnett	employer	energy infrastructure data	https://www.statnett.no/karriere/
+sintef	SINTEF	research	research mathematics ai	https://www.sintef.no/en/sintef-group/career/vacant-positions/
+ntnu	NTNU	research	university phd mathematics ai	https://www.ntnu.edu/vacancies
+remarkable	reMarkable	employer	software hardware machine-learning	https://jobs.remarkable.com/
+oda	Oda	employer	logistics data software	https://careers.oda.com/
+kahoot	Kahoot!	employer	edtech software data	https://kahoot.com/jobs/
+opera	Opera	employer	software ai browsers	https://jobs.opera.com/
+vipps-mobilepay	Vipps MobilePay	employer	fintech software data	https://vippsmobilepay.com/en/careers
+visma	Visma	employer	software data cloud	https://www.visma.com/careers
+tripletex	Tripletex	employer	software finance	https://www.tripletex.no/karriere/
+fiken	Fiken	employer	software finance	https://fiken.no/jobb
+poweroffice	PowerOffice	employer	software finance	https://www.poweroffice.no/karriere/
+xledger	Xledger	employer	software finance cloud	https://xledger.com/no/karriere/
+24sevenoffice	24SevenOffice	employer	software finance ai	https://24sevenoffice.com/no/karriere
+tripadvisor	Tripadvisor	employer	travel software data	https://careers.tripadvisor.com/
+amazon	Amazon / AWS	employer	cloud ai software	https://www.amazon.jobs/en/locations/norway
+ibm	IBM	employer	consulting ai cloud	https://www.ibm.com/careers
+oracle	Oracle	employer	cloud data software	https://www.oracle.com/careers/
+cisco	Cisco	employer	networking software cybersecurity	https://jobs.cisco.com/
+salesforce	Salesforce	employer	cloud ai software	https://careers.salesforce.com/
+sap	SAP	employer	software consulting data	https://jobs.sap.com/
+spotify	Spotify	employer	media machine-learning software	https://www.lifeatspotify.com/jobs
+siemens	Siemens	employer	engineering ai industrial	https://www.siemens.com/no/no/selskap/jobb-og-karriere.html
+abb	ABB	employer	robotics engineering automation	https://careers.abb/global/en
+ericsson	Ericsson	employer	telecom software research	https://www.ericsson.com/en/careers
+nokia	Nokia	employer	telecom software research	https://www.nokia.com/about-us/careers/
+nordic-semiconductor	Nordic Semiconductor	employer	semiconductors embedded ai	https://www.nordicsemi.com/About-us/Career
+silicon-labs	Silicon Labs	employer	semiconductors embedded software	https://www.silabs.com/about-us/careers
+arm	Arm	employer	semiconductors machine-learning software	https://careers.arm.com/
+texas-instruments	Texas Instruments	employer	semiconductors engineering	https://careers.ti.com/
+microchip	Microchip Technology	employer	semiconductors embedded software	https://www.microchip.com/en-us/about/careers
+nordic-vlsi	Nordic VLSI / Novelda	employer	sensors engineering embedded	https://novelda.com/careers/
+elliptic-labs	Elliptic Labs	employer	machine-learning sensors software	https://ellipticlabs.com/careers/
+disruptive-technologies	Disruptive Technologies	employer	iot sensors software	https://www.disruptive-technologies.com/careers
+airthings	Airthings	employer	iot sensors data	https://www.airthings.com/careers
+easee	Easee	employer	energy software embedded	https://easee.com/en/careers/
+zaptec	Zaptec	employer	energy embedded software	https://zaptec.com/careers/
+tibber	Tibber	employer	energy data software	https://jobs.tibber.com/
+fjordkraft	Fjordkraft	employer	energy analytics	https://www.fjordkraft.no/om-fjordkraft/jobb-hos-oss/
+volue	Volue	employer	energy data software	https://careers.volue.com/
+gelato	Gelato	employer	software logistics data	https://www.gelato.com/careers
+sanity	Sanity	employer	software data content	https://www.sanity.io/careers
+superside	Superside	employer	ai design software	https://www.superside.com/careers
+pexip	Pexip	employer	software video machine-learning	https://www.pexip.com/careers
+neat	Neat	employer	software hardware video	https://neat.no/careers/
+whereby	Whereby	employer	software video	https://whereby.com/information/careers/
+simula	Simula Research Laboratory	research	ai mathematics software	https://www.simula.no/careers
+simula-met	SimulaMet	research	ai networks research	https://www.simulamet.no/careers
+spacemaker	Autodesk Norway	employer	ai architecture software	https://www.autodesk.com/careers
+spoor	Spoor	employer	computer-vision ai environment	https://spoor.ai/careers
+heimdall-power	Heimdall Power	employer	energy sensors analytics	https://heimdallpower.com/careers/
+sensio	Sensio	employer	healthtech software	https://www.sensio.io/careers
+aidn	Aidn	employer	healthtech software data	https://aidn.no/karriere
+noisolation	No Isolation	employer	robotics edtech software	https://www.noisolation.com/careers
+nofence	Nofence	employer	agritech embedded data	https://careers.nofence.no/
+halodi	1X Technologies	employer	robotics ai software	https://www.1x.tech/careers
+wheel-me	wheel.me	employer	robotics software	https://www.wheel.me/careers
+zivid	Zivid	employer	computer-vision robotics	https://www.zivid.com/careers
+bitreactive	Bitreactive	employer	iot software	https://www.bitreactive.com/
+arundo	Arundo Analytics	employer	industrial ai data	https://www.arundo.com/careers
+presight	Presight Solutions	employer	data software energy	https://www.presight.com/career/
+databutton	Databutton	employer	ai software startups	https://databutton.com/
+boost-ai	boost.ai	employer	ai conversational software	https://boost.ai/careers/
+boost-innovation	Boost Innovation	employer	ai software	https://boost.ai/
+iris-ai	Iris.ai	employer	ai research nlp	https://iris.ai/careers/
+lingu	Lingu	employer	edtech ai languages	https://lingu.no/karriere
+kantega	Kantega	employer	consulting ai software	https://www.kantega.no/jobb
+knowit	Knowit	employer	consulting data ai	https://www.knowit.no/karriere/
+itera	Itera	employer	consulting data ai	https://www.itera.com/en/join-us
+twoday	twoday	employer	consulting data ai	https://www.twoday.no/karriere
+webstep	Webstep	employer	consulting data software	https://www.webstep.no/karriere/
+miles	Miles	employer	consulting software data	https://www.miles.no/karriere/
+variant	Variant	employer	consulting software design	https://www.variant.no/jobb
+computas	Computas	employer	consulting ai cloud	https://computas.com/karriere/
+itera-norway	Itera Norway opportunities	opportunity	consulting graduate norway	https://www.itera.com/no/karriere
+netcompany	Netcompany	employer	consulting software	https://netcompany.com/careers/
+cegal	Cegal	employer	energy data cloud	https://www.cegal.com/en/careers
+ate a	Atea	employer	cloud infrastructure consulting	https://www.atea.no/karriere/
+advania	Advania	employer	cloud infrastructure consulting	https://www.advania.no/karriere
+intility	Intility	employer	cloud infrastructure software	https://intility.no/karriere/
+evidi	Evidi	employer	cloud data consulting	https://www.evidi.com/karriere
+aventia	Avanade	employer	consulting ai cloud	https://www.avanade.com/en/career
+orange-business	Orange Business	employer	cloud data telecom	https://www.orange-business.com/en/careers
+orange-cyberdefense	Orange Cyberdefense	employer	cybersecurity software	https://jobs.orangecyberdefense.com/
+mnemonic	mnemonic	employer	cybersecurity software ai	https://www.mnemonic.io/company/careers/
+defendable	Defendable	employer	cybersecurity consulting	https://defendable.no/karriere/
+conscia	Conscia Norway	employer	cybersecurity infrastructure	https://conscia.com/no/karriere/
+sysco	Sopra Steria / SYSCO	employer	energy cloud consulting	https://www.sysco.no/karriere
+capra	Capra Consulting	employer	software cloud consulting	https://www.capraconsulting.no/karriere
+blank	Blank	employer	software design consulting	https://blank.no/jobb
+fremtind	Fremtind	employer	insurance analytics data	https://www.fremtind.no/karriere/
+gjensidige	Gjensidige	employer	insurance data analytics	https://www.gjensidige.no/karriere
+if-insurance	If Insurance	employer	insurance data analytics	https://www.if.no/om-if/jobbe-hos-oss
+tryg	Tryg	employer	insurance data analytics	https://www.tryg.no/om-tryg/jobbe-i-tryg
+eika	Eika Gruppen	employer	finance data software	https://www.eika.no/om-eika/karriere
+sparebank1-utvikling	SpareBank 1 Utvikling	employer	finance software data	https://www.sparebank1.no/nb/bank/om-oss/jobb-i-sparebank-1.html
+sparebank1-smn	SpareBank 1 SMN	employer	finance analytics trondheim	https://www.sparebank1.no/nb/smn/om-oss/karriere.html
+sparebank1-sor-norge	SpareBank 1 Sør-Norge	employer	finance analytics stavanger	https://www.sparebank1.no/nb/sor-norge/om-oss/karriere.html
+sparebanken-vest	Sparebanken Norge	employer	finance data bergen	https://www.spv.no/om-oss/jobb-hos-oss
+handelsbanken	Handelsbanken Norway	employer	finance analytics	https://www.handelsbanken.no/no/om-oss/jobb-og-karriere
+seb	SEB	employer	finance analytics technology	https://sebgroup.com/career
+danske-bank	Danske Bank	employer	finance data technology	https://danskebank.com/careers
+norges-bank	Norges Bank	employer	finance economics statistics	https://www.norges-bank.no/en/about/careers/
+nbim	Norges Bank Investment Management	employer	finance quant data	https://www.nbim.no/en/organisation/career/
+kommunalbanken	Kommunalbanken	employer	finance analytics sustainability	https://www.kbn.com/om-oss/karriere/
+nets	Nexi / Nets	employer	fintech payments data	https://www.nets.eu/careers
+klarna	Klarna	employer	fintech ai software	https://www.klarna.com/careers/
+foleon	Folio	employer	fintech software oslo	https://folio.no/jobb
+deloitte	Deloitte Norway	employer	consulting data analytics	https://www.deloitte.com/no/no/careers.html
+pwc	PwC Norway	employer	consulting data analytics	https://www.pwc.no/no/karriere.html
+ey	EY Norway	employer	consulting data ai	https://www.ey.com/no_no/careers
+kpmg	KPMG Norway	employer	consulting data ai	https://kpmg.com/no/nb/karriere.html
+bcg	Boston Consulting Group	employer	consulting data ai	https://careers.bcg.com/
+mckinsey	McKinsey & Company	employer	consulting data ai	https://www.mckinsey.com/careers
+bain	Bain & Company	employer	consulting data analytics	https://www.bain.com/careers/
+implement	Implement Consulting Group	employer	consulting data analytics	https://implementconsultinggroup.com/career
+bearingpoint	BearingPoint Norway	employer	consulting data ai	https://www.bearingpoint.com/en-no/careers/
+hydro	Norsk Hydro	employer	industry engineering data	https://www.hydro.com/en/global/careers/
+yara	Yara	employer	agriculture data engineering	https://www.yara.com/careers/
+elkem	Elkem	employer	industry engineering data	https://www.elkem.com/careers/
+borregaard	Borregaard	employer	industry engineering research	https://www.borregaard.com/careers/
+aker-bp	Aker BP	employer	energy data engineering	https://akerbp.com/en/career/
+var-energi	Vår Energi	employer	energy engineering data	https://varenergi.no/careers/
+okea	OKEA	employer	energy engineering	https://www.okea.no/careers/
+aker	Aker	employer	industry energy technology	https://www.akerasa.com/en/career
+akershorizon	Aker Horizons	employer	energy sustainability	https://akerhorizons.com/careers/
+aker-carbon	SLB Capturi	employer	energy carbon-capture engineering	https://www.slbcapturi.com/careers
+slb	SLB	employer	energy data ai	https://careers.slb.com/
+halliburton	Halliburton	employer	energy engineering data	https://jobs.halliburton.com/
+baker-hughes	Baker Hughes	employer	energy engineering software	https://careers.bakerhughes.com/global/en
+technipfmc	TechnipFMC	employer	energy engineering software	https://careers.technipfmc.com/
+subsea7	Subsea7	employer	energy engineering software	https://www.subsea7.com/en/careers.html
+deepocean	DeepOcean	employer	maritime robotics engineering	https://www.deepoceangroup.com/careers
+oceaneering	Oceaneering	employer	robotics engineering subsea	https://careers.oceaneering.com/
+nammo	Nammo	employer	engineering defence	https://www.nammo.com/careers/
+thales	Thales	employer	cybersecurity engineering software	https://careers.thalesgroup.com/global/en
+ksat	KSAT	employer	space software data	https://www.ksat.no/careers/
+space-norway	Space Norway	employer	space telecom engineering	https://spacenorway.com/careers/
+andoya-space	Andøya Space	employer	space engineering data	https://andoyaspace.no/career/
+kongsberg-digital	Kongsberg Digital	employer	software data digital-twins	https://www.kongsbergdigital.com/careers
+marlink	Marlink	employer	telecom cybersecurity maritime	https://marlink.com/careers/
+wilh-wilhelmsen	Wilhelmsen	employer	maritime data logistics	https://www.wilhelmsen.com/careers/
+wallenius-wilhelmsen	Wallenius Wilhelmsen	employer	logistics maritime data	https://www.walleniuswilhelmsen.com/careers
+dnv-imatis	DNV Imatis	employer	healthtech software	https://dnvimatis.com/careers/
+akers-biomarine	Aker BioMarine	employer	biotech engineering data	https://www.akerbiomarine.com/careers
+mowi	Mowi	employer	aquaculture data engineering	https://mowi.com/people/career/
+salmar	SalMar	employer	aquaculture data engineering	https://www.salmar.no/en/career/
+leroy	Lerøy Seafood	employer	aquaculture logistics data	https://www.leroyseafood.com/en/career/
+cermaq	Cermaq	employer	aquaculture research data	https://www.cermaq.com/careers
+akva-group	AKVA group	employer	aquaculture software engineering	https://www.akvagroup.com/careers/
+scaleaq	ScaleAQ	employer	aquaculture software engineering	https://scaleaq.com/careers/
+orkla	Orkla	employer	consumer analytics supply-chain	https://www.orkla.com/career/
+tine	TINE	employer	food data supply-chain	https://www.tine.no/jobb-i-tine
+nortura	Nortura	employer	food data supply-chain	https://www.nortura.no/karriere
+norgesgruppen	NorgesGruppen	employer	retail analytics logistics	https://www.norgesgruppen.no/karriere/
+coop	Coop Norway	employer	retail data software	https://www.coop.no/jobb-i-coop
+reitan-retail	Reitan Retail	employer	retail data logistics	https://www.reitanretail.no/karriere
+elkjop	Elkjøp Nordic	employer	retail technology analytics	https://www.elkjop.no/om-elkjop/jobb-hos-oss
+komplett	Komplett	employer	ecommerce technology data	https://www.komplettgroup.com/career/
+posten-bring	Posten Bring	employer	logistics data software	https://www.postenbring.no/jobb-og-karriere
+postnord	PostNord Norway	employer	logistics analytics	https://www.postnord.no/om-oss/jobb-og-karriere/
+vy	Vy	employer	transport data software	https://www.vy.no/vygruppen/karriere
+entur	Entur	employer	transport data software	https://entur.no/om-entur/karriere/
+ruter	Ruter	employer	transport data software	https://ruter.no/om-ruter/jobb-i-ruter/
+bane-nor	Bane NOR	employer	transport infrastructure engineering	https://www.banenor.no/karriere/
+avinor	Avinor	employer	aviation engineering data	https://avinor.no/konsern/jobb/
+norwegian	Norwegian Air Shuttle	employer	aviation data technology	https://careers.norwegian.com/
+wideroe	Widerøe	employer	aviation data technology	https://www.wideroe.no/om-selskapet/jobb-i-wideroe
+hurtigruten	Hurtigruten	employer	travel maritime analytics	https://www.hurtigruten.com/en/careers
+norconsult	Norconsult	employer	engineering data consulting	https://norconsult.no/karriere/
+multiconsult	Multiconsult	employer	engineering data consulting	https://www.multiconsult.no/karriere/
+cowi	COWI	employer	engineering data consulting	https://www.cowi.com/careers
+ramboll	Ramboll	employer	engineering data consulting	https://www.ramboll.com/careers
+sweco	Sweco Norway	employer	engineering data consulting	https://www.sweco.no/karriere/
+asplan-viak	Asplan Viak	employer	engineering data consulting	https://www.asplanviak.no/jobb-hos-oss/
+af-gruppen	AF Gruppen	employer	construction data engineering	https://www.afgruppen.no/karriere/
+veidekke	Veidekke	employer	construction engineering analytics	https://www.veidekke.no/jobb-og-karriere/
+skanska	Skanska Norway	employer	construction engineering analytics	https://www.skanska.no/hvem-vi-er/karriere/
+uio	University of Oslo	research	university phd mathematics ai	https://www.uio.no/english/about/vacancies/
+uib	University of Bergen	research	university phd mathematics ai	https://www.uib.no/en/about/84777/vacant-positions-uib
+uit	UiT The Arctic University of Norway	research	university phd mathematics ai	https://uit.no/om/enhet/artikkel?p_document_id=680056
+uis	University of Stavanger	research	university phd mathematics data	https://www.uis.no/en/about-uis/vacancies-at-uis
+uia	University of Agder	research	university phd ai engineering	https://www.uia.no/english/about-uia/working-at-uia/vacancies/
+nmbu	Norwegian University of Life Sciences	research	university phd statistics data	https://www.nmbu.no/en/about/vacancies
+oslomet	OsloMet	research	university phd ai data	https://www.oslomet.no/en/work
+usn	University of South-Eastern Norway	research	university phd ai engineering	https://www.usn.no/english/about/vacancies/
+nord	Nord University	research	university phd data	https://www.nord.no/en/about/job-vacancies
+inn	University of Inland Norway	research	university phd data	https://www.inn.no/english/about-inn-university/vacancies/
+hvl	Western Norway University of Applied Sciences	research	university phd engineering	https://www.hvl.no/en/about/vacancies/
+nhh	Norwegian School of Economics	research	university economics statistics finance	https://www.nhh.no/en/about-nhh/vacant-positions/
+bi	BI Norwegian Business School	research	university finance data economics	https://www.bi.edu/about-bi/vacancies/
+himolde	Molde University College	research	university logistics statistics	https://www.himolde.no/english/about/vacancies/
+hiof	Østfold University College	research	university ai data	https://www.hiof.no/english/about/vacancies/
+university-svalbard	University Centre in Svalbard	research	university research arctic	https://www.unis.no/about-unis/vacancies/
+ffi	Norwegian Defence Research Establishment	research	research ai mathematics	https://www.ffi.no/karriere
+norsk-regnesentral	Norwegian Computing Center	research	research statistics ai mathematics	https://nr.no/en/career/
+ife	Institute for Energy Technology	research	research energy data	https://ife.no/en/career/
+norcer	NORCE	research	research ai climate	https://www.norceresearch.no/en/careers
+niva	Norwegian Institute for Water Research	research	research environment statistics	https://www.niva.no/en/career
+nilu	NILU	research	research environment data	https://nilu.com/vacancies/
+met-institute	Norwegian Meteorological Institute	research	research modelling data climate	https://www.met.no/om-oss/jobbe-pa-met
+imr	Institute of Marine Research	research	research statistics marine	https://www.hi.no/en/hi/about-us/vacancies
+nofima	Nofima	research	research food data	https://nofima.com/career/
+nibio	NIBIO	research	research agriculture statistics	https://www.nibio.no/en/about-eng/vacancies
+nina	Norwegian Institute for Nature Research	research	research environment data	https://www.nina.no/english/About-NINA/Vacancies
+fridtjof-nansen	Fridtjof Nansen Institute	research	research environment politics	https://www.fni.no/about/vacancies/
+peace-research	PRIO	research	research statistics politics	https://www.prio.org/about/careers
+ssb	Statistics Norway	research	statistics economics data	https://www.ssb.no/omssb/jobb-i-ssb
+norges-forskningsrad	Research Council of Norway	public_sector	research funding analytics	https://www.forskningsradet.no/om-oss/jobbe-hos-oss/
+nav	NAV	public_sector	software data welfare	https://www.nav.no/jobb
+skatteetaten	Norwegian Tax Administration	public_sector	data ai software	https://www.skatteetaten.no/jobb/
+digdir	Norwegian Digitalisation Agency	public_sector	software data government	https://www.digdir.no/om-oss/jobbe-i-digdir/709
+politiet	Norwegian Police	public_sector	cybersecurity analytics government	https://www.politiet.no/om-politiet/jobb-i-politiet/
+pst	Norwegian Police Security Service	public_sector	cybersecurity analytics government	https://www.pst.no/jobb-og-karriere/
+nsmy	Norwegian National Security Authority	public_sector	cybersecurity government	https://nsm.no/om-oss/jobb-i-nsm/
+forsvaret	Norwegian Armed Forces	public_sector	engineering software government	https://www.forsvaret.no/jobb
+kartverket	Norwegian Mapping Authority	public_sector	geospatial data software	https://www.kartverket.no/om-kartverket/jobb-hos-oss
+vegvesen	Norwegian Public Roads Administration	public_sector	transport data software	https://www.vegvesen.no/om-oss/jobb/
+tolletaten	Norwegian Customs	public_sector	data analytics government	https://www.toll.no/no/om-tolletaten/jobb-i-tolletaten/
+brreg	Brønnøysund Register Centre	public_sector	data software government	https://www.brreg.no/om-oss/jobb-hos-oss/
+udi	Norwegian Directorate of Immigration	public_sector	data government	https://www.udi.no/om-udi/jobb-og-karriere/
+bufdir	Norwegian Directorate for Children Youth and Family Affairs	public_sector	statistics government	https://www.bufdir.no/om/jobb/
+fhi	Norwegian Institute of Public Health	public_sector	statistics data epidemiology	https://www.fhi.no/om/jobb-i-folkehelseinstituttet/
+helsedirektoratet	Norwegian Directorate of Health	public_sector	health data statistics	https://www.helsedirektoratet.no/om-oss/jobb-hos-oss
+nhn	Norwegian Health Network	public_sector	healthtech cybersecurity software	https://www.nhn.no/om-oss/jobb-hos-oss
+sykehuspartner	Sykehuspartner	public_sector	healthtech data software	https://www.sykehuspartner.no/jobb-hos-oss/
+ous	Oslo University Hospital	public_sector	health research data	https://www.oslo-universitetssykehus.no/om-oss/jobb-og-utdanning/
+helse-vest-ikt	Helse Vest IKT	public_sector	healthtech data software	https://www.helse-vest-ikt.no/jobb-hos-oss/
+helse-midt-it	Hemit	public_sector	healthtech data software	https://www.hemit.no/jobb-hos-oss/
+helse-nord-ikt	Helse Nord IKT	public_sector	healthtech data software	https://www.helse-nord-ikt.no/jobb-hos-oss/
+oslo-kommune	Oslo Municipality	public_sector	government data oslo	https://www.oslo.kommune.no/jobb-i-oslo-kommune/
+bergen-kommune	Bergen Municipality	public_sector	government data bergen	https://www.bergen.kommune.no/jobb
+trondheim-kommune	Trondheim Municipality	public_sector	government data trondheim	https://www.trondheim.kommune.no/jobb/
+stavanger-kommune	Stavanger Municipality	public_sector	government data stavanger	https://www.stavanger.kommune.no/jobb-og-karriere/
+nrk	NRK	employer	media software data	https://www.nrk.no/karriere/
+tv2	TV 2	employer	media software data	https://www.tv2.no/om-oss/jobb-i-tv-2/
+polaris-media	Polaris Media	employer	media data software	https://www.polarismedia.no/karriere/
+amedia	Amedia	employer	media data software	https://www.amedia.no/karriere
+vend	Vend	employer	marketplaces software ai	https://vend.com/career/
+academic-work	Academic Work Norway	recruiter	graduate technology norway	https://www.academicwork.no/ledige-stillinger
+randstad	Randstad Norway	recruiter	general technology norway	https://www.randstad.no/jobb/
+adecco	Adecco Norway	recruiter	general technology norway	https://www.adecco.com/nb-no/for-jobbsoker
+manpower	Manpower Norway	recruiter	general technology norway	https://www.manpower.no/en
+experis	Experis Norway	recruiter	technology data consulting	https://www.experis.no/
+dfind	Dfind Norway	recruiter	technology data finance	https://www.dfind.no/
+jefferson-wells	Jefferson Wells Norway	recruiter	engineering finance technology	https://www.jeffersonwells.no/
+headvisor	Headvisor	recruiter	professional norway	https://www.headvisor.no/ledige-stillinger
+capus	Capus	recruiter	professional technology norway	https://capus.no/ledige-stillinger/
+folk	Folk	recruiter	engineering technology norway	https://www.folk.no/ledige-stillinger/
+nes-advantage	NES Advantage	recruiter	engineering energy norway	https://www.nesadvantage.com/jobs/
+nes-fircroft	NES Fircroft	recruiter	engineering energy norway	https://www.nesfircroft.com/job-search/
+techconsult	Techconsult	recruiter	engineering technology norway	https://www.techconsult.no/ledige-stillinger/
+akkodis	Akkodis Norway	recruiter	engineering data technology	https://www.akkodis.com/nb-no/careers
+academic-search	Academic Search Norway	recruiter	professional graduate norway	https://www.academicsearch.no/
+hammer-hanborg	Hammer & Hanborg	recruiter	professional digital norway	https://hammerhanborg.com/
+hartmark	Hartmark Executive Search	recruiter	professional norway	https://www.hartmark.no/
+dreamwork	Dreamwork	recruiter	professional technology norway	https://www.dreamwork.no/ledige-stillinger
+amby	Amby	recruiter	technology startups norway	https://www.amby.com/careers
+talentech	Talentech	employer	hrtech software data	https://talentech.com/en/careers/
+equinor-graduate	Equinor graduate programme	opportunity	graduate energy data	https://www.equinor.com/careers/graduates
+equinor-internship	Equinor summer internship	opportunity	internships energy data	https://www.equinor.com/careers/summer-internship
+visma-programmes	Visma graduate and internship programmes	opportunity	graduate internships software	https://www.visma.com/careers/our-programs
+dnv-students	DNV students and graduates	opportunity	graduate internships engineering	https://www.dnv.com/careers/students-and-graduates/
+iaeste	IAESTE Norway	opportunity	internships engineering students	https://iaeste.no/
+erasmus-intern	ErasmusIntern	opportunity	internships students europe	https://erasmusintern.org/
+aiesec	AIESEC opportunities	opportunity	internships graduate international	https://aiesec.org/
+trainee-innlandet	Trainee Innlandet	opportunity	graduate trainee norway	https://traineeinnlandet.no/
+trainee-trondelag	Trainee Trøndelag	opportunity	graduate trainee norway	https://traineetrondelag.no/
+trainee-vest	Trainee Vest	opportunity	graduate trainee bergen	https://traineevest.no/
+trainee-sor	Trainee Sør	opportunity	graduate trainee agder	https://traineesor.no/
+trainee-nord	Trainee Nord	opportunity	graduate trainee nordland	https://traineenord.no/
+trainee-salten	Trainee Salten	opportunity	graduate trainee nordland	https://traineesalten.no/
+trainee-vestland	Framtidsfylket	job_board	graduate trainee vestland	https://www.framtidsfylket.no/
+startup-lab	Startuplab	opportunity	startups technology norway	https://startuplab.no/
+mesh-community	Mesh Community	opportunity	startups technology nordics	https://meshcommunity.com/
+oslo-science-park	Oslo Science Park	opportunity	startups research technology	https://www.forskningsparken.no/

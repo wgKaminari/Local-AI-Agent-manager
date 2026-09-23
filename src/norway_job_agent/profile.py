@@ -3,12 +3,43 @@
 import hashlib
 import json
 import re
+import unicodedata
 from datetime import date
 from pathlib import Path
 
 
 LIST_FIELDS = ("target_roles", "related_roles", "skills", "preferred_locations", "excluded_keywords", "evidence")
 TEXT_FIELDS = ("name", "summary", "work_authorization", "cv_text", "cover_letter_language")
+
+# Equivalent job-title spellings, not an inference that the candidate has these
+# qualifications. Unrelated disciplines must still be explicitly configured.
+_ROLE_ALIASES = (
+    ("data scientist", "dataviter"),
+    ("ai engineer", "artificial intelligence engineer", "ki ingeniør", "ki ingeniør", "ki utvikler"),
+    ("machine learning engineer", "ml engineer", "maskinlæringsingeniør", "maskinlærings ingeniør"),
+    ("data engineer", "dataingeniør", "data ingeniør"),
+    ("data analyst", "dataanalytiker", "data analytiker"),
+    ("mathematician", "matematiker"),
+    ("statistician", "statistiker"),
+)
+
+
+def _role_text(value: str) -> str:
+    value = unicodedata.normalize("NFKC", value).casefold()
+    # Employers mix hyphens (including Unicode dashes), spaces and line breaks.
+    # Keep +/# intact so language and specialist titles do not become broader.
+    return " ".join(re.sub(r"[-‐‑‒–—_]+", " ", value).split())
+
+
+def role_matches(title: str, role: str) -> bool:
+    """Match a configured title or an explicit equivalent, with word boundaries."""
+    normalized_title, normalized_role = _role_text(title), _role_text(role)
+    if contains_phrase(normalized_title, normalized_role):
+        return True
+    for aliases in _ROLE_ALIASES:
+        if normalized_role in aliases:
+            return any(contains_phrase(normalized_title, alias) for alias in aliases)
+    return False
 
 
 def load_profile(path: str | Path) -> dict:
@@ -50,11 +81,11 @@ def match_job(job: dict, profile: dict, today: date | None = None) -> dict:
     location = str(job.get("location", ""))
     body = "\n".join(str(job.get(key, "")) for key in ("title", "company", "location", "description"))
     configured = []
-    matched_roles = [x for x in profile.get("target_roles", []) if contains_phrase(title, x)]
+    matched_roles = [x for x in profile.get("target_roles", []) if role_matches(title, x)]
     broad_topics = {"artificial intelligence", "data science", "maskinlæring", "kunstig intelligens"}
     technical_title = re.search(r"engineer|ingeniør|scientist|forsker|research|utvikler|developer|matemati|mathemati", title, re.IGNORECASE)
     matched_roles = [role for role in matched_roles if role.casefold() not in broad_topics or technical_title]
-    related_roles = [x for x in profile.get("related_roles", []) if contains_phrase(title, x)]
+    related_roles = [x for x in profile.get("related_roles", []) if role_matches(title, x)]
     research_labels = {"phd", "stipendiat", "research assistant", "research scientist", "research engineer"}
     research_overlap = any(term in body.casefold() for term in ("mathemat", "matemat", "statistic", "statistikk", "data science", "machine learning", "maskinlæring", "quantitative", "reinforcement learning", "kunstig intelligens"))
     # Broad academic titles alone should not recommend an unrelated discipline.
