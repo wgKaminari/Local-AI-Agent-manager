@@ -1,0 +1,606 @@
+[
+  {
+    "id": "us-usajobs",
+    "name": "USAJOBS",
+    "url": "https://www.usajobs.gov/",
+    "careers_url": "https://www.usajobs.gov/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "public employment service",
+    "access_mode": "manual",
+    "source": null,
+    "note": "Federal government vacancies. Review each announcement's eligibility, citizenship and application requirements. Agency questionnaires and submission remain on the original website.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.usajobs.gov/"
+      ],
+      "detail": "Official website reviewed for source identity and scope. Curated coverage shortlist, not a traffic ranking. Automatic collection is not configured."
+    }
+  },
+  {
+    "id": "us-careeronestop",
+    "name": "CareerOneStop Job Finder",
+    "url": "https://www.careeronestop.org/JobSearch/FindJobs/find-jobs.aspx",
+    "careers_url": "https://www.careeronestop.org/JobSearch/FindJobs/find-jobs.aspx",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "public employment service",
+    "access_mode": "manual",
+    "source": null,
+    "note": "Government-recommended entry point for private-sector and local job searches. Official USAGov link confirmed; direct automated access returned 403 during research. Use the browser.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_link_reviewed",
+      "evidence_urls": [
+        "https://www.careeronestop.org/JobSearch/FindJobs/find-jobs.aspx",
+        "https://www.usa.gov/job-help"
+      ],
+      "detail": "USAGov links directly to this CareerOneStop job-search URL. Direct page access returned HTTP 403; this entry is manual."
+    }
+  },
+  {
+    "id": "us-indeed",
+    "name": "Indeed USA",
+    "url": "https://www.indeed.com/",
+    "careers_url": "https://www.indeed.com/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "general job board",
+    "access_mode": "manual",
+    "source": null,
+    "note": "Broad employer and aggregator coverage. The site may select a locale from your location; choose United States and your target city. Browser search and email/manual import only.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.indeed.com/",
+        "https://www.indeed.com/worldwide"
+      ],
+      "detail": "Indeed official worldwide directory confirms the USA and Germany editions. US homepage geolocated to another locale in the research browser; use country selection. Manual access only."
+    }
+  },
+  {
+    "id": "us-linkedin",
+    "name": "LinkedIn Jobs USA",
+    "url": "https://www.linkedin.com/jobs/search/?location=United%20States",
+    "careers_url": "https://www.linkedin.com/jobs/search/?location=United%20States",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "professional network",
+    "access_mode": "manual",
+    "source": null,
+    "note": "Broad professional listings and employer pages. Account-specific search and application flows remain on LinkedIn; import selected vacancies or job alerts.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.linkedin.com/jobs/search/?location=United%20States"
+      ],
+      "detail": "Official website reviewed for source identity and scope. Curated coverage shortlist, not a traffic ranking. Automatic collection is not configured."
+    }
+  },
+  {
+    "id": "us-ziprecruiter",
+    "name": "ZipRecruiter",
+    "url": "https://www.ziprecruiter.com/",
+    "careers_url": "https://www.ziprecruiter.com/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "general job board",
+    "access_mode": "manual",
+    "source": null,
+    "note": "Broad US listings across occupations. Open the board, configure location and role filters, and import selected jobs or alert emails.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.ziprecruiter.com/"
+      ],
+      "detail": "Official website reviewed for source identity and scope. Curated coverage shortlist, not a traffic ranking. Automatic collection is not configured."
+    }
+  },
+  {
+    "id": "us-glassdoor",
+    "name": "Glassdoor Jobs",
+    "url": "https://www.glassdoor.com/Job/index.htm",
+    "careers_url": "https://www.glassdoor.com/Job/index.htm",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "general job board",
+    "access_mode": "manual",
+    "source": null,
+    "note": "Job search alongside employer research. Login and country settings may affect results; use browser search and manual import.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.glassdoor.com/Job/index.htm"
+      ],
+      "detail": "Official website reviewed for source identity and scope. Curated coverage shortlist, not a traffic ranking. Automatic collection is not configured."
+    }
+  },
+  {
+    "id": "us-dice",
+    "name": "Dice",
+    "url": "https://www.dice.com/",
+    "careers_url": "https://www.dice.com/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "category": "technology job board",
+    "access_mode": "manual",
+    "source": null,
+    "note": "US technology and engineering discovery, including contract roles. Inspect employment type and work location for each listing.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.dice.com/"
+      ],
+      "detail": "Official website reviewed for source identity and scope. Curated coverage shortlist, not a traffic ranking. Automatic collection is not configured."
+    }
+  },
+  {
+    "id": "us-builtin",
+    "name": "Built In",
+    "url": "https://builtin.com/jobs",
+    "careers_url": "https://builtin.com/jobs",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "category": "technology job board",
+    "access_mode": "manual",
+    "source": null,
+    "note": "Technology and startup roles with US city and remote filters. Remote does not establish eligibility to work from another country.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://builtin.com/jobs"
+      ],
+      "detail": "Official website reviewed for source identity and scope. Curated coverage shortlist, not a traffic ranking. Automatic collection is not configured."
+    }
+  },
+  {
+    "id": "us-wellfound",
+    "name": "Wellfound",
+    "url": "https://wellfound.com/jobs",
+    "careers_url": "https://wellfound.com/jobs",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "startup job board",
+    "access_mode": "manual",
+    "source": null,
+    "note": "Startup roles including remote opportunities. Set USA/location preferences and verify each employer's hiring geography.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://wellfound.com/jobs"
+      ],
+      "detail": "Official website reviewed for source identity and scope. Curated coverage shortlist, not a traffic ranking. Automatic collection is not configured."
+    }
+  },
+  {
+    "id": "us-idealist",
+    "name": "Idealist",
+    "url": "https://www.idealist.org/en/jobs",
+    "careers_url": "https://www.idealist.org/en/jobs",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "nonprofit job board",
+    "access_mode": "manual",
+    "source": null,
+    "note": "Nonprofit and social-impact opportunities. Filter to the United States; other countries and non-job opportunities also appear on this platform.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.idealist.org/en/jobs"
+      ],
+      "detail": "Official website reviewed for source identity and scope. Curated coverage shortlist, not a traffic ranking. Automatic collection is not configured."
+    }
+  },
+  {
+    "id": "us-insidehighered",
+    "name": "Inside Higher Ed Careers",
+    "url": "https://careers.insidehighered.com/",
+    "careers_url": "https://careers.insidehighered.com/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "academic job board",
+    "access_mode": "manual",
+    "source": null,
+    "note": "Faculty, university administration and campus technology roles. Check location, qualification requirements and closing dates.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.insidehighered.com/"
+      ],
+      "detail": "Official website reviewed for source identity and scope. Curated coverage shortlist, not a traffic ranking. Automatic collection is not configured."
+    }
+  },
+  {
+    "id": "us-monster",
+    "name": "Monster",
+    "url": "https://www.monster.com/",
+    "careers_url": "https://www.monster.com/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "general job board",
+    "access_mode": "manual",
+    "source": null,
+    "note": "Additional general US job discovery. Use manual search/import and deduplicate against company sites and other boards.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.monster.com/"
+      ],
+      "detail": "Official website reviewed for source identity and scope. Curated coverage shortlist, not a traffic ranking. Automatic collection is not configured."
+    }
+  },
+  {
+    "id": "us-simplyhired",
+    "name": "SimplyHired",
+    "url": "https://www.simplyhired.com/",
+    "careers_url": "https://www.simplyhired.com/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "job aggregator",
+    "access_mode": "manual",
+    "source": null,
+    "note": "Additional US aggregate coverage. Follow the original employer application route and deduplicate repeated listings.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.simplyhired.com/"
+      ],
+      "detail": "Official website reviewed for source identity and scope. Curated coverage shortlist, not a traffic ranking. Automatic collection is not configured."
+    }
+  },
+  {
+    "id": "de-arbeitsagentur",
+    "name": "Bundesagentur fuer Arbeit Jobsuche",
+    "url": "https://www.arbeitsagentur.de/jobsuche/",
+    "careers_url": "https://www.arbeitsagentur.de/jobsuche/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "public employment service",
+    "access_mode": "manual",
+    "source": null,
+    "note": "Nationwide job and apprenticeship search with occupation, place and radius filters. No unofficial API is enabled; search in the browser or import a vacancy.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.arbeitsagentur.de/jobsuche/"
+      ],
+      "detail": "Official website reviewed for source identity and scope. Curated coverage shortlist, not a traffic ranking. Automatic collection is not configured."
+    }
+  },
+  {
+    "id": "de-stepstone",
+    "name": "Stepstone Germany",
+    "url": "https://www.stepstone.de/",
+    "careers_url": "https://www.stepstone.de/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "general job board",
+    "access_mode": "manual",
+    "source": null,
+    "note": "Broad German professional and skilled-job coverage. Role/location filters and job alerts can supply manual imports.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.stepstone.de/"
+      ],
+      "detail": "Official website reviewed for source identity and scope. Curated coverage shortlist, not a traffic ranking. Automatic collection is not configured."
+    }
+  },
+  {
+    "id": "de-indeed",
+    "name": "Indeed Germany",
+    "url": "https://de.indeed.com/",
+    "careers_url": "https://de.indeed.com/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "general job board",
+    "access_mode": "manual",
+    "source": null,
+    "note": "Broad German listings across occupations. Set a city or region and check the original employer page for duplicates and changes.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://de.indeed.com/",
+        "https://www.indeed.com/worldwide"
+      ],
+      "detail": "Indeed official worldwide directory confirms the USA and Germany editions. US homepage geolocated to another locale in the research browser; use country selection. Manual access only."
+    }
+  },
+  {
+    "id": "de-linkedin",
+    "name": "LinkedIn Jobs Germany",
+    "url": "https://www.linkedin.com/jobs/search/?location=Germany",
+    "careers_url": "https://www.linkedin.com/jobs/search/?location=Germany",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "professional network",
+    "access_mode": "manual",
+    "source": null,
+    "note": "Professional and international-company roles in Germany. German and English searches can return different results; account/application flows stay on LinkedIn.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.linkedin.com/jobs/search/?location=Germany"
+      ],
+      "detail": "Official website reviewed for source identity and scope. Curated coverage shortlist, not a traffic ranking. Automatic collection is not configured."
+    }
+  },
+  {
+    "id": "de-xing",
+    "name": "XING Jobs",
+    "url": "https://www.xing.com/jobs",
+    "careers_url": "https://www.xing.com/jobs",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "professional network",
+    "access_mode": "manual",
+    "source": null,
+    "note": "German-speaking professional network and job search. The jobs route currently redirects to the XING search landing page; profile features require an account.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.xing.com/jobs"
+      ],
+      "detail": "Official website reviewed for source identity and scope. Curated coverage shortlist, not a traffic ranking. Automatic collection is not configured."
+    }
+  },
+  {
+    "id": "de-make-it-in-germany",
+    "name": "Make it in Germany Job Listings",
+    "url": "https://www.make-it-in-germany.com/en/working-in-germany/job-listings",
+    "careers_url": "https://www.make-it-in-germany.com/en/working-in-germany/job-listings",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "public employment service",
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official international-recruitment portal with German job listings. Being listed here does not establish an applicant's visa or language eligibility.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.make-it-in-germany.com/en/working-in-germany/job-listings"
+      ],
+      "detail": "Official website reviewed for source identity and scope. Curated coverage shortlist, not a traffic ranking. Automatic collection is not configured."
+    }
+  },
+  {
+    "id": "de-interamt",
+    "name": "INTERAMT",
+    "url": "https://interamt.de/",
+    "careers_url": "https://interamt.de/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "public-sector job board",
+    "access_mode": "manual",
+    "source": null,
+    "note": "Public administration and public-service vacancies. Official indexed page reviewed; the research browser encountered a redirect loop. Use browser access or selected vacancy import.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_index_reviewed",
+      "evidence_urls": [
+        "https://interamt.de/"
+      ],
+      "detail": "Official indexed INTERAMT page confirms public-service vacancy search. Direct research-browser navigation hit a redirect limit. Manual access only."
+    }
+  },
+  {
+    "id": "de-service-bund",
+    "name": "service.bund.de Stellenangebote",
+    "url": "https://www.service.bund.de/Content/DE/Stellen/Suche/Formular.html",
+    "careers_url": "https://www.service.bund.de/Content/DE/Stellen/Suche/Formular.html",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "public-sector job board",
+    "access_mode": "manual",
+    "source": null,
+    "note": "Federal and other public-sector vacancy notices. Official publisher information reviewed; direct research fetch returned 403. Follow the recruiting organisation's instructions.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_index_reviewed",
+      "evidence_urls": [
+        "https://www.service.bund.de/Content/DE/Stellen/Suche/Formular.html",
+        "https://www.service.bund.de/Content/DE/Service/Stelleninfos/stelleninfos_node.html"
+      ],
+      "detail": "Official publisher information confirms the job-listing service; the search URL returned HTTP 403 to the research browser. Manual access only."
+    }
+  },
+  {
+    "id": "de-stellenanzeigen",
+    "name": "stellenanzeigen.de",
+    "url": "https://www.stellenanzeigen.de/",
+    "careers_url": "https://www.stellenanzeigen.de/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "general job board",
+    "access_mode": "manual",
+    "source": null,
+    "note": "German vacancies across occupations and regions; useful alongside the large general boards. Browser search and manual/email import.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.stellenanzeigen.de/"
+      ],
+      "detail": "Official website reviewed for source identity and scope. Curated coverage shortlist, not a traffic ranking. Automatic collection is not configured."
+    }
+  },
+  {
+    "id": "de-jobware",
+    "name": "Jobware",
+    "url": "https://www.jobware.de/",
+    "careers_url": "https://www.jobware.de/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "general job board",
+    "access_mode": "manual",
+    "source": null,
+    "note": "German professional and specialist roles with regional search. Use the original vacancy for application requirements.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.jobware.de/"
+      ],
+      "detail": "Official website reviewed for source identity and scope. Curated coverage shortlist, not a traffic ranking. Automatic collection is not configured."
+    }
+  },
+  {
+    "id": "de-heise",
+    "name": "heise jobs",
+    "url": "https://jobs.heise.de/",
+    "careers_url": "https://jobs.heise.de/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "category": "technology job board",
+    "access_mode": "manual",
+    "source": null,
+    "note": "German IT and technology opportunities, including early-career and specialist roles. Search by technology or job title and location.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://jobs.heise.de/"
+      ],
+      "detail": "Official website reviewed for source identity and scope. Curated coverage shortlist, not a traffic ranking. Automatic collection is not configured."
+    }
+  },
+  {
+    "id": "de-academics",
+    "name": "academics",
+    "url": "https://www.academics.de/",
+    "careers_url": "https://www.academics.de/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "academic job board",
+    "access_mode": "manual",
+    "source": null,
+    "note": "Research, science, university and public-interest roles. Review qualifications and whether the position is fixed-term.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.academics.de/"
+      ],
+      "detail": "Official website reviewed for source identity and scope. Curated coverage shortlist, not a traffic ranking. Automatic collection is not configured."
+    }
+  }
+]

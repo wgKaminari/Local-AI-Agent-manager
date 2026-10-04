@@ -1,0 +1,4358 @@
+[
+  {
+    "id": "us-abbvie",
+    "name": "AbbVie",
+    "careers_url": "https://careers.abbvie.com/en",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "pharmaceuticals"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.abbvie.com/en"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.abbvie.com/en\", \"title\": \"Difference makers wanted | AbbVie\"}"
+    }
+  },
+  {
+    "id": "us-accenture",
+    "name": "Accenture",
+    "careers_url": "https://www.accenture.com/us-en/careers",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "consulting"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.accenture.com/us-en/careers"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.accenture.com/us-en/careers\", \"title\": \"Accenture Careers & Job Opportunities\"}"
+    }
+  },
+  {
+    "id": "de-adidas",
+    "name": "adidas",
+    "careers_url": "https://careers.adidas-group.com/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "consumer goods"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.adidas-group.com/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.adidas-group.com/\", \"title\": \"adidas Careers – Through sport, we have the power to change lives.\"}"
+    }
+  },
+  {
+    "id": "us-adobe",
+    "name": "Adobe",
+    "careers_url": "https://careers.adobe.com/us/en",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.adobe.com/us/en"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.adobe.com/us/en\", \"title\": \"Careers at Adobe | Adobe job opportunities.\"}"
+    }
+  },
+  {
+    "id": "de-airbus-germany",
+    "name": "Airbus Germany",
+    "careers_url": "https://www.airbus.com/en/careers",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "aerospace"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.airbus.com/en/careers"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.airbus.com/en/careers\", \"title\": \"Careers | Airbus\"}"
+    }
+  },
+  {
+    "id": "de-aldi-nord",
+    "name": "ALDI Nord",
+    "careers_url": "https://www.aldi-nord.de/karriere.html",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "retail"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.aldi-nord.de/karriere.html"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.aldi-nord.de/karriere.html\", \"title\": \"ALDI Karriere: Jobs bei ALDI Nord\"}"
+    }
+  },
+  {
+    "id": "de-aldi-sued",
+    "name": "ALDI SUED",
+    "careers_url": "https://karriere.aldi-sued.de/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "retail"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://karriere.aldi-sued.de/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://karriere.aldi-sued.de/\", \"title\": \"Karriere bei ALDI SÜD\"}"
+    }
+  },
+  {
+    "id": "us-amazon",
+    "name": "Amazon",
+    "careers_url": "https://www.amazon.jobs/en/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "retail and technology"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.amazon.jobs/en/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.amazon.jobs/en/\", \"title\": \"Amazon Careers: Impact the Future, Today\"}"
+    }
+  },
+  {
+    "id": "us-amd",
+    "name": "AMD",
+    "careers_url": "https://careers.amd.com/careers-home/jobs",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "semiconductors"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.amd.com/",
+        "https://careers.amd.com/careers-home/jobs"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.amd.com/careers-home/jobs\", \"title\": \"AMD Jobs and Career Opportunities | Search Open Roles\"}"
+    }
+  },
+  {
+    "id": "us-american-express",
+    "name": "American Express",
+    "careers_url": "https://www.americanexpress.com/en-us/careers/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "financial services"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.americanexpress.com/en-us/careers/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.americanexpress.com/en-us/careers/\", \"title\": \"American Express Careers & Job Openings | Amex Careers US\"}"
+    }
+  },
+  {
+    "id": "us-amgen",
+    "name": "Amgen",
+    "careers_url": "https://careers.amgen.com/en",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "biotechnology"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.amgen.com/en"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.amgen.com/en\", \"title\": \"Discover Amgen and Search Our Jobs and Careers in Biotechnology\"}"
+    }
+  },
+  {
+    "id": "us-apple",
+    "name": "Apple",
+    "careers_url": "https://www.apple.com/careers/us/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.apple.com/careers/us/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.apple.com/careers/us/\", \"title\": \"Apple Roles and Opportunities - Careers at Apple\"}"
+    }
+  },
+  {
+    "id": "ats-asana",
+    "name": "Asana",
+    "careers_url": "https://job-boards.greenhouse.io/asana",
+    "countries": [
+      "US",
+      "DE"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "name": "Asana",
+      "board": "asana",
+      "countries": [
+        "US",
+        "DE"
+      ],
+      "locations": [
+        "United States",
+        "United States of America",
+        "USA",
+        "U.S.A.",
+        "U.S.",
+        "New York",
+        "San Francisco",
+        "Seattle",
+        "Boston",
+        "Chicago",
+        "Austin",
+        "Los Angeles",
+        "San Diego",
+        "Washington, DC",
+        "Washington D.C.",
+        "Mountain View",
+        "Palo Alto",
+        "San Jose",
+        "Sunnyvale",
+        "Atlanta",
+        "Dallas",
+        "Houston",
+        "Denver",
+        "California",
+        "Massachusetts",
+        "Texas",
+        "Germany",
+        "Deutschland",
+        "Berlin",
+        "Munich",
+        "München",
+        "Hamburg",
+        "Frankfurt",
+        "Cologne",
+        "Köln",
+        "Düsseldorf",
+        "Dusseldorf",
+        "Stuttgart",
+        "Dresden",
+        "Leipzig",
+        "Bonn",
+        "Karlsruhe",
+        "Darmstadt",
+        "Walldorf",
+        "Erlangen",
+        "Nuremberg",
+        "Nürnberg"
+      ]
+    },
+    "note": "Public Greenhouse feed checked with the existing application collector. Collection is filtered to the selected country; generic remote locations may need manual review. Job counts change and do not establish work eligibility.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/asana",
+        "https://boards-api.greenhouse.io/v1/boards/asana",
+        "https://boards-api.greenhouse.io/v1/boards/asana/jobs?content=true"
+      ],
+      "detail": "{\"collector\": \"fetch_greenhouse\", \"total_jobs\": 97, \"country_location_matches\": {\"US\": 49, \"DE\": 2}}"
+    }
+  },
+  {
+    "id": "us-at-t",
+    "name": "AT&T",
+    "careers_url": "https://www.att.jobs/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "telecommunications"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.att.jobs/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.att.jobs/\", \"title\": \"AT&T Careers: Shape the future of connectivity\"}"
+    }
+  },
+  {
+    "id": "de-audi",
+    "name": "Audi",
+    "careers_url": "https://www.audi.com/de/karriere-bei-audidriven-by-tech-driven-by-people-17124",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "automotive"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.audi.com/de/careers/",
+        "https://www.audi.com/de/karriere-bei-audidriven-by-tech-driven-by-people-17124"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.audi.com/de/karriere-bei-audidriven-by-tech-driven-by-people-17124\", \"title\": \"Karriere bei Audi Driven by tech. Driven by people. | audi.com\"}"
+    }
+  },
+  {
+    "id": "us-bank-of-america",
+    "name": "Bank of America",
+    "careers_url": "https://careers.bankofamerica.com/en-us",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "financial services"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.bankofamerica.com/en-us"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.bankofamerica.com/en-us\", \"title\": \"Bank of America Careers Site - Apply at Bank of America\"}"
+    }
+  },
+  {
+    "id": "de-basf",
+    "name": "BASF",
+    "careers_url": "https://www.basf.com/global/en/careers",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "chemicals"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.basf.com/global/en/careers"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.basf.com/global/en/careers\", \"title\": \"Careers at BASF | Jobs worldwide\"}"
+    }
+  },
+  {
+    "id": "de-bechtle",
+    "name": "Bechtle",
+    "careers_url": "https://www.bechtle.com/de-en/career",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.bechtle.com/de-en/career"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.bechtle.com/de-en/career\", \"title\": \"Careers at Bechtle\"}"
+    }
+  },
+  {
+    "id": "de-beiersdorf",
+    "name": "Beiersdorf",
+    "careers_url": "https://www.beiersdorf.com/career/overview",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "consumer goods"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.beiersdorf.com/career",
+        "https://www.beiersdorf.com/career/overview"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.beiersdorf.com/career/overview\", \"title\": \"Overview | Career - Beiersdorf\"}"
+    }
+  },
+  {
+    "id": "us-boeing",
+    "name": "Boeing",
+    "careers_url": "https://jobs.boeing.com/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "aerospace"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://jobs.boeing.com/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://jobs.boeing.com/\", \"title\": \"Explore new horizons with Boeing\"}"
+    }
+  },
+  {
+    "id": "de-bosch",
+    "name": "Bosch",
+    "careers_url": "https://www.bosch.de/karriere/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "manufacturing and technology"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.bosch.de/karriere/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.bosch.de/karriere/\", \"title\": \"Karriere | Bosch in Deutschland\"}"
+    }
+  },
+  {
+    "id": "us-capital-one",
+    "name": "Capital One",
+    "careers_url": "https://www.capitalonecareers.com/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "financial services"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.capitalonecareers.com/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.capitalonecareers.com/\", \"title\": \"Search Jobs and Careers at Capital One\"}"
+    }
+  },
+  {
+    "id": "us-caterpillar",
+    "name": "Caterpillar",
+    "careers_url": "https://careers.caterpillar.com/en/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "manufacturing"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.caterpillar.com/en/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.caterpillar.com/en/\", \"title\": \"Do The Work That Matters | Caterpillar Careers\"}"
+    }
+  },
+  {
+    "id": "us-chevron",
+    "name": "Chevron",
+    "careers_url": "https://careers.chevron.com/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "energy"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.chevron.com/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.chevron.com/\", \"title\": \"Working at Chevron | Home\"}"
+    }
+  },
+  {
+    "id": "us-cisco",
+    "name": "Cisco",
+    "careers_url": "https://careers.cisco.com/global/en",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://jobs.cisco.com/",
+        "https://careers.cisco.com/global/en"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.cisco.com/global/en\", \"title\": \"Careers at Cisco\"}"
+    }
+  },
+  {
+    "id": "us-citigroup",
+    "name": "Citigroup",
+    "careers_url": "https://jobs.citi.com/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "financial services"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://jobs.citi.com/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://jobs.citi.com/\", \"title\": \"Citi Careers | Find Your Next Opportunity\"}"
+    }
+  },
+  {
+    "id": "ats-cockroachlabs",
+    "name": "Cockroach Labs",
+    "careers_url": "https://job-boards.greenhouse.io/cockroachlabs",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "name": "Cockroach Labs",
+      "board": "cockroachlabs",
+      "countries": [
+        "US"
+      ],
+      "locations": [
+        "United States",
+        "United States of America",
+        "USA",
+        "U.S.A.",
+        "U.S.",
+        "New York",
+        "San Francisco",
+        "Seattle",
+        "Boston",
+        "Chicago",
+        "Austin",
+        "Los Angeles",
+        "San Diego",
+        "Washington, DC",
+        "Washington D.C.",
+        "Mountain View",
+        "Palo Alto",
+        "San Jose",
+        "Sunnyvale",
+        "Atlanta",
+        "Dallas",
+        "Houston",
+        "Denver",
+        "California",
+        "Massachusetts",
+        "Texas"
+      ]
+    },
+    "note": "Public Greenhouse feed checked with the existing application collector. Collection is filtered to the selected country; generic remote locations may need manual review. Job counts change and do not establish work eligibility.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/cockroachlabs",
+        "https://boards-api.greenhouse.io/v1/boards/cockroachlabs",
+        "https://boards-api.greenhouse.io/v1/boards/cockroachlabs/jobs?content=true"
+      ],
+      "detail": "{\"collector\": \"fetch_greenhouse\", \"total_jobs\": 19, \"country_location_matches\": {\"US\": 13, \"DE\": 0}}"
+    }
+  },
+  {
+    "id": "us-comcast",
+    "name": "Comcast",
+    "careers_url": "https://jobs.comcast.com/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "telecommunications"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://jobs.comcast.com/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://jobs.comcast.com/\", \"title\": \"Explore Comcast Global Media and Technology Jobs and Careers\"}"
+    }
+  },
+  {
+    "id": "ats-commercetools",
+    "name": "commercetools",
+    "careers_url": "https://job-boards.greenhouse.io/commercetools",
+    "countries": [
+      "US",
+      "DE"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "name": "commercetools",
+      "board": "commercetools",
+      "countries": [
+        "US",
+        "DE"
+      ],
+      "locations": [
+        "United States",
+        "United States of America",
+        "USA",
+        "U.S.A.",
+        "U.S.",
+        "New York",
+        "San Francisco",
+        "Seattle",
+        "Boston",
+        "Chicago",
+        "Austin",
+        "Los Angeles",
+        "San Diego",
+        "Washington, DC",
+        "Washington D.C.",
+        "Mountain View",
+        "Palo Alto",
+        "San Jose",
+        "Sunnyvale",
+        "Atlanta",
+        "Dallas",
+        "Houston",
+        "Denver",
+        "California",
+        "Massachusetts",
+        "Texas",
+        "Germany",
+        "Deutschland",
+        "Berlin",
+        "Munich",
+        "München",
+        "Hamburg",
+        "Frankfurt",
+        "Cologne",
+        "Köln",
+        "Düsseldorf",
+        "Dusseldorf",
+        "Stuttgart",
+        "Dresden",
+        "Leipzig",
+        "Bonn",
+        "Karlsruhe",
+        "Darmstadt",
+        "Walldorf",
+        "Erlangen",
+        "Nuremberg",
+        "Nürnberg"
+      ]
+    },
+    "note": "Public Greenhouse feed checked with the existing application collector. Collection is filtered to the selected country; generic remote locations may need manual review. Job counts change and do not establish work eligibility.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/commercetools",
+        "https://boards-api.greenhouse.io/v1/boards/commercetools",
+        "https://boards-api.greenhouse.io/v1/boards/commercetools/jobs?content=true"
+      ],
+      "detail": "{\"collector\": \"fetch_greenhouse\", \"total_jobs\": 37, \"country_location_matches\": {\"US\": 9, \"DE\": 16}}"
+    }
+  },
+  {
+    "id": "ats-commvault",
+    "name": "Commvault",
+    "careers_url": "https://job-boards.greenhouse.io/commvault",
+    "countries": [
+      "US",
+      "DE"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "name": "Commvault",
+      "board": "commvault",
+      "countries": [
+        "US",
+        "DE"
+      ],
+      "locations": [
+        "United States",
+        "United States of America",
+        "USA",
+        "U.S.A.",
+        "U.S.",
+        "New York",
+        "San Francisco",
+        "Seattle",
+        "Boston",
+        "Chicago",
+        "Austin",
+        "Los Angeles",
+        "San Diego",
+        "Washington, DC",
+        "Washington D.C.",
+        "Mountain View",
+        "Palo Alto",
+        "San Jose",
+        "Sunnyvale",
+        "Atlanta",
+        "Dallas",
+        "Houston",
+        "Denver",
+        "California",
+        "Massachusetts",
+        "Texas",
+        "Germany",
+        "Deutschland",
+        "Berlin",
+        "Munich",
+        "München",
+        "Hamburg",
+        "Frankfurt",
+        "Cologne",
+        "Köln",
+        "Düsseldorf",
+        "Dusseldorf",
+        "Stuttgart",
+        "Dresden",
+        "Leipzig",
+        "Bonn",
+        "Karlsruhe",
+        "Darmstadt",
+        "Walldorf",
+        "Erlangen",
+        "Nuremberg",
+        "Nürnberg"
+      ]
+    },
+    "note": "Public Greenhouse feed checked with the existing application collector. Collection is filtered to the selected country; generic remote locations may need manual review. Job counts change and do not establish work eligibility.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/commvault",
+        "https://boards-api.greenhouse.io/v1/boards/commvault",
+        "https://boards-api.greenhouse.io/v1/boards/commvault/jobs?content=true"
+      ],
+      "detail": "{\"collector\": \"fetch_greenhouse\", \"total_jobs\": 60, \"country_location_matches\": {\"US\": 20, \"DE\": 3}}"
+    }
+  },
+  {
+    "id": "de-computacenter",
+    "name": "Computacenter",
+    "careers_url": "https://careers.computacenter.com/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.computacenter.com/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.computacenter.com/\", \"title\": \"IT Careers & Technology Jobs Worldwide | Computacenter\"}"
+    }
+  },
+  {
+    "id": "ats-contentful",
+    "name": "Contentful",
+    "careers_url": "https://job-boards.greenhouse.io/contentful",
+    "countries": [
+      "US",
+      "DE"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "name": "Contentful",
+      "board": "contentful",
+      "countries": [
+        "US",
+        "DE"
+      ],
+      "locations": [
+        "United States",
+        "United States of America",
+        "USA",
+        "U.S.A.",
+        "U.S.",
+        "New York",
+        "San Francisco",
+        "Seattle",
+        "Boston",
+        "Chicago",
+        "Austin",
+        "Los Angeles",
+        "San Diego",
+        "Washington, DC",
+        "Washington D.C.",
+        "Mountain View",
+        "Palo Alto",
+        "San Jose",
+        "Sunnyvale",
+        "Atlanta",
+        "Dallas",
+        "Houston",
+        "Denver",
+        "California",
+        "Massachusetts",
+        "Texas",
+        "Germany",
+        "Deutschland",
+        "Berlin",
+        "Munich",
+        "München",
+        "Hamburg",
+        "Frankfurt",
+        "Cologne",
+        "Köln",
+        "Düsseldorf",
+        "Dusseldorf",
+        "Stuttgart",
+        "Dresden",
+        "Leipzig",
+        "Bonn",
+        "Karlsruhe",
+        "Darmstadt",
+        "Walldorf",
+        "Erlangen",
+        "Nuremberg",
+        "Nürnberg"
+      ]
+    },
+    "note": "Public Greenhouse feed checked with the existing application collector. Collection is filtered to the selected country; generic remote locations may need manual review. Job counts change and do not establish work eligibility.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/contentful",
+        "https://boards-api.greenhouse.io/v1/boards/contentful",
+        "https://boards-api.greenhouse.io/v1/boards/contentful/jobs?content=true"
+      ],
+      "detail": "{\"collector\": \"fetch_greenhouse\", \"total_jobs\": 20, \"country_location_matches\": {\"US\": 7, \"DE\": 1}}"
+    }
+  },
+  {
+    "id": "de-continental",
+    "name": "Continental",
+    "careers_url": "https://www.continental.com/en/career/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "automotive"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.continental.com/en/career/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.continental.com/en/career/\", \"title\": \"Your Career at Continental - Continental AG\"}"
+    }
+  },
+  {
+    "id": "us-costco",
+    "name": "Costco",
+    "careers_url": "https://www.costco.com/f/-/careers",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "retail"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.costco.com/careers.html",
+        "https://www.costco.com/f/-/careers"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.costco.com/f/-/careers\", \"title\": \"Costco Careers\"}"
+    }
+  },
+  {
+    "id": "de-covestro",
+    "name": "Covestro",
+    "careers_url": "https://www.covestro.com/en/career",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "chemicals"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.covestro.com/en/career"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.covestro.com/en/career\", \"title\": \"Your Career at Covestro | Covestro\"}"
+    }
+  },
+  {
+    "id": "us-cvs-health",
+    "name": "CVS Health",
+    "careers_url": "https://jobs.cvshealth.com/us/en/home",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "healthcare"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://jobs.cvshealth.com/us/en",
+        "https://jobs.cvshealth.com/us/en/home"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://jobs.cvshealth.com/us/en/home\", \"title\": \"CVS Health Careers\"}"
+    }
+  },
+  {
+    "id": "de-daimler-truck",
+    "name": "Daimler Truck",
+    "careers_url": "https://www.daimlertruck.com/en/career",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "automotive"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.daimlertruck.com/en/career"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.daimlertruck.com/en/career\", \"title\": \"Start your career | Daimler Truck\"}"
+    }
+  },
+  {
+    "id": "de-datev",
+    "name": "DATEV",
+    "careers_url": "https://karriere.datev.de/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.datev.de/web/de/karriere/",
+        "https://karriere.datev.de/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://karriere.datev.de/\", \"title\": \"Karriere & Jobs bei DATEV\"}"
+    }
+  },
+  {
+    "id": "us-dell-technologies",
+    "name": "Dell Technologies",
+    "careers_url": "https://enterpriseplatform.dell.com/hcmUI/CandidateExperience/en/sites/careers",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://jobs.dell.com/",
+        "https://enterpriseplatform.dell.com/hcmUI/CandidateExperience/en/sites/careers"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://enterpriseplatform.dell.com/hcmUI/CandidateExperience/en/sites/careers\", \"title\": \"Dell\"}"
+    }
+  },
+  {
+    "id": "us-deloitte",
+    "name": "Deloitte",
+    "careers_url": "https://apply.deloitte.com/en_US/careers",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "consulting"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://apply.deloitte.com/",
+        "https://apply.deloitte.com/en_US/careers"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://apply.deloitte.com/en_US/careers\", \"title\": \"Job Search | Deloitte US\"}"
+    }
+  },
+  {
+    "id": "us-delta-air-lines",
+    "name": "Delta Air Lines",
+    "careers_url": "https://www.delta.com/us/en/careers/overview",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "aviation"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.delta.com/us/en/careers/overview"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.delta.com/us/en/careers/overview\", \"title\": \"Careers Overview | Delta Air Lines\"}"
+    }
+  },
+  {
+    "id": "de-deutsche-bahn",
+    "name": "Deutsche Bahn",
+    "careers_url": "https://db.jobs/de-de",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "transport"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://db.jobs/de-de"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://db.jobs/de-de\", \"title\": \"Karriere bei der Deutschen Bahn - Jetzt bewerben!\"}"
+    }
+  },
+  {
+    "id": "de-deutsche-bank",
+    "name": "Deutsche Bank",
+    "careers_url": "https://careers.db.com/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "financial services"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.db.com/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.db.com/\", \"title\": \"Home – Deutsche Bank Careers\"}"
+    }
+  },
+  {
+    "id": "de-deutsche-boerse",
+    "name": "Deutsche Boerse",
+    "careers_url": "https://careers.deutsche-boerse.com/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "financial services"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.deutsche-boerse.com/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.deutsche-boerse.com/\", \"title\": \"Jobs at Deutsche Börse | Shape the Future of Finance\"}"
+    }
+  },
+  {
+    "id": "de-deutsche-flugsicherung",
+    "name": "Deutsche Flugsicherung",
+    "careers_url": "https://karriere.dfs.de/de",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "aviation"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://karriere.dfs.de/",
+        "https://karriere.dfs.de/de"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://karriere.dfs.de/de\", \"title\": \"Karriere bei der DFS\"}"
+    }
+  },
+  {
+    "id": "de-deutsche-post-dhl",
+    "name": "Deutsche Post DHL",
+    "careers_url": "https://careers.dhl.com/global/en",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "logistics"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.dhl.com/eu/en",
+        "https://careers.dhl.com/global/en"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.dhl.com/global/en\", \"title\": \"DHL Careers - Find Jobs with DHL | DHL JOBS\"}"
+    }
+  },
+  {
+    "id": "de-deutsche-telekom",
+    "name": "Deutsche Telekom",
+    "careers_url": "https://www.telekom.com/en/telekom-as-an-employer",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "telecommunications"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.telekom.com/en/careers",
+        "https://www.telekom.com/en/telekom-as-an-employer"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.telekom.com/en/telekom-as-an-employer\", \"title\": \"Telekom as an Employer | Deutsche Telekom\"}"
+    }
+  },
+  {
+    "id": "ats-discord",
+    "name": "Discord",
+    "careers_url": "https://job-boards.greenhouse.io/discord",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "name": "Discord",
+      "board": "discord",
+      "countries": [
+        "US"
+      ],
+      "locations": [
+        "United States",
+        "United States of America",
+        "USA",
+        "U.S.A.",
+        "U.S.",
+        "New York",
+        "San Francisco",
+        "Seattle",
+        "Boston",
+        "Chicago",
+        "Austin",
+        "Los Angeles",
+        "San Diego",
+        "Washington, DC",
+        "Washington D.C.",
+        "Mountain View",
+        "Palo Alto",
+        "San Jose",
+        "Sunnyvale",
+        "Atlanta",
+        "Dallas",
+        "Houston",
+        "Denver",
+        "California",
+        "Massachusetts",
+        "Texas"
+      ]
+    },
+    "note": "Public Greenhouse feed checked with the existing application collector. Collection is filtered to the selected country; generic remote locations may need manual review. Job counts change and do not establish work eligibility.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/discord",
+        "https://boards-api.greenhouse.io/v1/boards/discord",
+        "https://boards-api.greenhouse.io/v1/boards/discord/jobs?content=true"
+      ],
+      "detail": "{\"collector\": \"fetch_greenhouse\", \"total_jobs\": 51, \"country_location_matches\": {\"US\": 48, \"DE\": 0}}"
+    }
+  },
+  {
+    "id": "de-dlr",
+    "name": "DLR",
+    "careers_url": "https://www.dlr.de/en/careers",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "research"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.dlr.de/en/careers"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.dlr.de/en/careers\", \"title\": \"Jobs & careers at DLR\"}"
+    }
+  },
+  {
+    "id": "de-dm-drogerie-markt",
+    "name": "dm-drogerie markt",
+    "careers_url": "https://www.dm-jobs.de/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "retail"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.dm-jobs.com/",
+        "https://www.dm-jobs.de/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.dm-jobs.de/\", \"title\": \"Arbeiten bei dm: Werde Teil einer starken Gemeinschaft\"}"
+    }
+  },
+  {
+    "id": "ats-duolingo",
+    "name": "Duolingo",
+    "careers_url": "https://job-boards.greenhouse.io/duolingo",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "education and technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "name": "Duolingo",
+      "board": "duolingo",
+      "countries": [
+        "US"
+      ],
+      "locations": [
+        "United States",
+        "United States of America",
+        "USA",
+        "U.S.A.",
+        "U.S.",
+        "New York",
+        "San Francisco",
+        "Seattle",
+        "Boston",
+        "Chicago",
+        "Austin",
+        "Los Angeles",
+        "San Diego",
+        "Washington, DC",
+        "Washington D.C.",
+        "Mountain View",
+        "Palo Alto",
+        "San Jose",
+        "Sunnyvale",
+        "Atlanta",
+        "Dallas",
+        "Houston",
+        "Denver",
+        "California",
+        "Massachusetts",
+        "Texas"
+      ]
+    },
+    "note": "Public Greenhouse feed checked with the existing application collector. Collection is filtered to the selected country; generic remote locations may need manual review. Job counts change and do not establish work eligibility.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/duolingo",
+        "https://boards-api.greenhouse.io/v1/boards/duolingo",
+        "https://boards-api.greenhouse.io/v1/boards/duolingo/jobs?content=true"
+      ],
+      "detail": "{\"collector\": \"fetch_greenhouse\", \"total_jobs\": 61, \"country_location_matches\": {\"US\": 40, \"DE\": 0}}"
+    }
+  },
+  {
+    "id": "de-dz-bank",
+    "name": "DZ BANK",
+    "careers_url": "https://karriere.dzbank.de/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "financial services"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://karriere.dzbank.de/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://karriere.dzbank.de/\", \"title\": \"Bank-Jobs: Ihre Karriere auf einem neuen Level | DZ BANK\"}"
+    }
+  },
+  {
+    "id": "de-e-on",
+    "name": "E.ON",
+    "careers_url": "https://jobs.eon.com/en",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "energy"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://jobs.eon.com/",
+        "https://jobs.eon.com/en"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://jobs.eon.com/en\", \"title\": \"Jobboard - E.ON\"}"
+    }
+  },
+  {
+    "id": "de-edeka",
+    "name": "EDEKA",
+    "careers_url": "https://verbund.edeka/karriere/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "retail"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://verbund.edeka/karriere/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://verbund.edeka/karriere/\", \"title\": \"EDEKA Verbund - Jobs & Karriere / karriere.edeka\"}"
+    }
+  },
+  {
+    "id": "us-eli-lilly",
+    "name": "Eli Lilly",
+    "careers_url": "https://careers.lilly.com/us/en",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "pharmaceuticals"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.lilly.com/us/en"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.lilly.com/us/en\", \"title\": \"Find Your Career with Eli Lilly | Lilly Careers\"}"
+    }
+  },
+  {
+    "id": "de-enbw",
+    "name": "EnBW",
+    "careers_url": "https://www.enbw.com/karriere/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "energy"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.enbw.com/karriere/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.enbw.com/karriere/\", \"title\": \"Starte deine Karriere mit Energie | EnBW\"}"
+    }
+  },
+  {
+    "id": "de-evonik",
+    "name": "Evonik",
+    "careers_url": "https://www.evonik.com/en/careers.html",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "chemicals"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.evonik.com/en",
+        "https://www.evonik.com/en/careers.html"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.evonik.com/en/careers.html\", \"title\": \"Jobs and Careers at Evonik – Apply Today\"}"
+    }
+  },
+  {
+    "id": "us-exxonmobil",
+    "name": "ExxonMobil",
+    "careers_url": "https://jobs.exxonmobil.com/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "energy"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://jobs.exxonmobil.com/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://jobs.exxonmobil.com/\", \"title\": \"Careers at ExxonMobil\"}"
+    }
+  },
+  {
+    "id": "us-ey",
+    "name": "EY",
+    "careers_url": "https://careers.ey.com/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "consulting"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.ey.com/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.ey.com/\", \"title\": \"Careers at EY: search jobs\"}"
+    }
+  },
+  {
+    "id": "us-fedex",
+    "name": "FedEx",
+    "careers_url": "https://careers.fedex.com/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "logistics"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.fedex.com/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.fedex.com/\", \"title\": \"Find FedEx Jobs Near You | FedEx Careers\"}"
+    }
+  },
+  {
+    "id": "ats-figma",
+    "name": "Figma",
+    "careers_url": "https://job-boards.greenhouse.io/figma",
+    "countries": [
+      "US",
+      "DE"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "name": "Figma",
+      "board": "figma",
+      "countries": [
+        "US",
+        "DE"
+      ],
+      "locations": [
+        "United States",
+        "United States of America",
+        "USA",
+        "U.S.A.",
+        "U.S.",
+        "New York",
+        "San Francisco",
+        "Seattle",
+        "Boston",
+        "Chicago",
+        "Austin",
+        "Los Angeles",
+        "San Diego",
+        "Washington, DC",
+        "Washington D.C.",
+        "Mountain View",
+        "Palo Alto",
+        "San Jose",
+        "Sunnyvale",
+        "Atlanta",
+        "Dallas",
+        "Houston",
+        "Denver",
+        "California",
+        "Massachusetts",
+        "Texas",
+        "Germany",
+        "Deutschland",
+        "Berlin",
+        "Munich",
+        "München",
+        "Hamburg",
+        "Frankfurt",
+        "Cologne",
+        "Köln",
+        "Düsseldorf",
+        "Dusseldorf",
+        "Stuttgart",
+        "Dresden",
+        "Leipzig",
+        "Bonn",
+        "Karlsruhe",
+        "Darmstadt",
+        "Walldorf",
+        "Erlangen",
+        "Nuremberg",
+        "Nürnberg"
+      ]
+    },
+    "note": "Public Greenhouse feed checked with the existing application collector. Collection is filtered to the selected country; generic remote locations may need manual review. Job counts change and do not establish work eligibility.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/figma",
+        "https://boards-api.greenhouse.io/v1/boards/figma",
+        "https://boards-api.greenhouse.io/v1/boards/figma/jobs?content=true"
+      ],
+      "detail": "{\"collector\": \"fetch_greenhouse\", \"total_jobs\": 162, \"country_location_matches\": {\"US\": 107, \"DE\": 8}}"
+    }
+  },
+  {
+    "id": "us-ford",
+    "name": "Ford",
+    "careers_url": "https://www.careers.ford.com/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "automotive"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.careers.ford.com/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.careers.ford.com/\", \"title\": \"Working at Ford Motor Company\"}"
+    }
+  },
+  {
+    "id": "de-fraport",
+    "name": "Fraport",
+    "careers_url": "https://www.jobs-fraport.com/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "aviation"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.fraport.com/de/karriere.html",
+        "https://www.jobs-fraport.com/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.jobs-fraport.com/\", \"title\": \"Startseite\"}"
+    }
+  },
+  {
+    "id": "de-fresenius-medical-care",
+    "name": "Fresenius Medical Care",
+    "careers_url": "https://jobs.freseniusmedicalcare.com/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "healthcare"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://jobs.freseniusmedicalcare.com/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://jobs.freseniusmedicalcare.com/\", \"title\": \"Dialysis and Healthcare Jobs | Fresenius Medical Care\"}"
+    }
+  },
+  {
+    "id": "us-ge-aerospace",
+    "name": "GE Aerospace",
+    "careers_url": "https://careers.geaerospace.com/global/en",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "aerospace"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.geaerospace.com/global/en"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.geaerospace.com/global/en\", \"title\": \"GE Aerospace | See your career take flight with GE Aerospace\"}"
+    }
+  },
+  {
+    "id": "us-general-motors",
+    "name": "General Motors",
+    "careers_url": "https://search-careers.gm.com/en/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "automotive"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://search-careers.gm.com/en/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://search-careers.gm.com/en/\", \"title\": \"GM Jobs | General Motors Careers\"}"
+    }
+  },
+  {
+    "id": "ats-getyourguide",
+    "name": "GetYourGuide",
+    "careers_url": "https://job-boards.greenhouse.io/getyourguide",
+    "countries": [
+      "US",
+      "DE"
+    ],
+    "sectors": [
+      "travel and technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "name": "GetYourGuide",
+      "board": "getyourguide",
+      "countries": [
+        "US",
+        "DE"
+      ],
+      "locations": [
+        "United States",
+        "United States of America",
+        "USA",
+        "U.S.A.",
+        "U.S.",
+        "New York",
+        "San Francisco",
+        "Seattle",
+        "Boston",
+        "Chicago",
+        "Austin",
+        "Los Angeles",
+        "San Diego",
+        "Washington, DC",
+        "Washington D.C.",
+        "Mountain View",
+        "Palo Alto",
+        "San Jose",
+        "Sunnyvale",
+        "Atlanta",
+        "Dallas",
+        "Houston",
+        "Denver",
+        "California",
+        "Massachusetts",
+        "Texas",
+        "Germany",
+        "Deutschland",
+        "Berlin",
+        "Munich",
+        "München",
+        "Hamburg",
+        "Frankfurt",
+        "Cologne",
+        "Köln",
+        "Düsseldorf",
+        "Dusseldorf",
+        "Stuttgart",
+        "Dresden",
+        "Leipzig",
+        "Bonn",
+        "Karlsruhe",
+        "Darmstadt",
+        "Walldorf",
+        "Erlangen",
+        "Nuremberg",
+        "Nürnberg"
+      ]
+    },
+    "note": "Public Greenhouse feed checked with the existing application collector. Collection is filtered to the selected country; generic remote locations may need manual review. Job counts change and do not establish work eligibility.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/getyourguide",
+        "https://boards-api.greenhouse.io/v1/boards/getyourguide",
+        "https://boards-api.greenhouse.io/v1/boards/getyourguide/jobs?content=true"
+      ],
+      "detail": "{\"collector\": \"fetch_greenhouse\", \"total_jobs\": 56, \"country_location_matches\": {\"US\": 3, \"DE\": 40}}"
+    }
+  },
+  {
+    "id": "us-goldman-sachs",
+    "name": "Goldman Sachs",
+    "careers_url": "https://www.goldmansachs.com/careers",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "financial services"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.goldmansachs.com/careers"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.goldmansachs.com/careers\", \"title\": \"Goldman Sachs Careers | Goldman Sachs\"}"
+    }
+  },
+  {
+    "id": "us-google",
+    "name": "Google",
+    "careers_url": "https://www.google.com/about/careers/applications/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.google.com/about/careers/applications/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.google.com/about/careers/applications/\", \"title\": \"Search for your career at Google.\"}"
+    }
+  },
+  {
+    "id": "ats-grafanalabs",
+    "name": "Grafana Labs",
+    "careers_url": "https://job-boards.greenhouse.io/grafanalabs",
+    "countries": [
+      "US",
+      "DE"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "name": "Grafana Labs",
+      "board": "grafanalabs",
+      "countries": [
+        "US",
+        "DE"
+      ],
+      "locations": [
+        "United States",
+        "United States of America",
+        "USA",
+        "U.S.A.",
+        "U.S.",
+        "New York",
+        "San Francisco",
+        "Seattle",
+        "Boston",
+        "Chicago",
+        "Austin",
+        "Los Angeles",
+        "San Diego",
+        "Washington, DC",
+        "Washington D.C.",
+        "Mountain View",
+        "Palo Alto",
+        "San Jose",
+        "Sunnyvale",
+        "Atlanta",
+        "Dallas",
+        "Houston",
+        "Denver",
+        "California",
+        "Massachusetts",
+        "Texas",
+        "Germany",
+        "Deutschland",
+        "Berlin",
+        "Munich",
+        "München",
+        "Hamburg",
+        "Frankfurt",
+        "Cologne",
+        "Köln",
+        "Düsseldorf",
+        "Dusseldorf",
+        "Stuttgart",
+        "Dresden",
+        "Leipzig",
+        "Bonn",
+        "Karlsruhe",
+        "Darmstadt",
+        "Walldorf",
+        "Erlangen",
+        "Nuremberg",
+        "Nürnberg"
+      ]
+    },
+    "note": "Public Greenhouse feed checked with the existing application collector. Collection is filtered to the selected country; generic remote locations may need manual review. Job counts change and do not establish work eligibility.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/grafanalabs",
+        "https://boards-api.greenhouse.io/v1/boards/grafanalabs",
+        "https://boards-api.greenhouse.io/v1/boards/grafanalabs/jobs?content=true"
+      ],
+      "detail": "{\"collector\": \"fetch_greenhouse\", \"total_jobs\": 122, \"country_location_matches\": {\"US\": 39, \"DE\": 9}}"
+    }
+  },
+  {
+    "id": "de-hannover-re",
+    "name": "Hannover Re",
+    "careers_url": "https://www.hannover-re.com/en/career/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "financial services"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.hannover-re.com/en/career/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.hannover-re.com/en/career/\", \"title\": \"Career at Hannover Re: Jobs, roles, insights and more - Hannover Re\"}"
+    }
+  },
+  {
+    "id": "de-heidelberg-materials",
+    "name": "Heidelberg Materials",
+    "careers_url": "https://career.heidelbergmaterials.com/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "construction"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.heidelbergmaterials.com/en/career",
+        "https://career.heidelbergmaterials.com/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://career.heidelbergmaterials.com/\", \"title\": \"Careers at Heidelberg Materials\"}"
+    }
+  },
+  {
+    "id": "de-hellmann-worldwide-logistics",
+    "name": "Hellmann Worldwide Logistics",
+    "careers_url": "https://careers.hellmann.com/en",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "logistics"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.hellmann.com/",
+        "https://careers.hellmann.com/en"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.hellmann.com/en\", \"title\": \"Hellmann Worldwide Logistics | International Logistics | Spedition\"}"
+    }
+  },
+  {
+    "id": "de-helmholtz-association",
+    "name": "Helmholtz Association",
+    "careers_url": "https://www.helmholtz.de/en/career/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "research"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.helmholtz.de/en/career/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.helmholtz.de/en/career/\", \"title\": \"Careers - Helmholtz - Association of German Research Centres\"}"
+    }
+  },
+  {
+    "id": "us-hewlett-packard-enterprise",
+    "name": "Hewlett Packard Enterprise",
+    "careers_url": "https://careers.hpe.com/us/en",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.hpe.com/us/en"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.hpe.com/us/en\", \"title\": \"Redefine what’s next for you | HPE Careers\"}"
+    }
+  },
+  {
+    "id": "de-hochtief",
+    "name": "HOCHTIEF",
+    "careers_url": "https://www.hochtief.com/careers",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "construction"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.hochtief.com/careers"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.hochtief.com/careers\", \"title\": \"Careers\"}"
+    }
+  },
+  {
+    "id": "us-home-depot",
+    "name": "Home Depot",
+    "careers_url": "https://careers.homedepot.com/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "retail"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.homedepot.com/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.homedepot.com/\", \"title\": \"The Home Depot Careers | Search for Jobs Near You\"}"
+    }
+  },
+  {
+    "id": "us-hp",
+    "name": "HP",
+    "careers_url": "https://jobs.hp.com/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://jobs.hp.com/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://jobs.hp.com/\", \"title\": \"Find career opportunities at HP - HP Careers\"}"
+    }
+  },
+  {
+    "id": "de-hugo-boss",
+    "name": "HUGO BOSS",
+    "careers_url": "https://careers.hugoboss.com/global/en",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "consumer goods"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.hugoboss.com/global/en"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.hugoboss.com/global/en\", \"title\": \"HUGO BOSS Global Jobs | Find your Perfect Career\"}"
+    }
+  },
+  {
+    "id": "us-ibm",
+    "name": "IBM",
+    "careers_url": "https://www.ibm.com/careers",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.ibm.com/careers"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.ibm.com/careers\", \"title\": \"Define your career with IBM\"}"
+    }
+  },
+  {
+    "id": "de-infineon",
+    "name": "Infineon",
+    "careers_url": "https://www.infineon.com/careers",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "semiconductors"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.infineon.com/cms/en/careers/",
+        "https://www.infineon.com/careers"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.infineon.com/careers\", \"title\": \"Careers | Infineon Technologies\"}"
+    }
+  },
+  {
+    "id": "ats-instacart",
+    "name": "Instacart",
+    "careers_url": "https://job-boards.greenhouse.io/instacart",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "retail and technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "name": "Instacart",
+      "board": "instacart",
+      "countries": [
+        "US"
+      ],
+      "locations": [
+        "United States",
+        "United States of America",
+        "USA",
+        "U.S.A.",
+        "U.S.",
+        "New York",
+        "San Francisco",
+        "Seattle",
+        "Boston",
+        "Chicago",
+        "Austin",
+        "Los Angeles",
+        "San Diego",
+        "Washington, DC",
+        "Washington D.C.",
+        "Mountain View",
+        "Palo Alto",
+        "San Jose",
+        "Sunnyvale",
+        "Atlanta",
+        "Dallas",
+        "Houston",
+        "Denver",
+        "California",
+        "Massachusetts",
+        "Texas"
+      ]
+    },
+    "note": "Public Greenhouse feed checked with the existing application collector. Collection is filtered to the selected country; generic remote locations may need manual review. Job counts change and do not establish work eligibility.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/instacart",
+        "https://boards-api.greenhouse.io/v1/boards/instacart",
+        "https://boards-api.greenhouse.io/v1/boards/instacart/jobs?content=true"
+      ],
+      "detail": "{\"collector\": \"fetch_greenhouse\", \"total_jobs\": 131, \"country_location_matches\": {\"US\": 70, \"DE\": 0}}"
+    }
+  },
+  {
+    "id": "us-intuit",
+    "name": "Intuit",
+    "careers_url": "https://www.intuit.com/careers/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.intuit.com/careers/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.intuit.com/careers/\", \"title\": \"Explore Career and Job Opportunities | Intuit Careers\"}"
+    }
+  },
+  {
+    "id": "de-ionos",
+    "name": "IONOS",
+    "careers_url": "https://www.ionos-group.com/jobs-career.html",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.ionos-group.com/jobs-career.html"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.ionos-group.com/jobs-career.html\", \"title\": \"Jobs & Career | IONOS Group SE\"}"
+    }
+  },
+  {
+    "id": "us-john-deere",
+    "name": "John Deere",
+    "careers_url": "https://jobs.deere.com/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "manufacturing"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://jobs.deere.com/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://jobs.deere.com/\", \"title\": \"Jobs at John Deere\"}"
+    }
+  },
+  {
+    "id": "us-johnson-johnson",
+    "name": "Johnson & Johnson",
+    "careers_url": "https://www.careers.jnj.com/en/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "healthcare"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.careers.jnj.com/en/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.careers.jnj.com/en/\", \"title\": \"Explore careers at Johnson & Johnson | Johnson & Johnson Careers\"}"
+    }
+  },
+  {
+    "id": "us-jpmorgan-chase",
+    "name": "JPMorgan Chase",
+    "careers_url": "https://www.jpmorganchase.com/careers",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "financial services"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.jpmorgan.com/global/en/home",
+        "https://www.jpmorganchase.com/careers"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.jpmorganchase.com/careers\", \"title\": \"Careers | JPMorganChase\"}"
+    }
+  },
+  {
+    "id": "de-jungheinrich",
+    "name": "Jungheinrich",
+    "careers_url": "https://www.jungheinrich.com/en/career",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "manufacturing"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.jungheinrich.com/en/careers",
+        "https://www.jungheinrich.com/en/career"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.jungheinrich.com/en/career\", \"title\": \"International Job Vacancies at Jungheinrich\"}"
+    }
+  },
+  {
+    "id": "de-kaufland-germany",
+    "name": "Kaufland Germany",
+    "careers_url": "https://jobs.kaufland.de/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "retail"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://karriere.kaufland.de/",
+        "https://jobs.kaufland.de/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://jobs.kaufland.de/\", \"title\": \"Finde deinen Arbeitsplatz im Handel | Kaufland\"}"
+    }
+  },
+  {
+    "id": "de-knorr-bremse",
+    "name": "Knorr-Bremse",
+    "careers_url": "https://careers.knorr-bremse.com/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "manufacturing"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.knorr-bremse.com/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.knorr-bremse.com/\", \"title\": \"Career Opportunities at Knorr-Bremse Group\"}"
+    }
+  },
+  {
+    "id": "us-kpmg",
+    "name": "KPMG",
+    "careers_url": "https://www.kpmguscareers.com/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "consulting"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.kpmguscareers.com/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.kpmguscareers.com/\", \"title\": \"KPMG Careers: Your Career Inspired\"}"
+    }
+  },
+  {
+    "id": "de-kuka",
+    "name": "KUKA",
+    "careers_url": "https://www.kuka.com/en-de/careers",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "manufacturing"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.kuka.com/en-de/careers"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.kuka.com/en-de/careers\", \"title\": \"Careers | KUKA Germany\"}"
+    }
+  },
+  {
+    "id": "de-lidl-germany",
+    "name": "Lidl Germany",
+    "careers_url": "https://jobs.lidl.de/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "retail"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://jobs.lidl.de/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://jobs.lidl.de/\", \"title\": \"Lidl Jobs | Deine Karriere\"}"
+    }
+  },
+  {
+    "id": "us-lowe-s",
+    "name": "Lowe's",
+    "careers_url": "https://talent.lowes.com/us/en",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "retail"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://talent.lowes.com/us/en"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://talent.lowes.com/us/en\", \"title\": \"Careers Home | Lowe's Careers\"}"
+    }
+  },
+  {
+    "id": "de-lufthansa-group",
+    "name": "Lufthansa Group",
+    "careers_url": "https://lufthansagroup.careers/de/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "aviation"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://lufthansagroup.careers/",
+        "https://lufthansagroup.careers/de/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://lufthansagroup.careers/de/\", \"title\": \"Lufthansa Group Careers\"}"
+    }
+  },
+  {
+    "id": "us-marriott",
+    "name": "Marriott",
+    "careers_url": "https://careers.marriott.com/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "hospitality"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.marriott.com/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.marriott.com/\", \"title\": \"Marriott International Careers | Find Job & Career Opportunities\"}"
+    }
+  },
+  {
+    "id": "us-mastercard",
+    "name": "Mastercard",
+    "careers_url": "https://careers.mastercard.com/us/en",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "financial services"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.mastercard.com/us/en"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.mastercard.com/us/en\", \"title\": \"Careers at Mastercard | Search Jobs and Opportunities\"}"
+    }
+  },
+  {
+    "id": "de-max-planck-society",
+    "name": "Max Planck Society",
+    "careers_url": "https://www.mpg.de/jobboard",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "research"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.mpg.de/jobboard"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.mpg.de/jobboard\", \"title\": \"Job Offers - Jobboard | Max-Planck-Gesellschaft\"}"
+    }
+  },
+  {
+    "id": "us-merck",
+    "name": "Merck",
+    "careers_url": "https://jobs.merck.com/us/en",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "pharmaceuticals"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://jobs.merck.com/us/en"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://jobs.merck.com/us/en\", \"title\": \"Discover Job Opportunities at Merck | Merck Careers\"}"
+    }
+  },
+  {
+    "id": "de-merck-kgaa",
+    "name": "Merck KGaA",
+    "careers_url": "https://careers.merckgroup.com/global/en/home",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "life sciences"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.merckgroup.com/en/careers.html",
+        "https://careers.merckgroup.com/global/en/home"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.merckgroup.com/global/en/home\", \"title\": \"Careers | Merck\"}"
+    }
+  },
+  {
+    "id": "us-meta",
+    "name": "Meta",
+    "careers_url": "https://www.metacareers.com/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.metacareers.com/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.metacareers.com/\", \"title\": \"Meta Jobs & Careers | Do the Most Meaningful Work of Your Career\"}"
+    }
+  },
+  {
+    "id": "us-micron",
+    "name": "Micron",
+    "careers_url": "https://careers.micron.com/careers",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "semiconductors"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.micron.com/",
+        "https://careers.micron.com/careers"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.micron.com/careers\", \"title\": \"Careers at Micron Technology\"}"
+    }
+  },
+  {
+    "id": "us-microsoft",
+    "name": "Microsoft",
+    "careers_url": "https://careers.microsoft.com/v2/global/en/home.html",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.microsoft.com/",
+        "https://careers.microsoft.com/v2/global/en/home.html"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.microsoft.com/v2/global/en/home.html\", \"title\": \"Home | Microsoft Careers\"}"
+    }
+  },
+  {
+    "id": "us-morgan-stanley",
+    "name": "Morgan Stanley",
+    "careers_url": "https://www.morganstanley.com/people-opportunities",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "financial services"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.morganstanley.com/people-opportunities"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.morganstanley.com/people-opportunities\", \"title\": \"people-opportunities | Morgan Stanley\"}"
+    }
+  },
+  {
+    "id": "de-mtu-aero-engines",
+    "name": "MTU Aero Engines",
+    "careers_url": "https://www.mtu.de/careers/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "aerospace"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.mtu.de/careers/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.mtu.de/careers/\", \"title\": \"Careers - MTU Aero Engines\"}"
+    }
+  },
+  {
+    "id": "de-munich-re",
+    "name": "Munich Re",
+    "careers_url": "https://careers.munichre.com/en/munichre",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "financial services"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.munichre.com/en/careers.html",
+        "https://careers.munichre.com/en/munichre"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.munichre.com/en/munichre\", \"title\": \"Munich Re careers - Go beyond and activate your potential\"}"
+    }
+  },
+  {
+    "id": "ats-n26",
+    "name": "N26",
+    "careers_url": "https://job-boards.greenhouse.io/n26",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "financial services"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "name": "N26",
+      "board": "n26",
+      "countries": [
+        "DE"
+      ],
+      "locations": [
+        "Germany",
+        "Deutschland",
+        "Berlin",
+        "Munich",
+        "München",
+        "Hamburg",
+        "Frankfurt",
+        "Cologne",
+        "Köln",
+        "Düsseldorf",
+        "Dusseldorf",
+        "Stuttgart",
+        "Dresden",
+        "Leipzig",
+        "Bonn",
+        "Karlsruhe",
+        "Darmstadt",
+        "Walldorf",
+        "Erlangen",
+        "Nuremberg",
+        "Nürnberg"
+      ]
+    },
+    "note": "Public Greenhouse feed checked with the existing application collector. Collection is filtered to the selected country; generic remote locations may need manual review. Job counts change and do not establish work eligibility.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/n26",
+        "https://boards-api.greenhouse.io/v1/boards/n26",
+        "https://boards-api.greenhouse.io/v1/boards/n26/jobs?content=true"
+      ],
+      "detail": "{\"collector\": \"fetch_greenhouse\", \"total_jobs\": 52, \"country_location_matches\": {\"US\": 0, \"DE\": 34}}"
+    }
+  },
+  {
+    "id": "us-netflix",
+    "name": "Netflix",
+    "careers_url": "https://jobs.netflix.com/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "media and technology"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://jobs.netflix.com/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://jobs.netflix.com/\", \"title\": \"Join Us | Careers at Netflix\"}"
+    }
+  },
+  {
+    "id": "us-nike",
+    "name": "Nike",
+    "careers_url": "https://careers.nike.com/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "consumer goods"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.nike.com/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.nike.com/\", \"title\": \"Nike Careers\"}"
+    }
+  },
+  {
+    "id": "us-northrop-grumman",
+    "name": "Northrop Grumman",
+    "careers_url": "https://www.northropgrumman.com/careers",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "aerospace"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.northropgrumman.com/careers/",
+        "https://www.northropgrumman.com/careers"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.northropgrumman.com/careers\", \"title\": \"Careers | Northrop Grumman\"}"
+    }
+  },
+  {
+    "id": "us-nvidia",
+    "name": "NVIDIA",
+    "careers_url": "https://www.nvidia.com/en-us/about-nvidia/careers/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "semiconductors"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.nvidia.com/en-us/about-nvidia/careers/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.nvidia.com/en-us/about-nvidia/careers/\", \"title\": \"Jobs at NVIDIA | NVIDIA Careers\"}"
+    }
+  },
+  {
+    "id": "us-oracle",
+    "name": "Oracle",
+    "careers_url": "https://www.oracle.com/careers/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.oracle.com/careers/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.oracle.com/careers/\", \"title\": \"Oracle Careers | Job Search | Oracle\"}"
+    }
+  },
+  {
+    "id": "de-otto-group",
+    "name": "Otto Group",
+    "careers_url": "https://www.ottogroup.com/en/careers/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "retail and technology"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.ottogroup.com/en/careers/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.ottogroup.com/en/careers/\", \"title\": \"Otto Group: Karriereportal\"}"
+    }
+  },
+  {
+    "id": "us-pepsico",
+    "name": "PepsiCo",
+    "careers_url": "https://www.pepsicojobs.com/main/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "food and beverages"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.pepsicojobs.com/main/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.pepsicojobs.com/main/\", \"title\": \"PepsiCo Careers\"}"
+    }
+  },
+  {
+    "id": "ats-planetlabs",
+    "name": "Planet",
+    "careers_url": "https://job-boards.greenhouse.io/planetlabs",
+    "countries": [
+      "US",
+      "DE"
+    ],
+    "sectors": [
+      "space and technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "name": "Planet",
+      "board": "planetlabs",
+      "countries": [
+        "US",
+        "DE"
+      ],
+      "locations": [
+        "United States",
+        "United States of America",
+        "USA",
+        "U.S.A.",
+        "U.S.",
+        "New York",
+        "San Francisco",
+        "Seattle",
+        "Boston",
+        "Chicago",
+        "Austin",
+        "Los Angeles",
+        "San Diego",
+        "Washington, DC",
+        "Washington D.C.",
+        "Mountain View",
+        "Palo Alto",
+        "San Jose",
+        "Sunnyvale",
+        "Atlanta",
+        "Dallas",
+        "Houston",
+        "Denver",
+        "California",
+        "Massachusetts",
+        "Texas",
+        "Germany",
+        "Deutschland",
+        "Berlin",
+        "Munich",
+        "München",
+        "Hamburg",
+        "Frankfurt",
+        "Cologne",
+        "Köln",
+        "Düsseldorf",
+        "Dusseldorf",
+        "Stuttgart",
+        "Dresden",
+        "Leipzig",
+        "Bonn",
+        "Karlsruhe",
+        "Darmstadt",
+        "Walldorf",
+        "Erlangen",
+        "Nuremberg",
+        "Nürnberg"
+      ]
+    },
+    "note": "Public Greenhouse feed checked with the existing application collector. Collection is filtered to the selected country; generic remote locations may need manual review. Job counts change and do not establish work eligibility.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/planetlabs",
+        "https://boards-api.greenhouse.io/v1/boards/planetlabs",
+        "https://boards-api.greenhouse.io/v1/boards/planetlabs/jobs?content=true"
+      ],
+      "detail": "{\"collector\": \"fetch_greenhouse\", \"total_jobs\": 121, \"country_location_matches\": {\"US\": 41, \"DE\": 24}}"
+    }
+  },
+  {
+    "id": "de-porsche",
+    "name": "Porsche",
+    "careers_url": "https://jobs.porsche.com/index.php?ac=start",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "automotive"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://jobs.porsche.com/",
+        "https://jobs.porsche.com/index.php?ac=start"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://jobs.porsche.com/index.php?ac=start\", \"title\": \"Startseite | Karriereportal | Dr. Ing. h.c. F. Porsche AG\"}"
+    }
+  },
+  {
+    "id": "us-procter-gamble",
+    "name": "Procter & Gamble",
+    "careers_url": "https://www.pgcareers.com/global/en",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "consumer goods"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.pgcareers.com/global/en"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.pgcareers.com/global/en\", \"title\": \"Global Careers at Procter & Gamble | P&G Careers\"}"
+    }
+  },
+  {
+    "id": "us-qualcomm",
+    "name": "Qualcomm",
+    "careers_url": "https://careers.qualcomm.com/careers",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "semiconductors"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.qualcomm.com/",
+        "https://careers.qualcomm.com/careers"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.qualcomm.com/careers\", \"title\": \"Qualcomm Careers | Engineering Jobs and More | Qualcomm\"}"
+    }
+  },
+  {
+    "id": "ats-reddit",
+    "name": "Reddit",
+    "careers_url": "https://job-boards.greenhouse.io/reddit",
+    "countries": [
+      "US",
+      "DE"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "name": "Reddit",
+      "board": "reddit",
+      "countries": [
+        "US",
+        "DE"
+      ],
+      "locations": [
+        "United States",
+        "United States of America",
+        "USA",
+        "U.S.A.",
+        "U.S.",
+        "New York",
+        "San Francisco",
+        "Seattle",
+        "Boston",
+        "Chicago",
+        "Austin",
+        "Los Angeles",
+        "San Diego",
+        "Washington, DC",
+        "Washington D.C.",
+        "Mountain View",
+        "Palo Alto",
+        "San Jose",
+        "Sunnyvale",
+        "Atlanta",
+        "Dallas",
+        "Houston",
+        "Denver",
+        "California",
+        "Massachusetts",
+        "Texas",
+        "Germany",
+        "Deutschland",
+        "Berlin",
+        "Munich",
+        "München",
+        "Hamburg",
+        "Frankfurt",
+        "Cologne",
+        "Köln",
+        "Düsseldorf",
+        "Dusseldorf",
+        "Stuttgart",
+        "Dresden",
+        "Leipzig",
+        "Bonn",
+        "Karlsruhe",
+        "Darmstadt",
+        "Walldorf",
+        "Erlangen",
+        "Nuremberg",
+        "Nürnberg"
+      ]
+    },
+    "note": "Public Greenhouse feed checked with the existing application collector. Collection is filtered to the selected country; generic remote locations may need manual review. Job counts change and do not establish work eligibility.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/reddit",
+        "https://boards-api.greenhouse.io/v1/boards/reddit",
+        "https://boards-api.greenhouse.io/v1/boards/reddit/jobs?content=true"
+      ],
+      "detail": "{\"collector\": \"fetch_greenhouse\", \"total_jobs\": 152, \"country_location_matches\": {\"US\": 120, \"DE\": 1}}"
+    }
+  },
+  {
+    "id": "de-rewe-group",
+    "name": "REWE Group",
+    "careers_url": "https://karriere.rewe-group.com/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "retail"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://karriere.rewe-group.com/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://karriere.rewe-group.com/\", \"title\": \"Ihre Karriere bei der REWE Group: Jobs & Perspektiven\"}"
+    }
+  },
+  {
+    "id": "de-rhenus",
+    "name": "Rhenus",
+    "careers_url": "https://www.rhenus.group/career/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "logistics"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.rhenus.group/career/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.rhenus.group/career/\", \"title\": \"Logistics jobs with top opportunities | Rhenus Career\"}"
+    }
+  },
+  {
+    "id": "de-rossmann",
+    "name": "ROSSMANN",
+    "careers_url": "https://jobs.rossmann.de/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "retail"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://jobs.rossmann.de/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://jobs.rossmann.de/\", \"title\": \"Jobs & Karriere bei ROSSMANN\"}"
+    }
+  },
+  {
+    "id": "us-rtx",
+    "name": "RTX",
+    "careers_url": "https://careers.rtx.com/global/en",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "aerospace"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.rtx.com/global/en"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.rtx.com/global/en\", \"title\": \"RTX Careers\"}"
+    }
+  },
+  {
+    "id": "ats-rubrik",
+    "name": "Rubrik",
+    "careers_url": "https://job-boards.greenhouse.io/rubrik",
+    "countries": [
+      "US",
+      "DE"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "name": "Rubrik",
+      "board": "rubrik",
+      "countries": [
+        "US",
+        "DE"
+      ],
+      "locations": [
+        "United States",
+        "United States of America",
+        "USA",
+        "U.S.A.",
+        "U.S.",
+        "New York",
+        "San Francisco",
+        "Seattle",
+        "Boston",
+        "Chicago",
+        "Austin",
+        "Los Angeles",
+        "San Diego",
+        "Washington, DC",
+        "Washington D.C.",
+        "Mountain View",
+        "Palo Alto",
+        "San Jose",
+        "Sunnyvale",
+        "Atlanta",
+        "Dallas",
+        "Houston",
+        "Denver",
+        "California",
+        "Massachusetts",
+        "Texas",
+        "Germany",
+        "Deutschland",
+        "Berlin",
+        "Munich",
+        "München",
+        "Hamburg",
+        "Frankfurt",
+        "Cologne",
+        "Köln",
+        "Düsseldorf",
+        "Dusseldorf",
+        "Stuttgart",
+        "Dresden",
+        "Leipzig",
+        "Bonn",
+        "Karlsruhe",
+        "Darmstadt",
+        "Walldorf",
+        "Erlangen",
+        "Nuremberg",
+        "Nürnberg"
+      ]
+    },
+    "note": "Public Greenhouse feed checked with the existing application collector. Collection is filtered to the selected country; generic remote locations may need manual review. Job counts change and do not establish work eligibility.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/rubrik",
+        "https://boards-api.greenhouse.io/v1/boards/rubrik",
+        "https://boards-api.greenhouse.io/v1/boards/rubrik/jobs?content=true"
+      ],
+      "detail": "{\"collector\": \"fetch_greenhouse\", \"total_jobs\": 128, \"country_location_matches\": {\"US\": 49, \"DE\": 2}}"
+    }
+  },
+  {
+    "id": "de-rwe",
+    "name": "RWE",
+    "careers_url": "https://www.rwe.com/en/rwe-careers-portal/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "energy"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.rwe.com/en/rwe-careers-portal/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.rwe.com/en/rwe-careers-portal/\", \"title\": \"RWE Careers | Our energy has impact.\"}"
+    }
+  },
+  {
+    "id": "us-salesforce",
+    "name": "Salesforce",
+    "careers_url": "https://www.salesforce.com/company/careers/?bc=OTH",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.salesforce.com/en/",
+        "https://www.salesforce.com/company/careers/?bc=OTH"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.salesforce.com/company/careers/?bc=OTH\", \"title\": \"Salesforce Careers | Build the Future of AI with Us | Salesforce\"}"
+    }
+  },
+  {
+    "id": "de-sap",
+    "name": "SAP",
+    "careers_url": "https://jobs.sap.com/en/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://jobs.sap.com/",
+        "https://jobs.sap.com/en/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://jobs.sap.com/en/\", \"title\": \"Build a future at SAP | SAP Careers\"}"
+    }
+  },
+  {
+    "id": "de-sartorius",
+    "name": "Sartorius",
+    "careers_url": "https://www.sartorius.com/en/company/careers",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "life sciences"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.sartorius.com/en/company/careers"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.sartorius.com/en/company/careers\", \"title\": \"Careers | Sartorius\"}"
+    }
+  },
+  {
+    "id": "de-schaeffler",
+    "name": "Schaeffler",
+    "careers_url": "https://jobs.schaeffler.com/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "manufacturing"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://jobs.schaeffler.com/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://jobs.schaeffler.com/\", \"title\": \"Jobs at Schaeffler\"}"
+    }
+  },
+  {
+    "id": "us-servicenow",
+    "name": "ServiceNow",
+    "careers_url": "https://careers.servicenow.com/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.servicenow.com/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.servicenow.com/\", \"title\": \"ServiceNow Careers - Join the team putting AI to work for people. | ServiceNow Careers\"}"
+    }
+  },
+  {
+    "id": "de-siemens",
+    "name": "Siemens",
+    "careers_url": "https://jobs.siemens.com/en_US/externaljobs/redirect",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "manufacturing and technology"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://jobs.siemens.com/careers",
+        "https://jobs.siemens.com/en_US/externaljobs/redirect"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://jobs.siemens.com/en_US/externaljobs/redirect\", \"title\": \"Careers Marketplace - Siemens\"}"
+    }
+  },
+  {
+    "id": "de-siemens-energy",
+    "name": "Siemens Energy",
+    "careers_url": "https://jobs.siemens-energy.com/en_US/jobs",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "energy"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://jobs.siemens-energy.com/en_US/jobs"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://jobs.siemens-energy.com/en_US/jobs\", \"title\": \"Siemens Energy - Careers Marketplace\"}"
+    }
+  },
+  {
+    "id": "de-siemens-healthineers",
+    "name": "Siemens Healthineers",
+    "careers_url": "https://www.siemens-healthineers.com/careers",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "healthcare"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.siemens-healthineers.com/careers"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.siemens-healthineers.com/careers\", \"title\": \"Jobs & careers\"}"
+    }
+  },
+  {
+    "id": "us-southwest-airlines",
+    "name": "Southwest Airlines",
+    "careers_url": "https://careers.southwestair.com/us/en/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "aviation"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.southwestair.com/",
+        "https://careers.southwestair.com/us/en/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.southwestair.com/us/en/\", \"title\": \"Home | Southwest Careers\"}"
+    }
+  },
+  {
+    "id": "us-starbucks",
+    "name": "Starbucks",
+    "careers_url": "https://careers.starbucks.com/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "hospitality"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.starbucks.com/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.starbucks.com/\", \"title\": \"Starbucks Careers - Starbucks Careers\"}"
+    }
+  },
+  {
+    "id": "de-suse",
+    "name": "SUSE",
+    "careers_url": "https://www.suse.com/careers/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.suse.com/careers/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.suse.com/careers/\", \"title\": \"Careers\"}"
+    }
+  },
+  {
+    "id": "us-target",
+    "name": "Target",
+    "careers_url": "https://corporate.target.com/careers",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "retail"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://corporate.target.com/careers"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://corporate.target.com/careers\", \"title\": \"Jobs at Target\"}"
+    }
+  },
+  {
+    "id": "de-teamviewer",
+    "name": "TeamViewer",
+    "careers_url": "https://careers.teamviewer.com/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.teamviewer.com/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.teamviewer.com/\", \"title\": \"TeamViewer Germany GmbH\"}"
+    }
+  },
+  {
+    "id": "de-telefonica-germany",
+    "name": "Telefonica Germany",
+    "careers_url": "https://www.telefonica.de/karriere.html",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "telecommunications"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.telefonica.de/karriere.html"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.telefonica.de/karriere.html\", \"title\": \"Karriere & aktuelle Jobs | Telefónica\"}"
+    }
+  },
+  {
+    "id": "us-texas-instruments",
+    "name": "Texas Instruments",
+    "careers_url": "https://careers.ti.com/en/sites/CX",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "semiconductors"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.ti.com/",
+        "https://careers.ti.com/en/sites/CX"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.ti.com/en/sites/CX\", \"title\": \"Texas Instruments\"}"
+    }
+  },
+  {
+    "id": "us-thermo-fisher-scientific",
+    "name": "Thermo Fisher Scientific",
+    "careers_url": "https://jobs.thermofisher.com/global/en",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "life sciences"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://jobs.thermofisher.com/global/en"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://jobs.thermofisher.com/global/en\", \"title\": \"Careers at Thermo Fisher Scientific | Thermo Fisher Scientific jobs\"}"
+    }
+  },
+  {
+    "id": "ats-thinkcellsoftware",
+    "name": "think-cell",
+    "careers_url": "https://job-boards.greenhouse.io/thinkcellsoftware",
+    "countries": [
+      "US",
+      "DE"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "name": "think-cell",
+      "board": "thinkcellsoftware",
+      "countries": [
+        "US",
+        "DE"
+      ],
+      "locations": [
+        "United States",
+        "United States of America",
+        "USA",
+        "U.S.A.",
+        "U.S.",
+        "New York",
+        "San Francisco",
+        "Seattle",
+        "Boston",
+        "Chicago",
+        "Austin",
+        "Los Angeles",
+        "San Diego",
+        "Washington, DC",
+        "Washington D.C.",
+        "Mountain View",
+        "Palo Alto",
+        "San Jose",
+        "Sunnyvale",
+        "Atlanta",
+        "Dallas",
+        "Houston",
+        "Denver",
+        "California",
+        "Massachusetts",
+        "Texas",
+        "Germany",
+        "Deutschland",
+        "Berlin",
+        "Munich",
+        "München",
+        "Hamburg",
+        "Frankfurt",
+        "Cologne",
+        "Köln",
+        "Düsseldorf",
+        "Dusseldorf",
+        "Stuttgart",
+        "Dresden",
+        "Leipzig",
+        "Bonn",
+        "Karlsruhe",
+        "Darmstadt",
+        "Walldorf",
+        "Erlangen",
+        "Nuremberg",
+        "Nürnberg"
+      ]
+    },
+    "note": "Public Greenhouse feed checked with the existing application collector. Collection is filtered to the selected country; generic remote locations may need manual review. Job counts change and do not establish work eligibility.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/thinkcellsoftware",
+        "https://boards-api.greenhouse.io/v1/boards/thinkcellsoftware",
+        "https://boards-api.greenhouse.io/v1/boards/thinkcellsoftware/jobs?content=true"
+      ],
+      "detail": "{\"collector\": \"fetch_greenhouse\", \"total_jobs\": 27, \"country_location_matches\": {\"US\": 12, \"DE\": 12}}"
+    }
+  },
+  {
+    "id": "de-thyssenkrupp",
+    "name": "thyssenkrupp",
+    "careers_url": "https://jobs.thyssenkrupp.com/en",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "manufacturing"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://jobs.thyssenkrupp.com/en"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://jobs.thyssenkrupp.com/en\", \"title\": \"Jobboard - thyssenkrupp\"}"
+    }
+  },
+  {
+    "id": "us-united-airlines",
+    "name": "United Airlines",
+    "careers_url": "https://careers.united.com/us/en",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "aviation"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.united.com/us/en"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.united.com/us/en\", \"title\": \"Careers at United Airlines | United Airlines jobs\"}"
+    }
+  },
+  {
+    "id": "us-unitedhealth-group",
+    "name": "UnitedHealth Group",
+    "careers_url": "https://careers.unitedhealthgroup.com/search-jobs",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "healthcare"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.unitedhealthgroup.com/",
+        "https://careers.unitedhealthgroup.com/search-jobs"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.unitedhealthgroup.com/search-jobs\", \"title\": \"Search our Job Opportunities at UnitedHealth Group\"}"
+    }
+  },
+  {
+    "id": "us-ups",
+    "name": "UPS",
+    "careers_url": "https://www.jobs-ups.com/global/en",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "logistics"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.jobs-ups.com/",
+        "https://www.jobs-ups.com/global/en"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.jobs-ups.com/global/en\", \"title\": \"Careers at United Parcel Service | United Parcel Service jobs\"}"
+    }
+  },
+  {
+    "id": "de-vattenfall-germany",
+    "name": "Vattenfall Germany",
+    "careers_url": "https://careers.vattenfall.com/de/de",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "energy"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.vattenfall.com/de/de"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.vattenfall.com/de/de\", \"title\": \"Karriere bei Vattenfall Deutschland | Jobs & Stellenangebote\"}"
+    }
+  },
+  {
+    "id": "us-verizon",
+    "name": "Verizon",
+    "careers_url": "https://mycareer.verizon.com/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "telecommunications"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://mycareer.verizon.com/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://mycareer.verizon.com/\", \"title\": \"Welcome to the V Team life | Verizon Careers\"}"
+    }
+  },
+  {
+    "id": "us-visa",
+    "name": "Visa",
+    "careers_url": "https://corporate.visa.com/en/careers.html",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "financial services"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://corporate.visa.com/en/careers.html"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://corporate.visa.com/en/careers.html\", \"title\": \"Visa careers: Progress starts with you | Visa\"}"
+    }
+  },
+  {
+    "id": "de-vodafone-germany",
+    "name": "Vodafone Germany",
+    "careers_url": "https://careers.vodafone.com/de/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "telecommunications"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.vodafone.com/de/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.vodafone.com/de/\", \"title\": \"Vodafone Careers Germany · Together we can\"}"
+    }
+  },
+  {
+    "id": "de-volkswagen",
+    "name": "Volkswagen",
+    "careers_url": "https://www.volkswagen-karriere.de/de.html",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "automotive"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.volkswagen-karriere.de/de.html"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.volkswagen-karriere.de/de.html\", \"title\": \"Jobs, Ausbildung & Karriere bei Volkswagen\"}"
+    }
+  },
+  {
+    "id": "us-walmart",
+    "name": "Walmart",
+    "careers_url": "https://careers.walmart.com/us/en/home",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "retail"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.walmart.com/",
+        "https://careers.walmart.com/us/en/home"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.walmart.com/us/en/home\", \"title\": \"Walmart Careers\"}"
+    }
+  },
+  {
+    "id": "us-walt-disney",
+    "name": "Walt Disney",
+    "careers_url": "https://www.disneycareers.com/en",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "media and entertainment"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.disneycareers.com/en"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.disneycareers.com/en\", \"title\": \"Working at DISNEY - Disney Careers\"}"
+    }
+  },
+  {
+    "id": "us-warner-bros-discovery",
+    "name": "Warner Bros. Discovery",
+    "careers_url": "https://careers.wbd.com/global/en",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "media and entertainment"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.wbd.com/global/en"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://careers.wbd.com/global/en\", \"title\": \"Careers at Warner Bros. Discovery\"}"
+    }
+  },
+  {
+    "id": "us-wells-fargo",
+    "name": "Wells Fargo",
+    "careers_url": "https://www.wellsfargojobs.com/",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "financial services"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.wellsfargojobs.com/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.wellsfargojobs.com/\", \"title\": \"Careers | Wells Fargo\"}"
+    }
+  },
+  {
+    "id": "us-workday",
+    "name": "Workday",
+    "careers_url": "https://www.workday.com/en-us/company/careers/overview.html",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for USA discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.workday.com/en-us/company/careers.html",
+        "https://www.workday.com/en-us/company/careers/overview.html"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://www.workday.com/en-us/company/careers/overview.html\", \"title\": \"Workday Careers | Your work days are brighter here. | Workday US\"}"
+    }
+  },
+  {
+    "id": "de-zalando",
+    "name": "Zalando",
+    "careers_url": "https://jobs.zalando.com/en",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "retail and technology"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://jobs.zalando.com/en/",
+        "https://jobs.zalando.com/en"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://jobs.zalando.com/en\", \"title\": \"Zalando Jobs\"}"
+    }
+  },
+  {
+    "id": "de-zf",
+    "name": "ZF",
+    "careers_url": "https://jobs.zf.com/",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "automotive"
+    ],
+    "access_mode": "manual",
+    "source": null,
+    "note": "Official employer career portal for Germany discovery. Select the country on global portals and inspect each vacancy. Open the career page or import a vacancy/job-alert email; no automatic connector is enabled for this entry.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://jobs.zf.com/"
+      ],
+      "detail": "{\"http_status\": 200, \"final_url\": \"https://jobs.zf.com/\", \"title\": \"ZF Jobs\"}"
+    }
+  }
+]

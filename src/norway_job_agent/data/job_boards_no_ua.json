@@ -1,0 +1,508 @@
+[
+  {
+    "id": "no-nav",
+    "name": "NAV Arbeidsplassen",
+    "url": "https://arbeidsplassen.nav.no/stillinger",
+    "careers_url": "https://arbeidsplassen.nav.no/stillinger",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "public employment service",
+    "access_mode": "manual",
+    "source": null,
+    "note": "Nationwide public search with occupation, location and working-language filters. This directory opens the search page; the app also has a NAV feed adapter configured by default, with resumable checkpoints and withdrawal handling. Each collection processes a bounded feed window; NAV excludes FINN-origin vacancies.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_search_result",
+      "evidence_urls": [
+        "https://arbeidsplassen.nav.no/stillinger"
+      ],
+      "detail": "Official indexed page reviewed for service identity and search scope on 2026-10-03. Selection is a coverage shortlist, not an independently measured popularity ranking. No automatic connector configured."
+    }
+  },
+  {
+    "id": "no-finn",
+    "name": "FINN Jobb",
+    "url": "https://www.finn.no/job/search",
+    "careers_url": "https://www.finn.no/job/search",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "general job board",
+    "access_mode": "manual",
+    "source": null,
+    "note": "Broad Norwegian listings. FINN is a manual-import source in this application; open the listing or import an alert email.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_search_result",
+      "evidence_urls": [
+        "https://www.finn.no/job/search"
+      ],
+      "detail": "Official indexed page reviewed for service identity and search scope on 2026-10-03. Selection is a coverage shortlist, not an independently measured popularity ranking. No automatic connector configured."
+    }
+  },
+  {
+    "id": "no-jobbnorge",
+    "name": "Jobbnorge",
+    "url": "https://www.jobbnorge.no/search/en",
+    "careers_url": "https://www.jobbnorge.no/search/en",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "general and public-sector jobs",
+    "access_mode": "manual",
+    "source": null,
+    "note": "Useful for universities, research and public employers. Job search may require JavaScript and applications use a candidate profile; no automatic collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.jobbnorge.no/search/en"
+      ],
+      "detail": "Official website or its indexed official search result reviewed for source identity and scope. This is a curated coverage shortlist, not a measured traffic or popularity ranking. No claim of automated access permission."
+    }
+  },
+  {
+    "id": "no-thehub",
+    "name": "The Hub Norway",
+    "url": "https://thehub.io/jobs?countryCode=NO",
+    "careers_url": "https://thehub.io/jobs?countryCode=NO",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "startups",
+    "access_mode": "manual",
+    "source": null,
+    "note": "Nordic startup roles with a Norway filter and email alerts. Import an alert or vacancy text; no verified automated connector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://thehub.io/jobs?countryCode=NO"
+      ],
+      "detail": "Official website or its indexed official search result reviewed for source identity and scope. This is a curated coverage shortlist, not a measured traffic or popularity ranking. No claim of automated access permission."
+    }
+  },
+  {
+    "id": "no-indeed",
+    "name": "Indeed Norway",
+    "url": "https://no.indeed.com/",
+    "careers_url": "https://no.indeed.com/",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "general job board",
+    "access_mode": "manual",
+    "source": null,
+    "note": "Broad search including employer listings. Open the site or import job-alert emails; no unrestricted public search API or automatic collector is configured.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://no.indeed.com/"
+      ],
+      "detail": "Official website or its indexed official search result reviewed for source identity and scope. This is a curated coverage shortlist, not a measured traffic or popularity ranking. No claim of automated access permission."
+    }
+  },
+  {
+    "id": "no-linkedin",
+    "name": "LinkedIn Jobs Norway",
+    "url": "https://www.linkedin.com/jobs/search/?location=Norway",
+    "careers_url": "https://www.linkedin.com/jobs/search/?location=Norway",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "professional network",
+    "access_mode": "manual",
+    "source": null,
+    "note": "Professional roles and employer discovery. LinkedIn is manual import only in the application; use saved-search emails or paste vacancy text.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.linkedin.com/jobs/"
+      ],
+      "detail": "Official website or its indexed official search result reviewed for source identity and scope. This is a curated coverage shortlist, not a measured traffic or popularity ranking. No claim of automated access permission."
+    }
+  },
+  {
+    "id": "no-manpower",
+    "name": "Manpower Norway",
+    "url": "https://www.manpower.no/nb",
+    "careers_url": "https://www.manpower.no/nb",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "recruitment agency",
+    "access_mode": "manual",
+    "source": null,
+    "note": "Agency and temporary roles across industries. Open job search and import selected vacancies or alert emails; no automatic collector is configured.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.manpower.no/nb"
+      ],
+      "detail": "Official website or its indexed official search result reviewed for source identity and scope. This is a curated coverage shortlist, not a measured traffic or popularity ranking. No claim of automated access permission."
+    }
+  },
+  {
+    "id": "no-adecco",
+    "name": "Adecco Norway",
+    "url": "https://www.adecco.com/nb-no",
+    "careers_url": "https://www.adecco.com/nb-no",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "recruitment agency",
+    "access_mode": "manual",
+    "source": null,
+    "note": "Agency, temporary and permanent opportunities. Use official vacancy search and import selected text; no automatic collector is configured.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.adecco.com/nb-no"
+      ],
+      "detail": "Official website or its indexed official search result reviewed for source identity and scope. This is a curated coverage shortlist, not a measured traffic or popularity ranking. No claim of automated access permission."
+    }
+  },
+  {
+    "id": "no-academicwork",
+    "name": "Academic Work Norway",
+    "url": "https://www.academicwork.no/",
+    "careers_url": "https://www.academicwork.no/",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "recruitment agency",
+    "access_mode": "manual",
+    "source": null,
+    "note": "Early-career professional and technical roles. Open job search or import alerts; no automatic collector is configured.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.academicwork.no/"
+      ],
+      "detail": "Official website or its indexed official search result reviewed for source identity and scope. This is a curated coverage shortlist, not a measured traffic or popularity ranking. No claim of automated access permission."
+    }
+  },
+  {
+    "id": "no-kode24",
+    "name": "kode24 Jobs",
+    "url": "https://www.kode24.no/jobb",
+    "careers_url": "https://www.kode24.no/jobb",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "software and technology",
+    "access_mode": "manual",
+    "source": null,
+    "note": "Specialist developer source. Official indexed page was found, but search evidence can be stale and this listing needs browser review; no automatic connector is configured.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_search_result",
+      "evidence_urls": [
+        "https://www.kode24.no/jobb"
+      ],
+      "detail": "Official website or its indexed official search result reviewed for source identity and scope. This is a curated coverage shortlist, not a measured traffic or popularity ranking. No claim of automated access permission."
+    }
+  },
+  {
+    "id": "ua-workua",
+    "name": "Work.ua",
+    "url": "https://www.work.ua/",
+    "careers_url": "https://www.work.ua/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "general job board",
+    "access_mode": "manual",
+    "source": null,
+    "note": "Broad Ukrainian job search across sectors and cities. Use the official site or vacancy-alert imports; no automatic board collector is configured.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_search_result",
+      "evidence_urls": [
+        "https://www.work.ua/about-us/",
+        "https://www.work.ua/"
+      ],
+      "detail": "Official indexed page reviewed for service identity and search scope on 2026-10-03. Selection is a coverage shortlist, not an independently measured popularity ranking. No automatic connector configured."
+    }
+  },
+  {
+    "id": "ua-robota",
+    "name": "robota.ua",
+    "url": "https://robota.ua/",
+    "careers_url": "https://robota.ua/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "general job board",
+    "access_mode": "manual",
+    "source": null,
+    "note": "Broad Ukrainian vacancy search. Interactive application flows and account features remain on the source website; import selected vacancy text or alerts.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_search_result",
+      "evidence_urls": [
+        "https://robota.ua/?goHome=true"
+      ],
+      "detail": "Official indexed page reviewed for service identity and search scope on 2026-10-03. Selection is a coverage shortlist, not an independently measured popularity ranking. No automatic connector configured."
+    }
+  },
+  {
+    "id": "ua-dou",
+    "name": "DOU Jobs",
+    "url": "https://jobs.dou.ua/",
+    "careers_url": "https://jobs.dou.ua/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "software and technology",
+    "access_mode": "manual",
+    "source": null,
+    "note": "Ukrainian technology roles and employer directory. No automatic DOU crawler is configured; paste a role or import an alert.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_search_result",
+      "evidence_urls": [
+        "https://jobs.dou.ua/"
+      ],
+      "detail": "Official indexed page reviewed for service identity and search scope on 2026-10-03. Selection is a coverage shortlist, not an independently measured popularity ranking. No automatic connector configured."
+    }
+  },
+  {
+    "id": "ua-djinni",
+    "name": "Djinni",
+    "url": "https://djinni.co/jobs/",
+    "careers_url": "https://djinni.co/jobs/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "software and technology",
+    "access_mode": "manual",
+    "source": null,
+    "note": "Technology jobs including Ukraine and remote locations. Account and messaging flows remain manual; import selected jobs or alerts.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_search_result",
+      "evidence_urls": [
+        "https://djinni.co/jobs/"
+      ],
+      "detail": "Official indexed page reviewed for service identity and search scope on 2026-10-03. Selection is a coverage shortlist, not an independently measured popularity ranking. No automatic connector configured."
+    }
+  },
+  {
+    "id": "ua-happymonday",
+    "name": "Happy Monday",
+    "url": "https://happymonday.ua/jobs-search",
+    "careers_url": "https://happymonday.ua/jobs-search",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "professional and creative jobs",
+    "access_mode": "manual",
+    "source": null,
+    "note": "Professional, creative, nonprofit and junior opportunities. Open official search or import selected text; no automatic collector is configured.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://happymonday.ua/jobs-search"
+      ],
+      "detail": "Official website or its indexed official search result reviewed for source identity and scope. This is a curated coverage shortlist, not a measured traffic or popularity ranking. No claim of automated access permission."
+    }
+  },
+  {
+    "id": "ua-dcz",
+    "name": "State Employment Service vacancy portal",
+    "url": "https://www.dcz.gov.ua/job",
+    "careers_url": "https://www.dcz.gov.ua/job",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "public employment service",
+    "access_mode": "manual",
+    "source": null,
+    "note": "National employment-service search aggregates its own and partner vacancies. Deduplicate against Work.ua, robota.ua and Jooble; the application has no verified public feed connector.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_search_result",
+      "evidence_urls": [
+        "https://vin.dcz.gov.ua/novyna/shukayete-robotu-pochnit-z-yedynogo-portalu-vakansiy",
+        "https://www.dcz.gov.ua/job"
+      ],
+      "detail": "Official indexed page reviewed for service identity and search scope on 2026-10-03. Selection is a coverage shortlist, not an independently measured popularity ranking. No automatic connector configured."
+    }
+  },
+  {
+    "id": "ua-jobsua",
+    "name": "Jobs.ua",
+    "url": "https://jobs.ua/",
+    "careers_url": "https://jobs.ua/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "general job board",
+    "access_mode": "manual",
+    "source": null,
+    "note": "General Ukrainian job search with city and occupation categories. Official search evidence reviewed; direct retrieval was unavailable. Manual vacancy or email import.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_search_result",
+      "evidence_urls": [
+        "https://jobs.ua/"
+      ],
+      "detail": "Official website or its indexed official search result reviewed for source identity and scope. This is a curated coverage shortlist, not a measured traffic or popularity ranking. No claim of automated access permission."
+    }
+  },
+  {
+    "id": "ua-jooble",
+    "name": "Jooble Ukraine",
+    "url": "https://ua.jooble.org/",
+    "careers_url": "https://ua.jooble.org/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "job aggregator",
+    "access_mode": "manual",
+    "source": null,
+    "note": "Aggregates listings across sources. Prefer the originating employer page and deduplicate. Any partner API needs separate access validation; no automatic collector is configured.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://ua.jooble.org/"
+      ],
+      "detail": "Official website or its indexed official search result reviewed for source identity and scope. This is a curated coverage shortlist, not a measured traffic or popularity ranking. No claim of automated access permission."
+    }
+  },
+  {
+    "id": "ua-lobbyx",
+    "name": "Lobby X",
+    "url": "https://thelobbyx.com/",
+    "careers_url": "https://thelobbyx.com/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "public-sector nonprofit and business jobs",
+    "access_mode": "manual",
+    "source": null,
+    "note": "Civilian government, nonprofit, media and business categories plus separate military recruitment links. Choose relevant categories manually; email-newsletter import is supported by the app.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://thelobbyx.com/"
+      ],
+      "detail": "Official website or its indexed official search result reviewed for source identity and scope. This is a curated coverage shortlist, not a measured traffic or popularity ranking. No claim of automated access permission."
+    }
+  },
+  {
+    "id": "ua-olx",
+    "name": "OLX Jobs Ukraine",
+    "url": "https://www.olx.ua/uk/rabota/",
+    "careers_url": "https://www.olx.ua/uk/rabota/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "local and hourly jobs",
+    "access_mode": "manual",
+    "source": null,
+    "note": "Local, trade, service and hourly opportunities. Review the original employer and listing before importing. No automatic OLX collector is configured.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.olx.ua/uk/rabota/"
+      ],
+      "detail": "Official website or its indexed official search result reviewed for source identity and scope. This is a curated coverage shortlist, not a measured traffic or popularity ranking. No claim of automated access permission."
+    }
+  },
+  {
+    "id": "ua-linkedin",
+    "name": "LinkedIn Jobs Ukraine",
+    "url": "https://www.linkedin.com/jobs/search/?location=Ukraine",
+    "careers_url": "https://www.linkedin.com/jobs/search/?location=Ukraine",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "multiple sectors"
+    ],
+    "category": "professional network",
+    "access_mode": "manual",
+    "source": null,
+    "note": "Professional roles and employer discovery. LinkedIn is manual import only in the application; use saved-search emails or paste vacancy text.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.linkedin.com/jobs/"
+      ],
+      "detail": "Official website or its indexed official search result reviewed for source identity and scope. This is a curated coverage shortlist, not a measured traffic or popularity ranking. No claim of automated access permission."
+    }
+  }
+]

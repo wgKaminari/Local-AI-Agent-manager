@@ -50,7 +50,7 @@ class ScrollForm(ttk.Frame):
         if getattr(event, "delta", 0):
             direction = -1 if event.delta > 0 else 1
         widget = event.widget
-        if isinstance(widget, tk.Text):
+        if isinstance(widget, (tk.Text, ttk.Treeview)):
             first, last = widget.yview()
             if (direction < 0 and first > 0) or (direction > 0 and last < 1):
                 widget.yview_scroll(direction * 3, "units")
@@ -68,7 +68,7 @@ class DesktopLayout:
     """Layout mixin; commands are supplied by Desktop's existing controller."""
 
     def _style(self):
-        self.root.title("Norway Job Agent")
+        self.root.title("Personal Job Agent")
         width = min(1440, self.root.winfo_screenwidth() - 60)
         height = min(940, self.root.winfo_screenheight() - 90)
         self.root.geometry(f"{width}x{height}")
@@ -113,7 +113,7 @@ class DesktopLayout:
         brand = tk.Frame(self.sidebar, background=SIDEBAR)
         brand.pack(fill="x", padx=8, pady=(2, 26))
         tk.Label(brand, text="n.", font=("Segoe UI", 26, "bold"), bg=SIDEBAR, fg=INK).pack(side="left")
-        tk.Label(brand, text="Norway\nJob workspace", justify="left", font=("Segoe UI", 10), bg=SIDEBAR, fg=INK).pack(side="left", padx=10)
+        tk.Label(brand, text="Your\nJob workspace", justify="left", font=("Segoe UI", 10), bg=SIDEBAR, fg=INK).pack(side="left", padx=10)
         self._button(self.sidebar, "+  Add opportunity", self._manual_vacancy, primary=True).pack(fill="x", pady=(0, 26))
         tk.Label(self.sidebar, text="WORKSPACE", font=("Segoe UI", 8, "bold"), bg=SIDEBAR, fg=MUTED,
                  anchor="w", padx=10).pack(fill="x", pady=(0, 9))
@@ -225,6 +225,14 @@ class DesktopLayout:
         self.search_entry.bind("<Escape>", lambda _e: self._clear_search())
         self.query.trace_add("write", lambda *_a: self._schedule_search())
         filters = ttk.Frame(browse)
+        from .countries import COUNTRIES
+        self.country_filter = tk.StringVar(value=COUNTRIES.get(self.settings.get("active_country"), "All countries"))
+        country_row = ttk.Frame(browse)
+        country_row.pack(fill="x", pady=(0, 8))
+        ttk.Label(country_row, text="Country").pack(side="left", padx=(0, 8))
+        country_box = ttk.Combobox(country_row, textvariable=self.country_filter, values=("All countries", *COUNTRIES.values()), state="readonly", width=18)
+        country_box.pack(side="left", fill="x", expand=True)
+        country_box.bind("<<ComboboxSelected>>", self._country_changed)
         filters.pack(fill="x", pady=(0, 12))
         self.track_filter = tk.StringVar(value="All vacancies")
         track = ttk.Combobox(filters, textvariable=self.track_filter,
@@ -287,6 +295,9 @@ class DesktopLayout:
         self.details_tabs.add(details, text="Overview")
         self.details_tabs.add(workflow, text="Notes & status")
         self.details_tabs.add(letter, text="Cover letter")
+        application = ttk.Frame(self.details_tabs)
+        self.details_tabs.add(application, text="Application answers")
+        self._application_page(application)
         self.description = self._editor(details, readonly=True)
         self.description.pack(fill="both", expand=True)
         for tag, options in {"section": {"font": ("Segoe UI", 11, "bold"), "spacing1": 18, "spacing3": 6},
@@ -327,7 +338,7 @@ class DesktopLayout:
         self.letter_placeholder = tk.Label(self.letter_text, text="Write your letter here…\n\nOr start a first draft with local AI.",
                                             font=("Segoe UI", 12), fg="#888888", bg=WHITE, justify="center")
         self.letter_placeholder.bind("<Button-1>", lambda _e: self.letter_text.focus_set())
-        ttk.Label(self.detail_content, text="Prepared here. Submitted by you.", style="Muted.TLabel", font=("Segoe UI", 8)).pack(pady=(12, 0))
+        ttk.Label(self.detail_content, text="Review your answers before sending an application.", style="Muted.TLabel", font=("Segoe UI", 8)).pack(pady=(12, 0))
 
     def _profile_page(self):
         from .desktop import FIELD_LABELS
@@ -347,10 +358,11 @@ class DesktopLayout:
         tabs.add(about, text="About you")
         tabs.add(search, text="Search preferences")
         tabs.add(cv, text="Your CV")
+        self._writing_preferences_page(tabs)
         groups = [(about.content, (("name", 0, ""), ("summary", 3, "A brief introduction in your own words."),
                                    ("skills", 3, "Tools and skills you actually use. Separate with commas or new lines."),
                                    ("evidence", 5, "One factual project or achievement per line."),
-                                   ("work_authorization", 2, "Your current situation in Norway."))),
+                                   ("work_authorization", 2, "Your Norway statement. Use Countries & writing for other countries or to override this."))),
                   (search.content, (("target_roles", 3, "The roles you want to focus on."),
                                     ("related_roles", 3, "Adjacent roles to include in For you."),
                                     ("preferred_locations", 2, "Leave empty to consider all locations."),
@@ -415,6 +427,9 @@ class DesktopLayout:
         tabs.add(report, text="Collection activity")
         tabs.add(library, text="Company library")
         self._company_library(library)
+        boards = ttk.Frame(tabs)
+        tabs.add(boards, text="Country job boards")
+        self._job_boards_page(boards)
         source_actions = ttk.Frame(sources)
         source_actions.pack(fill="x", pady=(4, 16))
         self._button(source_actions, "+  Add source", self._add_source).pack(side="left")
@@ -502,7 +517,9 @@ class DesktopLayout:
         elif page == str(self.gmail_page):
             self.status_message.set("Select reviewed email opportunities and choose Add selected to vacancies.")
         elif self.selected_id is not None:
-            if self.details_tabs.index("current") == 2:
+            if self.details_tabs.index("current") == 3:
+                self._save_application()
+            elif self.details_tabs.index("current") == 2:
                 self._save_letter()
             else:
                 self._save_workflow()

@@ -1,6 +1,6 @@
-# Norway Job Agent
+# Personal Job Agent
 
-A private Python desktop assistant for discovering Norway vacancies, organizing opportunities and preparing cover letters for you to review and submit.
+A private Python desktop assistant for discovering vacancies in Norway, the USA, Germany and Ukraine, organizing opportunities, and preparing application answers and cover letters. Supported standard web forms can be sent after you review them and press the send button.
 
 ## Start
 
@@ -16,6 +16,9 @@ On a fresh Python installation, run `python -m pip install -r requirements.txt` 
 
 ## What works
 
+- A country switcher that changes vacancy filters and sources while preserving your shared profile, job preferences and writing style. The first selection of a country adds its verified employer source presets to the editable configuration; save settings or collect to keep them.
+- A researched directory of **294 employer entries** (291 distinct employer names): Norway 69, USA 89, Germany 80, Ukraine 67. Some employers cover multiple countries. **36 distinct employer collectors** are configured; the remaining entries are career links for browser research and alert/manual import.
+- A separate **Country job boards** directory with 46 researched source entries and explicit access notes. These are curated starting points, not a measured popularity ranking.
 - A modern Windows workspace with light and dark themes, a collapsible sidebar, opportunity cards, selectable headings, copy menus and keyboard navigation.
 - NAV/Arbeidsplassen collection using its free experimental feed, with resumable pagination, updates and withdrawal handling.
 - Greenhouse and Lever company-board connectors; configurable location filters.
@@ -27,16 +30,26 @@ On a fresh Python installation, run `python -m pip install -r requirements.txt` 
 - Local AI cover-letter drafts and CV profile suggestions through **Ollama**, with review and editing before use.
 - CV text import from TXT, Markdown, DOCX and text PDFs using the free `pypdf` package.
 - Versioned cover letters and `.txt` export. Generating a letter never marks a job as applied.
+- **Application answers**: extract public Greenhouse questions or static HTML fields, paste missing questions, draft locally, edit choices/text, attach your selected files, save versions and export.
+- Configurable tone, language, instructions, examples, phrases to avoid and answer length under **Profile & CV → Countries & writing**. Work authorization is recorded separately for each country.
 
-The app has no application-submission or messaging function. You open the original application page and submit yourself.
+**Review in browser → Send reviewed application** supports native public HTTPS forms with matching questions and a same-site POST destination. Login, CAPTCHA, embedded and JavaScript-dependent applications require manual completion on the employer site. Gmail stays read-only. Nothing is sent by collection, generation, saving or previewing. A send attempt never silently retries or marks the vacancy as applied; check the employer confirmation first. See [application preparation and delivery](docs/application-preparation.md).
+
+Optional free browser runtime (needed only for supported delivery):
+
+```powershell
+python -m pip install "playwright>=1.49,<2"
+python -m playwright install chromium
+```
 
 ## Daily workflow
 
 1. Review your facts under **Profile & CV**. Actual language proficiency and search preferences are separate fields.
-2. Choose **Find opportunities**. Read source errors or remaining-backlog notices under **Sources & AI → Collection activity**.
+2. Select a **Country**, then choose **Find opportunities**. Review or customize sources under **Sources & AI**; country switching does not rewrite your profile. Read errors or remaining-backlog notices under **Collection activity**.
 3. Browse **Discover** or **For you**, which includes target and related roles. Search updates as you type. Match scores reflect keyword evidence, not hiring probability or eligibility.
 4. Set an opportunity's stage to **saved** under **Notes & status** to keep it in **Saved**. **Applications** shows preparing, ready, applied and interview stages.
 5. Open **Cover letter → Draft with AI**, review every claim, edit the letter, and save a version or export it.
+6. Open **Application answers → Read questions**, review the extracted form, then **Draft answers**. Edit missing details yourself. For supported forms, use **Review in browser**, check all answers and files, and press **Send reviewed application**. Otherwise copy/export to the original site.
 
 Use **Ctrl K** to focus search and **Ctrl S** to save the current profile, settings, notes or cover letter. **Ctrl 1/2/3** opens opportunities, profile and settings. Use arrow keys in the opportunity list. Drag the divider to adjust the reading pane. Fields show unsaved changes; switching to another opportunity asks before replacing your edited notes or letter. If a filter hides an opportunity with unsaved edits, its editor remains open with a notice.
 
@@ -78,9 +91,11 @@ NAV starts with the last **90 days of feed updates**, then resumes from a saved 
 
 NAV's public token is explicitly for experiments. For ongoing use, register directly with NAV for a private token and set `NAV_API_TOKEN` in your environment. The app never emails NAV or creates an account for you. Read [NAV's feed documentation](https://navikt.github.io/pam-stilling-feed/) and [usage terms](https://arbeidsplassen.nav.no/vilkar-api).
 
-The library contains 27 employers, with automatic configurations for Equinor, DNV, Tieto, AutoStore, Cognite, Bekk, Netlight, Crayon, Sopra Steria and Bouvet. The other 17 entries, including Google, provide official career links for research and email-alert imports. Each refresh reports whether a source succeeded; a successful check can return zero jobs. Company postings are retained as research records; automatic disappearance detection currently applies to the NAV feed. Always check the original vacancy before applying.
+The employer directory has 69 Norway, 89 USA, 80 Germany and 67 Ukraine entries. Configured collector coverage by country is 10, 15, 12 and 10 respectively; shared boards make these counts non-additive. The directory distinguishes successful collector checks, reviewed official pages and access-limited links. Each refresh reports failures and partial coverage; a successful check can return zero jobs. Company postings are retained as research records; automatic disappearance detection currently applies to NAV. Always check the original vacancy before applying. Country/city matching is a discovery hint, not proof of remote eligibility or work authorization.
 
-Use **Sources & AI → Company library** to browse additional employers, open their official career sites, or add selected automatic sources. **Add supported companies** adds the available automatic configurations to the settings form. Save settings to keep them. Career-link entries remain accessible for manual research and email alerts; their presence in the library does not mean automated collection is available.
+Read the country shortlists, evidence and limits in [Norway and Ukraine research](docs/research-no-ua.md) and [USA and Germany research](docs/research-us-de.md). National portals such as FINN, Indeed, Stepstone, Work.ua and LinkedIn remain browser/email/manual routes; listing a source does not enable automated scraping. NAV uses the existing incremental feed adapter.
+
+Use **Sources & AI → Company library** to browse employers by country, name or sector, open career sites, or add selected automatic sources. **Add supported companies** applies to the currently filtered list. A maximum of 100 configured sources is accepted; the UI reports when that cap prevents adding more. Country source presets activate once, so a later country switch does not re-add sources you removed. Save settings to keep edits.
 
 Company collection is bounded by source limits. Workday searches and sitemap scans report their coverage under **Collection activity**, including unreadable pages and truncated results. Company scans currently restart at the source's listing window on each run; unlike NAV, they do not maintain a historical pagination cursor. A source's `max_jobs` can be configured up to 100. URL-based country filters can miss postings whose URLs omit location. Robots-disallowed or unsupported sites are not bypassed.
 
@@ -102,6 +117,11 @@ python run.py brief 1 --output "preparation-brief.md"
 python run.py import "my-vacancy.json"
 python run.py import-url "https://company.example/careers/specific-job"
 python run.py models
+python run.py catalog --country DE
+python run.py catalog --country UA --boards
+python run.py list --country US --match
+python run.py application 1
+python run.py application 1 --questions questions.txt --draft
 ```
 
 `brief` creates an offline factual preparation brief; `letter` uses the local AI model. Use `--data-dir "C:\your\folder"` **before** the command to choose another private data directory. See `python run.py --help`.
@@ -134,6 +154,15 @@ python scripts/preview-ui.py --dark --compact
 ```
 
 Tests use temporary databases and mocked source/model responses. They cover duplicate identity, preservation of notes/status/drafts, resumable NAV state, withdrawals, source URL restrictions, local-only model checks, grounded evidence, truthful language claims and the offline workflow. The design preview opens fictional sample opportunities in a temporary workspace without changing personal data. Live collection and desktop checks are separate.
+
+The browser integration tests use real Chromium with every request intercepted by fictional fixtures; no employer receives test applications. Run them after installing the optional browser runtime:
+
+```powershell
+$env:RUN_BROWSER_TESTS='1'
+python -m unittest discover -s tests -p test_browser_integration.py -v
+```
+
+Existing databases migrate in place to retain vacancies, notes, statuses, letters and identities while adding country tags, answer versions and a delivery attempt log. The private data folder and existing launcher/CLI names stay compatible.
 
 See [requirements](docs/requirements.md) for the agreed scope. Personal data, model downloads and generated application materials are excluded from version control.
 

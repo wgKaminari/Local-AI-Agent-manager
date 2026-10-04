@@ -1,0 +1,3291 @@
+[
+  {
+    "id": "equinor",
+    "name": "Equinor",
+    "careers_url": "https://www.equinor.com/careers",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "energy and industry"
+    ],
+    "source": null,
+    "note": "Existing Norway employer; preserve its current collector when merging this metadata. Open the career page to check relevant roles.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "collector_verified",
+      "evidence_urls": [
+        "https://www.equinor.com/careers"
+      ],
+      "detail": "Actual workday application collector completed on 2026-10-03 using the existing Norway configuration inherited from company_catalog.py. 2 postings read, 1 with Norway location hints. Bounded smoke scan: read 2 of 10 public search results; configured limit remains 60. Counts are point-in-time probe observations, not guarantees. No applications sent.",
+      "jobs_observed": 2,
+      "country_matches_observed": 1
+    }
+  },
+  {
+    "id": "dnv",
+    "name": "DNV",
+    "careers_url": "https://jobs.dnv.com/",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "energy and industry"
+    ],
+    "source": null,
+    "note": "Existing Norway employer; preserve its current collector when merging this metadata. Open the career page to check relevant roles.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "collector_verified",
+      "evidence_urls": [
+        "https://jobs.dnv.com/"
+      ],
+      "detail": "Actual career_page application collector completed on 2026-10-03 using the existing Norway configuration inherited from company_catalog.py. 2 postings read, 2 with Norway location hints. Bounded smoke scan: checked 2 of 58 sitemap links with norway in the URL; URLs without that keyword remain outside coverage. Counts are point-in-time probe observations, not guarantees. No applications sent.",
+      "jobs_observed": 2,
+      "country_matches_observed": 2
+    }
+  },
+  {
+    "id": "tieto",
+    "name": "Tieto",
+    "careers_url": "https://careers.tieto.com/",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "source": null,
+    "note": "Existing Norway employer; preserve its current collector when merging this metadata. Open the career page to check relevant roles.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "collector_verified",
+      "evidence_urls": [
+        "https://careers.tieto.com/"
+      ],
+      "detail": "Actual career_page application collector completed on 2026-10-03 using the existing Norway configuration inherited from company_catalog.py. 2 postings read, 2 with Norway location hints. Bounded smoke scan: checked 2 of 34 sitemap links with norway in the URL; URLs without that keyword remain outside coverage. Counts are point-in-time probe observations, not guarantees. No applications sent.",
+      "jobs_observed": 2,
+      "country_matches_observed": 2
+    }
+  },
+  {
+    "id": "google",
+    "name": "Google",
+    "careers_url": "https://www.google.com/about/careers/applications/",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "source": null,
+    "note": "Existing Norway employer; preserve its current collector when merging this metadata. Open the career page to check relevant roles.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.google.com/about/careers/applications/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.google.com/about/careers/applications/\", \"title\": \"Search for your career at Google.\", \"h1\": \"\"}"
+    }
+  },
+  {
+    "id": "autostore",
+    "name": "AutoStore",
+    "careers_url": "https://www.autostoresystem.com/careers",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "source": null,
+    "note": "Existing Norway employer; preserve its current collector when merging this metadata. Open the career page to check relevant roles.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "collector_verified",
+      "evidence_urls": [
+        "https://www.autostoresystem.com/careers"
+      ],
+      "detail": "Actual workday application collector completed on 2026-10-03 using the existing Norway configuration inherited from company_catalog.py. 2 postings read, 1 with Norway location hints. Bounded smoke scan: read 2 of 31 search results; configured limit remains 60. Counts are point-in-time probe observations, not guarantees. No applications sent.",
+      "jobs_observed": 2,
+      "country_matches_observed": 1
+    }
+  },
+  {
+    "id": "cognite",
+    "name": "Cognite",
+    "careers_url": "https://www.cognite.com/en/company/careers",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "source": null,
+    "note": "Existing Norway employer; preserve its current collector when merging this metadata. Open the career page to check relevant roles.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "collector_verified",
+      "evidence_urls": [
+        "https://www.cognite.com/en/company/careers"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-03 using the existing Norway configuration inherited from company_catalog.py. 47 postings read, 10 with Norway location hints. Full public board. Counts are point-in-time probe observations, not guarantees. No applications sent.",
+      "jobs_observed": 47,
+      "country_matches_observed": 10
+    }
+  },
+  {
+    "id": "bekk",
+    "name": "Bekk",
+    "careers_url": "https://jobs.lever.co/bekk",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "source": null,
+    "note": "Existing Norway employer; preserve its current collector when merging this metadata. Open the career page to check relevant roles.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "collector_verified",
+      "evidence_urls": [
+        "https://jobs.lever.co/bekk"
+      ],
+      "detail": "Actual lever application collector completed on 2026-10-03 using the existing Norway configuration inherited from company_catalog.py. 10 postings read, 10 with Norway location hints. Full public board. Counts are point-in-time probe observations, not guarantees. No applications sent.",
+      "jobs_observed": 10,
+      "country_matches_observed": 10
+    }
+  },
+  {
+    "id": "netlight",
+    "name": "Netlight",
+    "careers_url": "https://jobs.lever.co/netlight",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "source": null,
+    "note": "Existing Norway employer; preserve its current collector when merging this metadata. Open the career page to check relevant roles.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "collector_verified",
+      "evidence_urls": [
+        "https://jobs.lever.co/netlight"
+      ],
+      "detail": "Actual lever application collector completed on 2026-10-03 using the existing Norway configuration inherited from company_catalog.py. 36 postings read, 3 with Norway location hints. Full public board. Counts are point-in-time probe observations, not guarantees. No applications sent.",
+      "jobs_observed": 36,
+      "country_matches_observed": 3
+    }
+  },
+  {
+    "id": "crayon",
+    "name": "Crayon",
+    "careers_url": "https://job-boards.greenhouse.io/crayon",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "source": null,
+    "note": "Existing Norway employer; preserve its current collector when merging this metadata. Open the career page to check relevant roles.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "collector_verified",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/crayon"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-03 using the existing Norway configuration inherited from company_catalog.py. 0 postings read, 0 with Norway location hints. Valid empty public board; no vacancies observed. Counts are point-in-time probe observations, not guarantees. No applications sent.",
+      "jobs_observed": 0,
+      "country_matches_observed": 0
+    }
+  },
+  {
+    "id": "sopra-steria",
+    "name": "Sopra Steria",
+    "careers_url": "https://careers.soprasteria.no/jobs",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "source": null,
+    "note": "Existing Norway employer; preserve its current collector when merging this metadata. Open the career page to check relevant roles.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "collector_verified",
+      "evidence_urls": [
+        "https://careers.soprasteria.no/jobs"
+      ],
+      "detail": "Actual career_page application collector completed on 2026-10-03 using the existing Norway configuration inherited from company_catalog.py. 2 postings read, 2 with Norway location hints. Bounded smoke scan: checked 2 of 10 public listing links; more pages may exist. Counts are point-in-time probe observations, not guarantees. No applications sent.",
+      "jobs_observed": 2,
+      "country_matches_observed": 2
+    }
+  },
+  {
+    "id": "bouvet",
+    "name": "Bouvet",
+    "careers_url": "https://www.bouvet.no/ledige-stillinger",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "source": null,
+    "note": "Existing Norway employer; preserve its current collector when merging this metadata. Open the career page to check relevant roles.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "collector_verified",
+      "evidence_urls": [
+        "https://www.bouvet.no/ledige-stillinger"
+      ],
+      "detail": "Actual career_page application collector completed on 2026-10-03 using the existing Norway configuration inherited from company_catalog.py. 2 postings read, 2 with Norway location hints. Bounded smoke scan: checked 2 of 43 matching listing links; more listing pages may exist. Counts are point-in-time probe observations, not guarantees. No applications sent.",
+      "jobs_observed": 2,
+      "country_matches_observed": 2
+    }
+  },
+  {
+    "id": "statkraft",
+    "name": "Statkraft",
+    "careers_url": "https://www.statkraft.com/careers/",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "energy and industry"
+    ],
+    "source": null,
+    "note": "Existing Norway employer; preserve its current collector when merging this metadata. Open the career page to check relevant roles.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.statkraft.com/careers/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.statkraft.com/careers/\", \"title\": \"Statkraft Careers | Building a better way\", \"h1\": \"Build a better way\"}"
+    }
+  },
+  {
+    "id": "tomra",
+    "name": "TOMRA",
+    "careers_url": "https://www.tomra.com/careers",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "energy and industry"
+    ],
+    "source": null,
+    "note": "Existing Norway employer; preserve its current collector when merging this metadata. Open the career page to check relevant roles.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "access_limited",
+      "evidence_urls": [
+        "https://www.tomra.com/careers"
+      ],
+      "detail": "Career link retained for browser review; this automated check did not verify page contents. {\"error\": \"HTTP Error 403: Forbidden\"}"
+    }
+  },
+  {
+    "id": "kongsberg",
+    "name": "KONGSBERG",
+    "careers_url": "https://www.kongsberg.com/careers/",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "energy and industry"
+    ],
+    "source": null,
+    "note": "Existing Norway employer; preserve its current collector when merging this metadata. Open the career page to check relevant roles.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.kongsberg.com/careers/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.kongsberg.com/careers/\", \"title\": \"Shape the future with us - KONGSBERG - an international technology group\", \"h1\": \"Shape the future with us\"}"
+    }
+  },
+  {
+    "id": "aker-solutions",
+    "name": "Aker Solutions",
+    "careers_url": "https://www.akersolutions.com/careers/",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "energy and industry"
+    ],
+    "source": null,
+    "note": "Existing Norway employer; preserve its current collector when merging this metadata. Open the career page to check relevant roles.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.akersolutions.com/careers/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.akersolutions.com/careers/\", \"title\": \"Careers | Aker Solutions\", \"h1\": \"We've generated ideas since 1841. Now it's your turn.\"}"
+    }
+  },
+  {
+    "id": "telenor",
+    "name": "Telenor",
+    "careers_url": "https://www.telenor.com/career/open-positions/",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "energy and industry"
+    ],
+    "source": null,
+    "note": "Existing Norway employer; preserve its current collector when merging this metadata. Open the career page to check relevant roles.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.telenor.com/career/open-positions/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.telenor.com/career/open-positions/\", \"title\": \"Open Positions - Telenor Group\", \"h1\": \"Open positions\"}"
+    }
+  },
+  {
+    "id": "telenor-cyberdefence",
+    "name": "Telenor Cyberdefence",
+    "careers_url": "https://jobs.telenorcyberdefence.com/jobs",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "source": null,
+    "note": "Existing Norway employer; preserve its current collector when merging this metadata. Open the career page to check relevant roles.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://jobs.telenorcyberdefence.com/jobs"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://jobs.telenorcyberdefence.com/jobs\", \"title\": \"Current job openings - Telenor Cyberdefence\", \"h1\": \"\"}"
+    }
+  },
+  {
+    "id": "storebrand",
+    "name": "Storebrand",
+    "careers_url": "https://www.storebrand.no/om-storebrand/jobb-i-storebrand",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "finance"
+    ],
+    "source": null,
+    "note": "Existing Norway employer; preserve its current collector when merging this metadata. Open the career page to check relevant roles.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.storebrand.no/om-storebrand/jobb-i-storebrand"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.storebrand.no/om-storebrand/jobb-i-storebrand\", \"title\": \"Jobb i Storebrand - Storebrand\", \"h1\": \"Jobb i Storebrand?\"}"
+    }
+  },
+  {
+    "id": "dnb",
+    "name": "DNB",
+    "careers_url": "https://www.dnb.no/om-oss/jobb-og-karriere",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "finance"
+    ],
+    "source": null,
+    "note": "Existing Norway employer; preserve its current collector when merging this metadata. Open the career page to check relevant roles.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.dnb.no/om-oss/jobb-og-karriere"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.dnb.no/om-oss/jobb-og-karriere\", \"title\": \"Jobb og karriere | Om oss fra A til Å - DNB\", \"h1\": \"Jobb i DNB\"}"
+    }
+  },
+  {
+    "id": "nordea",
+    "name": "Nordea",
+    "careers_url": "https://www.nordea.com/en/careers",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "finance"
+    ],
+    "source": null,
+    "note": "Existing Norway employer; preserve its current collector when merging this metadata. Open the career page to check relevant roles.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.nordea.com/en/careers"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.nordea.com/en/careers\", \"title\": \"Careers | Nordea\", \"h1\": \"Careers\"}"
+    }
+  },
+  {
+    "id": "capgemini",
+    "name": "Capgemini",
+    "careers_url": "https://www.capgemini.com/no-no/careers/",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "source": null,
+    "note": "Existing Norway employer; preserve its current collector when merging this metadata. Open the career page to check relevant roles.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.capgemini.com/no-no/careers/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.capgemini.com/no-no/careers/\", \"title\": \"Capgemini Career Paths | Career Growth & Progression | Capgemini\", \"h1\": \"\"}"
+    }
+  },
+  {
+    "id": "accenture",
+    "name": "Accenture",
+    "careers_url": "https://www.accenture.com/no-en/careers",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "source": null,
+    "note": "Existing Norway employer; preserve its current collector when merging this metadata. Open the career page to check relevant roles.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.accenture.com/no-en/careers"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.accenture.com/no-en/careers\", \"title\": \"Accenture Careers & Job Opportunities\", \"h1\": \"Belong. Grow. Thrive. Reinvent with Accenture\"}"
+    }
+  },
+  {
+    "id": "microsoft",
+    "name": "Microsoft",
+    "careers_url": "https://careers.microsoft.com/v2/global/en/home.html",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "source": null,
+    "note": "Existing Norway employer; preserve its current collector when merging this metadata. Open the career page to check relevant roles.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.microsoft.com/",
+        "https://careers.microsoft.com/v2/global/en/home.html"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://careers.microsoft.com/v2/global/en/home.html\", \"title\": \"Home | Microsoft Careers\", \"h1\": \"Win and thrive together\"}"
+    }
+  },
+  {
+    "id": "schibsted",
+    "name": "Schibsted",
+    "careers_url": "https://schibsted.com/career/",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "source": null,
+    "note": "Existing Norway employer; preserve its current collector when merging this metadata. Open the career page to check relevant roles.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "access_limited",
+      "evidence_urls": [
+        "https://schibsted.com/career/"
+      ],
+      "detail": "Career link retained for browser review; this automated check did not verify page contents. {\"http_status\": 202, \"url\": \"https://schibsted.com/career/\", \"title\": \"\", \"h1\": \"\"}"
+    }
+  },
+  {
+    "id": "statnett",
+    "name": "Statnett",
+    "careers_url": "https://www.statnett.no/karriere/",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "energy and industry"
+    ],
+    "source": null,
+    "note": "Existing Norway employer; preserve its current collector when merging this metadata. Open the career page to check relevant roles.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.statnett.no/karriere/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.statnett.no/karriere/\", \"title\": \"Karriere i Statnett - har vi en jobb til deg? | Statnett\", \"h1\": \"Karriere\"}"
+    }
+  },
+  {
+    "id": "sintef",
+    "name": "SINTEF",
+    "careers_url": "https://www.sintef.no/en/sintef-group/career/vacant-positions/",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "research"
+    ],
+    "source": null,
+    "note": "Existing Norway employer; preserve its current collector when merging this metadata. Open the career page to check relevant roles.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.sintef.no/en/sintef-group/career/vacant-positions/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.sintef.no/en/sintef-group/career/vacant-positions/\", \"title\": \"Vacant positions - SINTEF\", \"h1\": \"Vacant positions\"}"
+    }
+  },
+  {
+    "id": "ntnu",
+    "name": "NTNU",
+    "careers_url": "https://www.ntnu.edu/vacancies",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "research"
+    ],
+    "source": null,
+    "note": "Existing Norway employer; preserve its current collector when merging this metadata. Open the career page to check relevant roles.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.ntnu.edu/vacancies"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.ntnu.edu/vacancies\", \"title\": \"Vacancies - NTNU\", \"h1\": \"Navigation\"}"
+    }
+  },
+  {
+    "id": "no-hydro",
+    "name": "Hydro",
+    "careers_url": "https://www.hydro.com/en/global/careers/",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "manufacturing"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.hydro.com/en/global/careers/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.hydro.com/en/global/careers/\", \"title\": \"Careers | Hydro\", \"h1\": \"A job where you matter\"}"
+    }
+  },
+  {
+    "id": "no-yara",
+    "name": "Yara",
+    "careers_url": "https://www.yara.com/careers/",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "chemicals and agriculture"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.yara.com/careers/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.yara.com/careers/\", \"title\": \"Careers | Jobs in agriculture and environmental sector | Yara International\", \"h1\": \"Careers\"}"
+    }
+  },
+  {
+    "id": "no-elkem",
+    "name": "Elkem",
+    "careers_url": "https://www.elkem.com/career/",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "manufacturing"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.elkem.com/career/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.elkem.com/career/\", \"title\": \"Career | Elkem.com\"}"
+    }
+  },
+  {
+    "id": "no-jotun",
+    "name": "Jotun",
+    "careers_url": "https://www.jotun.com/ww-en/career",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "manufacturing"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.jotun.com/ww-en/about-jotun/career",
+        "https://www.jotun.com/ww-en/career"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.jotun.com/ww-en/career\", \"title\": \"Join us | Jotun\", \"h1\": \"Welcome to Jotun\"}"
+    }
+  },
+  {
+    "id": "no-orkla",
+    "name": "Orkla",
+    "careers_url": "https://careers.orkla.com/",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "consumer goods"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.orkla.com/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://careers.orkla.com/\", \"title\": \"Available Jobs at Orkla\"}"
+    }
+  },
+  {
+    "id": "no-tine",
+    "name": "TINE",
+    "careers_url": "https://www.tine.no/jobb-i-tine",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "food production"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.tine.no/jobb-i-tine"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.tine.no/jobb-i-tine\", \"title\": \"Jobb i TINE\"}"
+    }
+  },
+  {
+    "id": "no-mowi",
+    "name": "Mowi",
+    "careers_url": "https://mowi.com/careers/",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "aquaculture"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://mowi.com/people/career/",
+        "https://mowi.com/careers/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://mowi.com/careers/\", \"title\": \"Careers at Mowi | Join the Blue Revolution\", \"h1\": \"Careers\"}"
+    }
+  },
+  {
+    "id": "no-leroy",
+    "name": "Leroy Seafood",
+    "careers_url": "https://www.leroyseafood.com/en/career/",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "aquaculture"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.leroyseafood.com/en/career/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.leroyseafood.com/en/career/\", \"title\": \"Career\", \"h1\": \"Career\"}"
+    }
+  },
+  {
+    "id": "no-salmar",
+    "name": "SalMar",
+    "careers_url": "https://www.salmar.no/en/career/",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "aquaculture"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.salmar.no/en/career/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.salmar.no/en/career/\", \"title\": \"Work in SalMar - Salmar\", \"h1\": \"Work in SalMar\"}"
+    }
+  },
+  {
+    "id": "no-skretting",
+    "name": "Skretting",
+    "careers_url": "https://www.skretting.com/en/this-is-Skretting/careers/",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "aquaculture"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.skretting.com/en/this-is-Skretting/careers/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.skretting.com/en/this-is-Skretting/careers/\", \"title\": \"Careers  - Skretting\"}"
+    }
+  },
+  {
+    "id": "no-veidekke",
+    "name": "Veidekke",
+    "careers_url": "https://www.veidekke.no/jobb-og-karriere/",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "construction"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.veidekke.no/jobb-og-karriere/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.veidekke.no/jobb-og-karriere/\", \"title\": \"Jobb og karriere | Veidekke\"}"
+    }
+  },
+  {
+    "id": "no-ncc",
+    "name": "NCC",
+    "careers_url": "https://www.ncc.no/jobbe-i-ncc/",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "construction"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.ncc.no/jobbe-i-ncc/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.ncc.no/jobbe-i-ncc/\", \"title\": \"Jobbe i NCC | NCC\", \"h1\": \"Karriere i NCC\"}"
+    }
+  },
+  {
+    "id": "no-af-gruppen",
+    "name": "AF Gruppen",
+    "careers_url": "https://www.afgruppen.no/karriere/",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "construction"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.afgruppen.no/karriere/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.afgruppen.no/karriere/\", \"title\": \"Karriere - AF Gruppen\", \"h1\": \"Karriere\"}"
+    }
+  },
+  {
+    "id": "no-norconsult",
+    "name": "Norconsult",
+    "careers_url": "https://norconsult.no/karriere/",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "engineering"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://norconsult.no/karriere/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://norconsult.no/karriere/\", \"title\": \"Karriere - Norconsult\", \"h1\": \"Karriere\"}"
+    }
+  },
+  {
+    "id": "no-multiconsult",
+    "name": "Multiconsult",
+    "careers_url": "https://www.multiconsult.no/jobbhososs/",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "engineering"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.multiconsult.no/jobbhososs/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.multiconsult.no/jobbhososs/\", \"title\": \"Jobb hos oss\"}"
+    }
+  },
+  {
+    "id": "no-ramboll",
+    "name": "Ramboll",
+    "careers_url": "https://www.ramboll.com/careers",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "engineering"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.ramboll.com/careers"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.ramboll.com/careers\", \"title\": \"Careers at Ramboll - Ramboll\", \"h1\": \"Open positions\"}"
+    }
+  },
+  {
+    "id": "no-asplan-viak",
+    "name": "Asplan Viak",
+    "careers_url": "https://www.asplanviak.no/karriere/",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "engineering"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.asplanviak.no/karriere/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.asplanviak.no/karriere/\", \"title\": \"Karriere • Asplan Viak\", \"h1\": \"Vi jobber med meningsfulle  prosjekter i et tverrfaglig fellesskap\"}"
+    }
+  },
+  {
+    "id": "no-obos",
+    "name": "OBOS",
+    "careers_url": "https://www.obos.no/om-obos/jobb-i-obos",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "property"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.obos.no/om-obos/jobb-i-obos"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.obos.no/om-obos/jobb-i-obos\", \"title\": \"Jobb i OBOS | OBOS\"}"
+    }
+  },
+  {
+    "id": "no-vy",
+    "name": "Vy",
+    "careers_url": "https://www.vy.no/vygruppen/karriere-i-vy",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "transport"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.vy.no/vygruppen/karriere-i-vy"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.vy.no/vygruppen/karriere-i-vy\", \"title\": \"Karriere i Vy | Ledige stillinger | Søk jobb | vy.no\"}"
+    }
+  },
+  {
+    "id": "no-bane-nor",
+    "name": "Bane NOR",
+    "careers_url": "https://www.banenor.no/jobb-og-karriere/",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "rail infrastructure"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.banenor.no/jobb-og-karriere/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.banenor.no/jobb-og-karriere/\", \"title\": \"Jobb og karriere | Bane NOR\", \"h1\": \"Jobb og karriere\"}"
+    }
+  },
+  {
+    "id": "no-avinor",
+    "name": "Avinor",
+    "careers_url": "https://om.avinor.no/karriere/jobbe-avinor/",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "aviation"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.avinor.no/karriere/",
+        "https://om.avinor.no/karriere/jobbe-avinor/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://om.avinor.no/karriere/jobbe-avinor/\", \"title\": \"Jobbe i Avinor\", \"h1\": \"Jobbe i Avinor\"}"
+    }
+  },
+  {
+    "id": "no-posten-bring",
+    "name": "Posten Bring",
+    "careers_url": "https://www.postenbring.no/jobb",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "logistics"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.postenbring.no/jobb"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.postenbring.no/jobb\", \"title\": \"Jobb og karriere - Posten Bring\"}"
+    }
+  },
+  {
+    "id": "no-norwegian",
+    "name": "Norwegian",
+    "careers_url": "https://careers.norwegian.com/",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "aviation"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "access_limited",
+      "evidence_urls": [
+        "https://careers.norwegian.com/"
+      ],
+      "detail": "Career link retained for browser review; this automated check did not verify page contents. {\"error\": \"HTTP Error 403: Forbidden\"}"
+    }
+  },
+  {
+    "id": "no-sas",
+    "name": "SAS",
+    "careers_url": "https://careers.sasgroup.net/",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "aviation"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.sasgroup.net/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://careers.sasgroup.net/\", \"title\": \"SAS Group career site\", \"h1\": \"SAS Group career site\"}"
+    }
+  },
+  {
+    "id": "no-scandic",
+    "name": "Scandic Hotels",
+    "careers_url": "https://www.scandichotels.com/en/career",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "hospitality"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.scandichotels.com/career",
+        "https://www.scandichotels.com/en/career"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.scandichotels.com/en/career\", \"title\": \"Scandic Hotels\", \"h1\": \"\"}"
+    }
+  },
+  {
+    "id": "no-strawberry",
+    "name": "Strawberry",
+    "careers_url": "https://jobs.strawberryhotels.com/",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "hospitality"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://jobs.strawberryhotels.com/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://jobs.strawberryhotels.com/\", \"title\": \"Career - Strawberry\", \"h1\": \"\"}"
+    }
+  },
+  {
+    "id": "no-thon",
+    "name": "Thon Gruppen",
+    "careers_url": "https://thon.no/karriere/",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "hospitality and property"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://thon.no/karriere/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://thon.no/karriere/\", \"title\": \"Jobbe hos oss? Gode og varierte karrieremuligheter | Thon\", \"h1\": \"Lyst til å jobbe i Thon?\"}"
+    }
+  },
+  {
+    "id": "no-norgesgruppen",
+    "name": "NorgesGruppen",
+    "careers_url": "https://www.norgesgruppen.no/karriere/ledige-stillinger",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "retail"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.norgesgruppen.no/karriere/ledige-stillinger"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.norgesgruppen.no/karriere/ledige-stillinger\", \"title\": \"Ledige stillinger | NorgesGruppen\"}"
+    }
+  },
+  {
+    "id": "no-coop",
+    "name": "Coop Norge",
+    "careers_url": "https://www.coop.no/karriere",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "retail"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.coop.no/karriere"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.coop.no/karriere\", \"title\": \"Karriere i Coop - Sammen skaper vi fremtidens varehandel - Coop\"}"
+    }
+  },
+  {
+    "id": "no-rema1000",
+    "name": "REMA 1000",
+    "careers_url": "https://www.rema.no/karriere/",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "retail"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.rema.no/karriere/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.rema.no/karriere/\", \"title\": \"Karriere i REMA 1000 | Ledige stillinger | Jobbe i butikk | REMA 1000 | Alltid lave priser\"}"
+    }
+  },
+  {
+    "id": "no-gjensidige",
+    "name": "Gjensidige",
+    "careers_url": "https://www.gjensidige.no/karriere",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "insurance"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "access_limited",
+      "evidence_urls": [
+        "https://www.gjensidige.no/karriere"
+      ],
+      "detail": "Career link retained for browser review; this automated check did not verify page contents. {\"error\": \"<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1010)>\"}"
+    }
+  },
+  {
+    "id": "no-sparebank1-smn",
+    "name": "SpareBank 1 SMN",
+    "careers_url": "https://www.sparebank1.no/nb/smn/om-oss/jobb-og-karriere.html",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "banking"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.sparebank1.no/nb/smn/om-oss/jobb-og-karriere.html"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.sparebank1.no/nb/smn/om-oss/jobb-og-karriere.html\", \"title\": \"Jobb og karriere | SpareBank 1 SMN\", \"h1\": \"\"}"
+    }
+  },
+  {
+    "id": "no-tryg",
+    "name": "Tryg",
+    "careers_url": "https://careers.tryg.com/Tryg?locale=nb_NO",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "insurance"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.tryg.com/Tryg?locale=nb_NO"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://careers.tryg.com/Tryg?locale=nb_NO\", \"title\": \"Karriere │ Tryg\"}"
+    }
+  },
+  {
+    "id": "no-if",
+    "name": "If",
+    "careers_url": "https://www.if.no/om-if/jobbe-i-if",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "insurance"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.if.no/om-if/jobbe-i-if"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.if.no/om-if/jobbe-i-if\", \"title\": \"Start din karriere i If | Bli bedre kjent med oss\"}"
+    }
+  },
+  {
+    "id": "no-telia",
+    "name": "Telia Norge",
+    "careers_url": "https://www.telia.no/om-telia/karriere/",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "telecommunications"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "access_limited",
+      "evidence_urls": [
+        "https://www.telia.no/om-telia/karriere/"
+      ],
+      "detail": "Career link retained for browser review; this automated check did not verify page contents. {\"error\": \"<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1010)>\"}"
+    }
+  },
+  {
+    "id": "no-atea",
+    "name": "Atea Norge",
+    "careers_url": "https://www.atea.no/karriere/",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "IT services"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "access_limited",
+      "evidence_urls": [
+        "https://www.atea.no/karriere/"
+      ],
+      "detail": "Career link retained for browser review; this automated check did not verify page contents. {\"http_status\": 200, \"url\": \"https://www.atea.no/karriere/\", \"title\": \"Verifying...\", \"h1\": \"\"}"
+    }
+  },
+  {
+    "id": "no-itera",
+    "name": "Itera",
+    "careers_url": "https://www.itera.com/en/join-us",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "IT services"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.itera.com/en/join-us"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.itera.com/en/join-us\", \"title\": \"Join us\"}"
+    }
+  },
+  {
+    "id": "no-computas",
+    "name": "Computas",
+    "careers_url": "https://computas.com/jobb/",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "IT services"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://computas.com/jobb/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://computas.com/jobb/\", \"title\": \"Jobb hos oss - Computas\"}"
+    }
+  },
+  {
+    "id": "no-netcompany",
+    "name": "Netcompany",
+    "careers_url": "https://netcompany.com/careers/",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "IT services"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://netcompany.com/careers/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://netcompany.com/careers/\", \"title\": \"Careers | Netcompany\", \"h1\": \"Careers\"}"
+    }
+  },
+  {
+    "id": "no-knowit",
+    "name": "Knowit",
+    "careers_url": "https://www.knowit.no/jobb-hos-oss",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "IT services"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.knowit.no/karriere/",
+        "https://www.knowit.no/jobb-hos-oss"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.knowit.no/jobb-hos-oss\", \"title\": \"Jobb hos oss\", \"h1\": \"Er du en Maker?\"}"
+    }
+  },
+  {
+    "id": "no-visma",
+    "name": "Visma",
+    "careers_url": "https://www.visma.com/careers",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "software"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.visma.com/careers"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.visma.com/careers\", \"title\": \"Join us | Visma careers\", \"h1\": \"We are shaping the future of business software. Join us.\"}"
+    }
+  },
+  {
+    "id": "no-nrk",
+    "name": "NRK",
+    "careers_url": "https://info.nrk.no/karriere/",
+    "countries": [
+      "NO"
+    ],
+    "sectors": [
+      "media"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.nrk.no/karriere/",
+        "https://info.nrk.no/karriere/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://info.nrk.no/karriere/\", \"title\": \"Jobb i NRK – Hjelp og informasjon\", \"h1\": \"Jobb i NRK\"}"
+    }
+  },
+  {
+    "id": "ua-ajax",
+    "name": "Ajax Systems",
+    "careers_url": "https://jobs.lever.co/ajax",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "electronics and security"
+    ],
+    "source": {
+      "type": "lever",
+      "board": "ajax",
+      "name": "Ajax Systems",
+      "locations": [
+        "Ukraine",
+        "Україна",
+        "Украина",
+        "Kyiv",
+        "Kiev",
+        "Київ",
+        "Киев",
+        "Lviv",
+        "Львів",
+        "Львов",
+        "Kharkiv",
+        "Харків",
+        "Харьков",
+        "Odesa",
+        "Odessa",
+        "Одеса",
+        "Dnipro",
+        "Дніпро",
+        "Vinnytsia",
+        "Ivano-Frankivsk",
+        "Uzhhorod",
+        "Ternopil",
+        "Chernivtsi",
+        "Rivne",
+        "Lutsk",
+        "Zhytomyr",
+        "Cherkasy",
+        "Zaporizhzhia"
+      ],
+      "countries": [
+        "UA"
+      ],
+      "region": "global"
+    },
+    "note": "Public Lever employer board; automatically collects published postings and filters for Ukraine location terms. Global or unspecified remote roles are not assumed to be Ukraine-eligible. Review each vacancy’s actual location and eligibility.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "collector_verified",
+      "evidence_urls": [
+        "https://jobs.lever.co/ajax",
+        "https://api.lever.co/v0/postings/ajax?mode=json&limit=100&skip=0"
+      ],
+      "detail": "Actual application fetch_lever function completed on 2026-10-03: 197 public postings, 104 with a Ukraine location hint. Counts are a point-in-time smoke check, not promised active vacancies or eligibility. Pagination was exercised for Ajax. No applications were sent.",
+      "jobs_observed": 197,
+      "country_matches_observed": 104
+    }
+  },
+  {
+    "id": "ua-readdle",
+    "name": "Readdle",
+    "careers_url": "https://readdle.com/careers",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "software"
+    ],
+    "source": {
+      "type": "greenhouse",
+      "board": "readdle70",
+      "name": "Readdle",
+      "locations": [
+        "Ukraine",
+        "Україна",
+        "Украина",
+        "Kyiv",
+        "Kiev",
+        "Київ",
+        "Киев",
+        "Lviv",
+        "Львів",
+        "Львов",
+        "Kharkiv",
+        "Харків",
+        "Харьков",
+        "Odesa",
+        "Odessa",
+        "Одеса",
+        "Dnipro",
+        "Дніпро",
+        "Vinnytsia",
+        "Ivano-Frankivsk",
+        "Uzhhorod",
+        "Ternopil",
+        "Chernivtsi",
+        "Rivne",
+        "Lutsk",
+        "Zhytomyr",
+        "Cherkasy",
+        "Zaporizhzhia"
+      ],
+      "countries": [
+        "UA"
+      ]
+    },
+    "note": "Public Greenhouse employer board; automatically collects published postings and filters for Ukraine location terms. Global or unspecified remote roles are not assumed to be Ukraine-eligible. Review each vacancy’s actual location and eligibility.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "collector_verified",
+      "evidence_urls": [
+        "https://readdle.com/careers",
+        "https://boards-api.greenhouse.io/v1/boards/readdle70/jobs?content=true"
+      ],
+      "detail": "Actual application fetch_greenhouse function completed on 2026-10-03: 9 public postings, 5 with a Ukraine location hint. Counts are a point-in-time smoke check, not promised active vacancies or eligibility. Pagination was exercised for Ajax. No applications were sent.",
+      "jobs_observed": 9,
+      "country_matches_observed": 5
+    }
+  },
+  {
+    "id": "ua-appflame",
+    "name": "appflame",
+    "careers_url": "https://job-boards.greenhouse.io/appflame/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "software"
+    ],
+    "source": {
+      "type": "greenhouse",
+      "board": "appflame",
+      "name": "appflame",
+      "locations": [
+        "Ukraine",
+        "Україна",
+        "Украина",
+        "Kyiv",
+        "Kiev",
+        "Київ",
+        "Киев",
+        "Lviv",
+        "Львів",
+        "Львов",
+        "Kharkiv",
+        "Харків",
+        "Харьков",
+        "Odesa",
+        "Odessa",
+        "Одеса",
+        "Dnipro",
+        "Дніпро",
+        "Vinnytsia",
+        "Ivano-Frankivsk",
+        "Uzhhorod",
+        "Ternopil",
+        "Chernivtsi",
+        "Rivne",
+        "Lutsk",
+        "Zhytomyr",
+        "Cherkasy",
+        "Zaporizhzhia"
+      ],
+      "countries": [
+        "UA"
+      ]
+    },
+    "note": "Public Greenhouse employer board; automatically collects published postings and filters for Ukraine location terms. Global or unspecified remote roles are not assumed to be Ukraine-eligible. Review each vacancy’s actual location and eligibility.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "collector_verified",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/appflame/",
+        "https://boards-api.greenhouse.io/v1/boards/appflame/jobs?content=true"
+      ],
+      "detail": "Actual application fetch_greenhouse function completed on 2026-10-03: 15 public postings, 14 with a Ukraine location hint. Counts are a point-in-time smoke check, not promised active vacancies or eligibility. Pagination was exercised for Ajax. No applications were sent.",
+      "jobs_observed": 15,
+      "country_matches_observed": 14
+    }
+  },
+  {
+    "id": "ua-healthjoy",
+    "name": "HealthJoy",
+    "careers_url": "https://job-boards.greenhouse.io/healthjoy",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "health technology"
+    ],
+    "source": {
+      "type": "greenhouse",
+      "board": "healthjoy",
+      "name": "HealthJoy",
+      "locations": [
+        "Ukraine",
+        "Україна",
+        "Украина",
+        "Kyiv",
+        "Kiev",
+        "Київ",
+        "Киев",
+        "Lviv",
+        "Львів",
+        "Львов",
+        "Kharkiv",
+        "Харків",
+        "Харьков",
+        "Odesa",
+        "Odessa",
+        "Одеса",
+        "Dnipro",
+        "Дніпро",
+        "Vinnytsia",
+        "Ivano-Frankivsk",
+        "Uzhhorod",
+        "Ternopil",
+        "Chernivtsi",
+        "Rivne",
+        "Lutsk",
+        "Zhytomyr",
+        "Cherkasy",
+        "Zaporizhzhia"
+      ],
+      "countries": [
+        "UA"
+      ]
+    },
+    "note": "Public Greenhouse employer board; automatically collects published postings and filters for Ukraine location terms. Global or unspecified remote roles are not assumed to be Ukraine-eligible. Review each vacancy’s actual location and eligibility.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "collector_verified",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/healthjoy",
+        "https://boards-api.greenhouse.io/v1/boards/healthjoy/jobs?content=true"
+      ],
+      "detail": "Actual application fetch_greenhouse function completed on 2026-10-03: 5 public postings, 3 with a Ukraine location hint. Counts are a point-in-time smoke check, not promised active vacancies or eligibility. Pagination was exercised for Ajax. No applications were sent.",
+      "jobs_observed": 5,
+      "country_matches_observed": 3
+    }
+  },
+  {
+    "id": "ua-enavate",
+    "name": "Enavate",
+    "careers_url": "https://job-boards.greenhouse.io/enavatecareers",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "IT services"
+    ],
+    "source": {
+      "type": "greenhouse",
+      "board": "enavatecareers",
+      "name": "Enavate",
+      "locations": [
+        "Ukraine",
+        "Україна",
+        "Украина",
+        "Kyiv",
+        "Kiev",
+        "Київ",
+        "Киев",
+        "Lviv",
+        "Львів",
+        "Львов",
+        "Kharkiv",
+        "Харків",
+        "Харьков",
+        "Odesa",
+        "Odessa",
+        "Одеса",
+        "Dnipro",
+        "Дніпро",
+        "Vinnytsia",
+        "Ivano-Frankivsk",
+        "Uzhhorod",
+        "Ternopil",
+        "Chernivtsi",
+        "Rivne",
+        "Lutsk",
+        "Zhytomyr",
+        "Cherkasy",
+        "Zaporizhzhia"
+      ],
+      "countries": [
+        "UA"
+      ]
+    },
+    "note": "Public Greenhouse employer board; automatically collects published postings and filters for Ukraine location terms. Global or unspecified remote roles are not assumed to be Ukraine-eligible. Review each vacancy’s actual location and eligibility.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "collector_verified",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/enavatecareers",
+        "https://boards-api.greenhouse.io/v1/boards/enavatecareers/jobs?content=true"
+      ],
+      "detail": "Actual application fetch_greenhouse function completed on 2026-10-03: 9 public postings, 1 with a Ukraine location hint. Counts are a point-in-time smoke check, not promised active vacancies or eligibility. Pagination was exercised for Ajax. No applications were sent.",
+      "jobs_observed": 9,
+      "country_matches_observed": 1
+    }
+  },
+  {
+    "id": "ua-sevenpro",
+    "name": "SevenPro",
+    "careers_url": "https://job-boards.greenhouse.io/sevenpro",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "IT services"
+    ],
+    "source": {
+      "type": "greenhouse",
+      "board": "sevenpro",
+      "name": "SevenPro",
+      "locations": [
+        "Ukraine",
+        "Україна",
+        "Украина",
+        "Kyiv",
+        "Kiev",
+        "Київ",
+        "Киев",
+        "Lviv",
+        "Львів",
+        "Львов",
+        "Kharkiv",
+        "Харків",
+        "Харьков",
+        "Odesa",
+        "Odessa",
+        "Одеса",
+        "Dnipro",
+        "Дніпро",
+        "Vinnytsia",
+        "Ivano-Frankivsk",
+        "Uzhhorod",
+        "Ternopil",
+        "Chernivtsi",
+        "Rivne",
+        "Lutsk",
+        "Zhytomyr",
+        "Cherkasy",
+        "Zaporizhzhia"
+      ],
+      "countries": [
+        "UA"
+      ]
+    },
+    "note": "Public Greenhouse employer board; automatically collects published postings and filters for Ukraine location terms. Global or unspecified remote roles are not assumed to be Ukraine-eligible. Review each vacancy’s actual location and eligibility.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "collector_verified",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/sevenpro",
+        "https://boards-api.greenhouse.io/v1/boards/sevenpro/jobs?content=true"
+      ],
+      "detail": "Actual application fetch_greenhouse function completed on 2026-10-03: 7 public postings, 5 with a Ukraine location hint. Counts are a point-in-time smoke check, not promised active vacancies or eligibility. Pagination was exercised for Ajax. No applications were sent.",
+      "jobs_observed": 7,
+      "country_matches_observed": 5
+    }
+  },
+  {
+    "id": "ua-eduki",
+    "name": "eduki",
+    "careers_url": "https://job-boards.greenhouse.io/eduki",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "education technology"
+    ],
+    "source": {
+      "type": "greenhouse",
+      "board": "eduki",
+      "name": "eduki",
+      "locations": [
+        "Ukraine",
+        "Україна",
+        "Украина",
+        "Kyiv",
+        "Kiev",
+        "Київ",
+        "Киев",
+        "Lviv",
+        "Львів",
+        "Львов",
+        "Kharkiv",
+        "Харків",
+        "Харьков",
+        "Odesa",
+        "Odessa",
+        "Одеса",
+        "Dnipro",
+        "Дніпро",
+        "Vinnytsia",
+        "Ivano-Frankivsk",
+        "Uzhhorod",
+        "Ternopil",
+        "Chernivtsi",
+        "Rivne",
+        "Lutsk",
+        "Zhytomyr",
+        "Cherkasy",
+        "Zaporizhzhia"
+      ],
+      "countries": [
+        "UA"
+      ]
+    },
+    "note": "Public Greenhouse employer board; automatically collects published postings and filters for Ukraine location terms. Global or unspecified remote roles are not assumed to be Ukraine-eligible. Review each vacancy’s actual location and eligibility.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "collector_verified",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/eduki",
+        "https://boards-api.greenhouse.io/v1/boards/eduki/jobs?content=true"
+      ],
+      "detail": "Actual application fetch_greenhouse function completed on 2026-10-03: 3 public postings, 3 with a Ukraine location hint. Counts are a point-in-time smoke check, not promised active vacancies or eligibility. Pagination was exercised for Ajax. No applications were sent.",
+      "jobs_observed": 3,
+      "country_matches_observed": 3
+    }
+  },
+  {
+    "id": "ua-tatari",
+    "name": "Tatari",
+    "careers_url": "https://job-boards.greenhouse.io/tatari",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "advertising technology"
+    ],
+    "source": {
+      "type": "greenhouse",
+      "board": "tatari",
+      "name": "Tatari",
+      "locations": [
+        "Ukraine",
+        "Україна",
+        "Украина",
+        "Kyiv",
+        "Kiev",
+        "Київ",
+        "Киев",
+        "Lviv",
+        "Львів",
+        "Львов",
+        "Kharkiv",
+        "Харків",
+        "Харьков",
+        "Odesa",
+        "Odessa",
+        "Одеса",
+        "Dnipro",
+        "Дніпро",
+        "Vinnytsia",
+        "Ivano-Frankivsk",
+        "Uzhhorod",
+        "Ternopil",
+        "Chernivtsi",
+        "Rivne",
+        "Lutsk",
+        "Zhytomyr",
+        "Cherkasy",
+        "Zaporizhzhia"
+      ],
+      "countries": [
+        "UA"
+      ]
+    },
+    "note": "Public Greenhouse employer board; automatically collects published postings and filters for Ukraine location terms. Global or unspecified remote roles are not assumed to be Ukraine-eligible. Review each vacancy’s actual location and eligibility.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "collector_verified",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/tatari",
+        "https://boards-api.greenhouse.io/v1/boards/tatari/jobs?content=true"
+      ],
+      "detail": "Actual application fetch_greenhouse function completed on 2026-10-03: 53 public postings, 3 with a Ukraine location hint. Counts are a point-in-time smoke check, not promised active vacancies or eligibility. Pagination was exercised for Ajax. No applications were sent.",
+      "jobs_observed": 53,
+      "country_matches_observed": 3
+    }
+  },
+  {
+    "id": "ua-airslate",
+    "name": "airSlate",
+    "careers_url": "https://jobs.lever.co/airslate",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "software"
+    ],
+    "source": {
+      "type": "lever",
+      "board": "airslate",
+      "name": "airSlate",
+      "locations": [
+        "Ukraine",
+        "Україна",
+        "Украина",
+        "Kyiv",
+        "Kiev",
+        "Київ",
+        "Киев",
+        "Lviv",
+        "Львів",
+        "Львов",
+        "Kharkiv",
+        "Харків",
+        "Харьков",
+        "Odesa",
+        "Odessa",
+        "Одеса",
+        "Dnipro",
+        "Дніпро",
+        "Vinnytsia",
+        "Ivano-Frankivsk",
+        "Uzhhorod",
+        "Ternopil",
+        "Chernivtsi",
+        "Rivne",
+        "Lutsk",
+        "Zhytomyr",
+        "Cherkasy",
+        "Zaporizhzhia"
+      ],
+      "countries": [
+        "UA"
+      ],
+      "region": "global"
+    },
+    "note": "Public Lever employer board; automatically collects published postings and filters for Ukraine location terms. Global or unspecified remote roles are not assumed to be Ukraine-eligible. Review each vacancy’s actual location and eligibility.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "collector_verified",
+      "evidence_urls": [
+        "https://jobs.lever.co/airslate",
+        "https://api.lever.co/v0/postings/airslate?mode=json&limit=100&skip=0"
+      ],
+      "detail": "Actual application fetch_lever function completed on 2026-10-03: 13 public postings, 1 with a Ukraine location hint. Counts are a point-in-time smoke check, not promised active vacancies or eligibility. Pagination was exercised for Ajax. No applications were sent.",
+      "jobs_observed": 13,
+      "country_matches_observed": 1
+    }
+  },
+  {
+    "id": "ua-softserve",
+    "name": "SoftServe",
+    "careers_url": "https://career.softserveinc.com/en-us/home",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "IT services"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "access_limited",
+      "evidence_urls": [
+        "https://career.softserveinc.com/en-us/home"
+      ],
+      "detail": "Career link retained for browser review; this automated check did not verify page contents. {\"error\": \"HTTP Error 302: The HTTP server returned a redirect error that would lead to an infinite loop.\\nThe last 30x error message was:\\nFound\"}"
+    }
+  },
+  {
+    "id": "ua-epam",
+    "name": "EPAM",
+    "careers_url": "https://careers.epam.ua/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "IT services"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "access_limited",
+      "evidence_urls": [
+        "https://careers.epam.ua/"
+      ],
+      "detail": "Career link retained for browser review; this automated check did not verify page contents. {\"error\": \"HTTP Error 403: Forbidden\"}"
+    }
+  },
+  {
+    "id": "ua-globallogic",
+    "name": "GlobalLogic",
+    "careers_url": "https://www.globallogic.com/ua/careers/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "IT services"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.globallogic.com/ua/careers/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.globallogic.com/ua/careers/\", \"title\": \"Кар'єра в GlobalLogic: Давайте створювати вплив разом\", \"h1\": \"Зробіть свій вплив\"}"
+    }
+  },
+  {
+    "id": "ua-intellias",
+    "name": "Intellias",
+    "careers_url": "https://career.intellias.com/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "IT services"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://career.intellias.com/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://career.intellias.com/\", \"title\": \"Shape Your Future with Intellias\", \"h1\": \"\"}"
+    }
+  },
+  {
+    "id": "ua-n-ix",
+    "name": "N-iX",
+    "careers_url": "https://careers.n-ix.com/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "IT services"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.n-ix.com/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://careers.n-ix.com/\", \"title\": \"Careers at N-iX\", \"h1\": \"Grow your career with   a growing company by your side\"}"
+    }
+  },
+  {
+    "id": "ua-eleks",
+    "name": "ELEKS",
+    "careers_url": "https://careers.eleks.com/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "IT services"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://careers.eleks.com/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://careers.eleks.com/\", \"title\": \"Careers at ELEKS - Find the Right Career Path\", \"h1\": \"Tired of jobs?  Start building your career\"}"
+    }
+  },
+  {
+    "id": "ua-ciklum",
+    "name": "Ciklum",
+    "careers_url": "https://jobs.ciklum.com/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "IT services"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "access_limited",
+      "evidence_urls": [
+        "https://jobs.ciklum.com/"
+      ],
+      "detail": "Career link retained for browser review; this automated check did not verify page contents. {\"error\": \"<urlopen error [SSL: BAD_SIGNATURE] bad signature (_ssl.c:1010)>\"}"
+    }
+  },
+  {
+    "id": "ua-luxoft",
+    "name": "Luxoft",
+    "careers_url": "https://career.luxoft.com/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "IT services"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://career.luxoft.com/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://career.luxoft.com/\", \"title\": \"Explore worldwide technology careers with DXC Luxoft\", \"h1\": \"Build the software-defined world with us\"}"
+    }
+  },
+  {
+    "id": "ua-dataart",
+    "name": "DataArt",
+    "careers_url": "https://www.dataart.team/ua/advance-career",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "IT services"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "access_limited",
+      "evidence_urls": [
+        "https://www.dataart.team/ua/advance-career"
+      ],
+      "detail": "Career link retained for browser review; this automated check did not verify page contents. {\"error\": \"<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1010)>\"}"
+    }
+  },
+  {
+    "id": "ua-miratech",
+    "name": "Miratech",
+    "careers_url": "https://miratechgroup.com/career/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "IT services"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://miratechgroup.com/career/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://miratechgroup.com/career/\", \"title\": \"Hiring Talent in Cutting Edge Tech - Worldwide\"}"
+    }
+  },
+  {
+    "id": "ua-sigma-software",
+    "name": "Sigma Software",
+    "careers_url": "https://career.sigma.software/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "IT services"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://career.sigma.software/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://career.sigma.software/\", \"title\": \"Homepage - Career Sigma Software\", \"h1\": \"BECOME THE ONE OF SIGMA SOFTWARE\"}"
+    }
+  },
+  {
+    "id": "ua-intetics",
+    "name": "Intetics",
+    "careers_url": "https://intetics.com/careers/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "IT services"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "access_limited",
+      "evidence_urls": [
+        "https://intetics.com/careers/"
+      ],
+      "detail": "Career link retained for browser review; this automated check did not verify page contents. {\"error\": \"The read operation timed out\"}"
+    }
+  },
+  {
+    "id": "ua-levi9",
+    "name": "Levi9",
+    "careers_url": "https://www.levi9.com/careers/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "IT services"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.levi9.com/careers/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.levi9.com/careers/\", \"title\": \"Accelerate your career development and join us - Levi9\"}"
+    }
+  },
+  {
+    "id": "ua-zone3000",
+    "name": "ZONE3000",
+    "careers_url": "https://zone3000.net/career/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "IT services"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://zone3000.net/career/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://zone3000.net/career/\", \"title\": \"ZONE3000 | IT Company\", \"h1\": \"\"}"
+    }
+  },
+  {
+    "id": "ua-genesis",
+    "name": "Genesis",
+    "careers_url": "https://www.gen.tech/careers",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "software"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "access_limited",
+      "evidence_urls": [
+        "https://www.gen.tech/careers"
+      ],
+      "detail": "Career link retained for browser review; this automated check did not verify page contents. {\"error\": \"HTTP Error 403: Forbidden\"}"
+    }
+  },
+  {
+    "id": "ua-betterme",
+    "name": "BetterMe",
+    "careers_url": "https://betterme.world/career",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "health technology"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://betterme.world/career"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://betterme.world/career\", \"title\": \"Careers | BetterMe\"}"
+    }
+  },
+  {
+    "id": "ua-macpaw",
+    "name": "MacPaw",
+    "careers_url": "https://macpaw.com/careers",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "software"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://macpaw.com/careers"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://macpaw.com/careers\", \"title\": \"Work at MacPaw — Find the perfect opportunity for you\", \"h1\": \"Work at MacPaw\"}"
+    }
+  },
+  {
+    "id": "ua-preply",
+    "name": "Preply",
+    "careers_url": "https://preply.com/en/careers",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "education technology"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://preply.com/en/careers"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://preply.com/en/careers\", \"title\": \"Preply Careers | Work at Preply.com\", \"h1\": \"Powering people’s progress.\"}"
+    }
+  },
+  {
+    "id": "ua-reface",
+    "name": "Reface",
+    "careers_url": "https://reface.ai/hiring",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "AI and media"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://reface.ai/hiring"
+      ],
+      "detail": "Official hiring page indexed by search and reviewed on 2026-10-03: exposes Our vacancies, current roles and the company hiring contact. Manual link; no automatic collector enabled."
+    }
+  },
+  {
+    "id": "ua-skelar",
+    "name": "SKELAR",
+    "careers_url": "https://jobs.ashbyhq.com/SKELAR",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "software"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://jobs.ashbyhq.com/SKELAR"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://jobs.ashbyhq.com/SKELAR\", \"title\": \"SKELAR Jobs\"}"
+    }
+  },
+  {
+    "id": "ua-headway",
+    "name": "Headway",
+    "careers_url": "https://www.headway.inc/careers",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "education technology"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://headway.inc/careers",
+        "https://www.headway.inc/careers"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.headway.inc/careers\", \"title\": \"Headway Inc – Revolutionizing Lifelong Learning\", \"h1\": \"\"}"
+    }
+  },
+  {
+    "id": "ua-boosta",
+    "name": "Boosta",
+    "careers_url": "https://job-boards.eu.greenhouse.io/boosta",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "digital marketing"
+    ],
+    "source": {
+      "type": "greenhouse",
+      "board": "boosta",
+      "name": "Boosta",
+      "locations": [
+        "Ukraine",
+        "Україна",
+        "Украина",
+        "Kyiv",
+        "Kiev",
+        "Київ",
+        "Киев",
+        "Lviv",
+        "Львів",
+        "Львов",
+        "Kharkiv",
+        "Харків",
+        "Харьков",
+        "Odesa",
+        "Odessa",
+        "Одеса",
+        "Dnipro",
+        "Дніпро",
+        "Vinnytsia",
+        "Ivano-Frankivsk",
+        "Uzhhorod",
+        "Ternopil",
+        "Chernivtsi",
+        "Rivne",
+        "Lutsk",
+        "Zhytomyr",
+        "Cherkasy",
+        "Zaporizhzhia"
+      ],
+      "countries": [
+        "UA"
+      ]
+    },
+    "note": "Public Greenhouse employer board; automatically collects published postings and filters for Ukraine location terms. Global or unspecified remote roles are not assumed to be Ukraine-eligible. Review each vacancy’s actual location and eligibility.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "collector_verified",
+      "evidence_urls": [
+        "https://job-boards.eu.greenhouse.io/boosta",
+        "https://boards-api.greenhouse.io/v1/boards/boosta/jobs?content=true"
+      ],
+      "detail": "Actual application fetch_greenhouse function completed on 2026-10-03: 52 public postings, 52 with a Ukraine location hint. Counts are a point-in-time smoke check, not promised active vacancies or eligibility. Pagination was exercised for Ajax. No applications were sent.",
+      "jobs_observed": 52,
+      "country_matches_observed": 52
+    }
+  },
+  {
+    "id": "ua-obrio",
+    "name": "OBRIO",
+    "careers_url": "https://obrio.co/career",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "software"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://obrio.co/career"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://obrio.co/career\", \"title\": \"Кар'єра в OBRIO\"}"
+    }
+  },
+  {
+    "id": "ua-universe",
+    "name": "Universe Group",
+    "careers_url": "https://uni.tech/en/vacancies",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "software"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "access_limited",
+      "evidence_urls": [
+        "https://uni.tech/en/vacancies"
+      ],
+      "detail": "Career link retained for browser review; this automated check did not verify page contents. {\"error\": \"HTTP Error 403: Forbidden\"}"
+    }
+  },
+  {
+    "id": "ua-jooble",
+    "name": "Jooble",
+    "careers_url": "https://jooble.org/career/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "employment technology"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "access_limited",
+      "evidence_urls": [
+        "https://jooble.org/career/"
+      ],
+      "detail": "Career link retained for browser review; this automated check did not verify page contents. {\"error\": \"HTTP Error 403: Forbidden\"}"
+    }
+  },
+  {
+    "id": "ua-workua",
+    "name": "Work.ua",
+    "careers_url": "https://www.work.ua/careers/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "employment technology"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "access_limited",
+      "evidence_urls": [
+        "https://www.work.ua/careers/"
+      ],
+      "detail": "Career link retained for browser review; this automated check did not verify page contents. {\"error\": \"HTTP Error 403: Forbidden\"}"
+    }
+  },
+  {
+    "id": "ua-rozetka",
+    "name": "ROZETKA",
+    "careers_url": "https://rozetka.com.ua/ua/careers/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "retail and ecommerce"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "access_limited",
+      "evidence_urls": [
+        "https://rozetka.com.ua/ua/careers/"
+      ],
+      "detail": "Career link retained for browser review; this automated check did not verify page contents. {\"error\": \"HTTP Error 403: Forbidden\"}"
+    }
+  },
+  {
+    "id": "ua-evo",
+    "name": "EVO",
+    "careers_url": "https://evo.company/vacancies/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "ecommerce"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://evo.company/vacancies/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://evo.company/vacancies/\", \"title\": \"Вакансії - EVO\"}"
+    }
+  },
+  {
+    "id": "ua-novaposhta",
+    "name": "Nova Poshta",
+    "careers_url": "https://novaposhta.ua/more/vacancies/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "logistics"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://novaposhta.ua/more/vacancies",
+        "https://novaposhta.ua/more/vacancies/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://novaposhta.ua/more/vacancies/\", \"title\": \"Вакансії – «Нова Пошта» | Доставка майбутнього\"}"
+    }
+  },
+  {
+    "id": "ua-ukrposhta",
+    "name": "Ukrposhta",
+    "careers_url": "https://www.ukrposhta.ua/ua/vacancies/all",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "logistics"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.ukrposhta.ua/ua/vacancies/all"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.ukrposhta.ua/ua/vacancies/all\", \"title\": \"Кар’єра | Укрпошта\"}"
+    }
+  },
+  {
+    "id": "ua-kyivstar",
+    "name": "Kyivstar",
+    "careers_url": "https://kyivstar.ua/about/career",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "telecommunications"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "access_limited",
+      "evidence_urls": [
+        "https://kyivstar.ua/about/career"
+      ],
+      "detail": "Career link retained for browser review; this automated check did not verify page contents. {\"error\": \"The read operation timed out\"}"
+    }
+  },
+  {
+    "id": "ua-vodafone",
+    "name": "Vodafone Ukraine",
+    "careers_url": "https://career.vodafone.ua/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "telecommunications"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "access_limited",
+      "evidence_urls": [
+        "https://career.vodafone.ua/"
+      ],
+      "detail": "Career link retained for browser review; this automated check did not verify page contents. {\"http_status\": 200, \"url\": \"https://career.vodafone.ua/\", \"title\": \"Request Rejected\"}"
+    }
+  },
+  {
+    "id": "ua-lifecell",
+    "name": "lifecell",
+    "careers_url": "https://www.lifecell.ua/uk/pro_lifecell/kariera/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "telecommunications"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.lifecell.ua/uk/pro_lifecell/kariera/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.lifecell.ua/uk/pro_lifecell/kariera/\", \"title\": \"Кар'єра\", \"h1\": \"Кар'єра\"}"
+    }
+  },
+  {
+    "id": "ua-privatbank",
+    "name": "PrivatBank",
+    "careers_url": "https://work.privatbank.ua/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "banking"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://privatbank.ua/work",
+        "https://work.privatbank.ua/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://work.privatbank.ua/\", \"title\": \"Вакансії, працевлаштування, робота. ПриватБанк - беремо й робимо\", \"h1\": \"Карʼєра в ПриватБанку\"}"
+    }
+  },
+  {
+    "id": "ua-oschadbank",
+    "name": "Oschadbank",
+    "careers_url": "https://www.oschadbank.ua/career",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "banking"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "access_limited",
+      "evidence_urls": [
+        "https://www.oschadbank.ua/career"
+      ],
+      "detail": "Career link retained for browser review; this automated check did not verify page contents. {\"error\": \"HTTP Error 302: The HTTP server returned a redirect error that would lead to an infinite loop.\\nThe last 30x error message was:\\nFound\"}"
+    }
+  },
+  {
+    "id": "ua-raiffeisen",
+    "name": "Raiffeisen Bank Ukraine",
+    "careers_url": "https://raiffeisen.ua/uk/aem/career.html",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "banking"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "access_limited",
+      "evidence_urls": [
+        "https://raiffeisen.ua/uk/aem/career.html"
+      ],
+      "detail": "Career link retained for browser review; this automated check did not verify page contents. {\"error\": \"HTTP Error 403: Forbidden\"}"
+    }
+  },
+  {
+    "id": "ua-pumb",
+    "name": "PUMB",
+    "careers_url": "https://career.pumb.ua/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "banking"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "access_limited",
+      "evidence_urls": [
+        "https://career.pumb.ua/"
+      ],
+      "detail": "Career link retained for browser review; this automated check did not verify page contents. {\"error\": \"HTTP Error 403: Forbidden\"}"
+    }
+  },
+  {
+    "id": "ua-dtek",
+    "name": "DTEK",
+    "careers_url": "https://dtek.com/career/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "energy"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "page_response_only",
+      "evidence_urls": [
+        "https://dtek.com/career/"
+      ],
+      "detail": "HTTP response received but no usable title or heading extracted; check the career page in a browser. {\"http_status\": 200, \"url\": \"https://dtek.com/career/\", \"title\": \"\", \"h1\": \"\"}"
+    }
+  },
+  {
+    "id": "ua-naftogaz",
+    "name": "Naftogaz",
+    "careers_url": "https://www.naftogaz.com/en/career",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "energy"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.naftogaz.com/en/career"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.naftogaz.com/en/career\", \"title\": \"Career | Naftogaz Ukraine\", \"h1\": \"Career\"}"
+    }
+  },
+  {
+    "id": "ua-metinvest",
+    "name": "Metinvest",
+    "careers_url": "https://metinvestholding.com/en/careers",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "manufacturing"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://metinvestholding.com/en/careers"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://metinvestholding.com/en/careers\", \"title\": \"Career  | METINVEST\"}"
+    }
+  },
+  {
+    "id": "ua-interpipe",
+    "name": "Interpipe",
+    "careers_url": "https://interpipe.biz/career/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "manufacturing"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "access_limited",
+      "evidence_urls": [
+        "https://interpipe.biz/career/"
+      ],
+      "detail": "Career link retained for browser review; this automated check did not verify page contents. {\"error\": \"HTTP Error 302: The HTTP server returned a redirect error that would lead to an infinite loop.\\nThe last 30x error message was:\\nFound\"}"
+    }
+  },
+  {
+    "id": "ua-kernel",
+    "name": "Kernel",
+    "careers_url": "https://www.kernel.ua/ua/career/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "agriculture"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "access_limited",
+      "evidence_urls": [
+        "https://www.kernel.ua/ua/career/"
+      ],
+      "detail": "Career link retained for browser review; this automated check did not verify page contents. {\"error\": \"HTTP Error 403: Forbidden\"}"
+    }
+  },
+  {
+    "id": "ua-mhp",
+    "name": "MHP",
+    "careers_url": "https://mhp.com.ua/uk/career",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "agriculture and food"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "page_response_only",
+      "evidence_urls": [
+        "https://mhp.com.ua/uk/career"
+      ],
+      "detail": "HTTP response received but no usable title or heading extracted; check the career page in a browser. {\"http_status\": 200, \"url\": \"https://mhp.com.ua/uk/career\", \"title\": \"\", \"h1\": \"\"}"
+    }
+  },
+  {
+    "id": "ua-nibulon",
+    "name": "NIBULON",
+    "careers_url": "https://www.nibulon.com/career/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "agriculture and logistics"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "access_limited",
+      "evidence_urls": [
+        "https://www.nibulon.com/career/"
+      ],
+      "detail": "Career link retained for browser review; this automated check did not verify page contents. {\"error\": \"HTTP Error 403: Forbidden\"}"
+    }
+  },
+  {
+    "id": "ua-astarta",
+    "name": "Astarta",
+    "careers_url": "https://astartaholding.com/vakansiyi/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "agriculture"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://astartaholding.com/vakansiyi/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://astartaholding.com/vakansiyi/\", \"title\": \"Вакансії\"}"
+    }
+  },
+  {
+    "id": "ua-farmak",
+    "name": "Farmak",
+    "careers_url": "https://farmak.ua/career/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "pharmaceuticals"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://farmak.ua/career/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://farmak.ua/career/\", \"title\": \"Кар'єра — Farmak\", \"h1\": \"Ваш браузер застарів. Вам необхідно оновити браузер для підвищення рівня безпеки, швидкості і комфорту веб користування, натисніть на цей текст для початку оновлення.\"}"
+    }
+  },
+  {
+    "id": "ua-darnytsia",
+    "name": "Darnytsia",
+    "careers_url": "https://darnytsia.ua/career",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "pharmaceuticals"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://darnytsia.ua/career"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://darnytsia.ua/career\", \"title\": \"Кар’єра | Дарниця\", \"h1\": \"Кар’єра в компанії\"}"
+    }
+  },
+  {
+    "id": "ua-arterium",
+    "name": "Arterium",
+    "careers_url": "https://www.arterium.ua/category/karjernii-centr",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "pharmaceuticals"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.arterium.ua/career",
+        "https://www.arterium.ua/category/karjernii-centr"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.arterium.ua/category/karjernii-centr\", \"title\": \"Кар'єрний центр – Артеріум\", \"h1\": \"Кар'єрний центр\"}"
+    }
+  },
+  {
+    "id": "ua-silpo",
+    "name": "Silpo",
+    "careers_url": "https://silpo.ua/work",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "retail"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "access_limited",
+      "evidence_urls": [
+        "https://silpo.ua/work"
+      ],
+      "detail": "Career link retained for browser review; this automated check did not verify page contents. {\"error\": \"HTTP Error 403: Forbidden\"}"
+    }
+  },
+  {
+    "id": "ua-fozzy",
+    "name": "Fozzy Group",
+    "careers_url": "https://fozzy.ua/ua/contacts/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "retail"
+    ],
+    "source": null,
+    "note": "Official Fozzy Group contact page lists its personnel department for vacancies and CVs. This is a hiring-contact directory entry, not a scraped vacancies feed. Check the employer site for current opportunities.",
+    "checked_at": "2026-10-03",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://fozzy.ua/ua/contacts/"
+      ],
+      "detail": "Official indexed contact page reviewed on 2026-10-03: personnel department explicitly accepts vacancy/CV enquiries. No job-listing collector configured."
+    }
+  },
+  {
+    "id": "ua-eva",
+    "name": "EVA",
+    "careers_url": "https://eva.ua/ua/vacancies/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "retail"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "access_limited",
+      "evidence_urls": [
+        "https://eva.ua/ua/vacancies/"
+      ],
+      "detail": "Career link retained for browser review; this automated check did not verify page contents. {\"error\": \"HTTP Error 403: Forbidden\"}"
+    }
+  },
+  {
+    "id": "ua-comfy",
+    "name": "COMFY",
+    "careers_url": "https://work.comfy.ua/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "retail"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "page_response_only",
+      "evidence_urls": [
+        "https://work.comfy.ua/"
+      ],
+      "detail": "HTTP response received but no usable title or heading extracted; check the career page in a browser. {\"http_status\": 200, \"url\": \"https://work.comfy.ua/\", \"title\": \"\", \"h1\": \"\"}"
+    }
+  },
+  {
+    "id": "ua-nestle",
+    "name": "Nestle Ukraine",
+    "careers_url": "https://www.nestle.ua/jobs",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "food production"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "access_limited",
+      "evidence_urls": [
+        "https://www.nestle.ua/jobs"
+      ],
+      "detail": "Career link retained for browser review; this automated check did not verify page contents. {\"error\": \"HTTP Error 403: Forbidden\"}"
+    }
+  },
+  {
+    "id": "ua-carlsberg",
+    "name": "Carlsberg Ukraine",
+    "careers_url": "https://carlsbergukraine.com/pri-dnatisya-do-nas/vakans/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "food and beverage"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://carlsbergukraine.com/pri-dnatisya-do-nas/vakans/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://carlsbergukraine.com/pri-dnatisya-do-nas/vakans/\", \"title\": \"Приєднатися до нас » Вакансії « Carlsberg Ukraine\"}"
+    }
+  },
+  {
+    "id": "ua-coca-cola",
+    "name": "Coca-Cola HBC Ukraine",
+    "careers_url": "https://ua.coca-colahellenic.com/ua/working-with-us",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "food and beverage"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "access_limited",
+      "evidence_urls": [
+        "https://ua.coca-colahellenic.com/ua/working-with-us"
+      ],
+      "detail": "Career link retained for browser review; this automated check did not verify page contents. {\"http_status\": 200, \"url\": \"https://ua.coca-colahellenic.com/ua/working-with-us\", \"title\": \"Challenge Validation\", \"h1\": \"\"}"
+    }
+  },
+  {
+    "id": "ua-ubisoft",
+    "name": "Ubisoft Ukraine",
+    "careers_url": "https://www.ubisoft.com/en-us/company/careers/locations/kyiv",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "games"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://www.ubisoft.com/en-us/company/careers/locations/kyiv"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://www.ubisoft.com/en-us/company/careers/locations/kyiv\", \"title\": \"Ubisoft Kyiv\", \"h1\": \"Kyiv, Ukraine\"}"
+    }
+  },
+  {
+    "id": "ua-plarium",
+    "name": "Plarium",
+    "careers_url": "https://company.plarium.com/en/career/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "games"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://company.plarium.com/en/career/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://company.plarium.com/en/career/\", \"title\": \"Work at Plarium | Vacancies | company.plarium.com\", \"h1\": \"Vacancies\"}"
+    }
+  },
+  {
+    "id": "ua-wargaming",
+    "name": "Wargaming",
+    "careers_url": "https://wargaming.com/en/careers/",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "games"
+    ],
+    "source": null,
+    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
+    "checked_at": "2026-10-02",
+    "verification": {
+      "status": "official_page_reviewed",
+      "evidence_urls": [
+        "https://wargaming.com/en/careers/"
+      ],
+      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://wargaming.com/en/careers/\", \"title\": \"Careers and Vacancies at Wargaming\", \"h1\": \"Live your passion. Share ours.\"}"
+    }
+  }
+]

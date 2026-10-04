@@ -142,7 +142,7 @@ class StorageTests(unittest.TestCase):
         with JobStore(self.path) as reopened:
             self.assertEqual(reopened.get_job(job_id)["raw_json"], '{"remote": true}')
         with closing(sqlite3.connect(self.path)) as connection:
-            self.assertEqual(connection.execute("PRAGMA user_version").fetchone()[0], 2)
+            self.assertEqual(connection.execute("PRAGMA user_version").fetchone()[0], 3)
 
     def test_conflicting_identity_update_is_atomic(self):
         first, _ = self.store.upsert_job(self.posting(apply_url=""))

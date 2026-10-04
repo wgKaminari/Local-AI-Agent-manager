@@ -76,6 +76,10 @@ class ConnectionPages:
         self.company_query = tk.StringVar()
         search = SearchEntry(actions, textvariable=self.company_query)
         search.pack(side="left", fill="x", expand=True, padx=(0, 12))
+        from .countries import COUNTRIES
+        country = ttk.Combobox(actions, textvariable=self.country_filter, values=("All countries", *COUNTRIES.values()), state="readonly", width=14)
+        country.pack(side="left", padx=(0, 8))
+        country.bind("<<ComboboxSelected>>", self._country_changed)
         self._button(actions, "Add supported companies", self._add_supported_companies, primary=True).pack(side="right")
         ttk.Label(parent, text="Select employers to follow. Automatic sources collect public postings; career links open in your browser.",
                   style="Muted.TLabel", wraplength=880).pack(anchor="w", pady=(0, 12))
@@ -83,8 +87,8 @@ class ConnectionPages:
         footer.pack(side="bottom", fill="x", pady=(12, 0))
         table = ttk.Frame(parent)
         table.pack(fill="both", expand=True)
-        self.company_tree = ttk.Treeview(table, columns=("name", "mode", "added"), show="headings", selectmode="extended")
-        for key, label, width in (("name", "COMPANY", 270), ("mode", "COLLECTION", 270), ("added", "WATCHLIST", 130)):
+        self.company_tree = ttk.Treeview(table, columns=("name", "country", "mode", "added"), show="headings", selectmode="extended")
+        for key, label, width in (("name", "COMPANY", 250), ("country", "COUNTRIES", 95), ("mode", "COLLECTION", 210), ("added", "WATCHLIST", 100)):
             self.company_tree.heading(key, text=label, anchor="w")
             self.company_tree.column(key, width=width, minwidth=90, stretch=key != "added")
         scrollbar = ttk.Scrollbar(table, command=self.company_tree.yview)
@@ -106,8 +110,9 @@ class ConnectionPages:
     def _catalog_source_exists(self, source):
         if not source:
             return False
-        keys = ("type", "board", "url", "tenant", "site", "host", "company")
-        return any(all(str(item.get(key, "")) == str(source.get(key, "")) for key in keys) for item in self.sources)
+        keys = ("type", "board", "url", "tenant", "site", "host", "company", "region")
+        return any(all(str(item.get(key, "")) == str(source.get(key, "")) for key in keys)
+                   and (not source.get("countries") or set(source["countries"]).issubset(item.get("countries", []))) for item in self.sources)
 
     def _render_catalog(self):
         if not hasattr(self, "company_tree"):
@@ -115,33 +120,48 @@ class ConnectionPages:
         self.company_tree.delete(*self.company_tree.get_children())
         query = self.company_query.get().strip().casefold()
         for i, entry in enumerate(self.catalog):
-            if query and query not in (entry["name"] + " " + entry.get("note", "")).casefold():
+            if self._active_country() and self._active_country() not in entry.get("countries", []):
+                continue
+            if query and query not in (entry["name"] + " " + entry.get("note", "") + " " + " ".join(entry.get("sectors", []))).casefold():
                 continue
             source = entry.get("source")
-            self.company_tree.insert("", "end", iid=str(i), values=(entry["name"], "Automatic" if source else "Career link / email alerts",
+            self.company_tree.insert("", "end", iid=str(i), values=(entry["name"], ", ".join(entry.get("countries", [])), "Automatic" if source else "Career link / email alerts",
                                     "Added" if self._catalog_source_exists(source) else ""))
 
     def _show_company_info(self, _event=None):
         selection = self.company_tree.selection()
         if selection:
             entry = self.catalog[int(selection[0])]
-            self.company_info.set(entry.get("note", "") + "\n" + entry["careers_url"])
+            verification = entry.get("verification", {})
+            self.company_info.set(entry.get("note", "") + "\n" + entry["careers_url"] + "\nChecked: " + entry.get("checked_at", "unknown") + " — " + verification.get("status", "legacy entry"))
 
     def _add_catalog_entries(self, entries):
+        from .company_catalog import source_for_countries
+        from .countries import COUNTRIES
         added = 0
+        expanded = 0
+        limit_reached = False
         for entry in entries:
-            source = entry.get("source")
+            source = source_for_countries(entry, [self._active_country()] if self._active_country() else list(COUNTRIES))
             if source and not self._catalog_source_exists(source):
+                keys = ("type", "board", "url", "tenant", "site", "host", "company", "region")
+                existing = next((item for item in self.sources if all(item.get(key, "") == source.get(key, "") for key in keys)), None)
+                if existing is not None:
+                    existing["countries"] = list(dict.fromkeys(existing.get("countries", []) + source.get("countries", [])))
+                    existing["locations"] = list(dict.fromkeys(existing.get("locations", []) + source.get("locations", [])))
+                    expanded += 1
+                    continue
                 if len(self.sources) >= 100:
+                    limit_reached = True
                     break
                 self.sources.append(json.loads(json.dumps(source)))
                 added += 1
         self._render_sources()
         self._render_catalog()
-        self.status_message.set(f"Added {added} company sources to your form. Save settings or collect to use them.")
+        self.status_message.set(f"Added {added} company sources; expanded {expanded} existing sources. Save settings or collect to use them." + (" The 100-source limit was reached; remaining selections were not added." if limit_reached else ""))
 
     def _add_supported_companies(self):
-        self._add_catalog_entries(self.catalog)
+        self._add_catalog_entries([self.catalog[int(i)] for i in self.company_tree.get_children()])
 
     def _add_selected_companies(self):
         chosen = self.company_tree.selection()

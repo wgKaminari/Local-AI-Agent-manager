@@ -86,6 +86,10 @@ def collect_sources(config: dict, store: JobStore) -> dict:
                 raise ValueError("A source's locations filter must be a list of location names.")
             if location_terms:
                 jobs = [job for job in jobs if any(term.casefold() in str(job.get("location", "")).casefold() for term in location_terms if term.strip())]
+            if entry.get("countries"):
+                from .countries import job_countries, validate_countries
+                requested = validate_countries(entry["countries"])
+                jobs = [job for job in jobs if set(job_countries(job)).intersection(requested)]
             # Validate a complete source batch before writing any of its jobs.
             normalized = [validate_job(job) for job in jobs]
             for job in normalized:
@@ -122,6 +126,14 @@ def parser() -> argparse.ArgumentParser:
     listing.add_argument("--status", choices=STATUSES)
     listing.add_argument("--query")
     listing.add_argument("--match", action="store_true")
+    listing.add_argument("--country", choices=("NO", "US", "DE", "UA", "unknown"))
+    catalog = commands.add_parser("catalog", help="List researched employers or job boards by country.")
+    catalog.add_argument("--country", choices=("NO", "US", "DE", "UA"))
+    catalog.add_argument("--boards", action="store_true")
+    application = commands.add_parser("application", help="Extract application questions and optionally draft answers; never submits.")
+    application.add_argument("id", type=int)
+    application.add_argument("--questions", type=Path, help="Manual questions file, one per line; options separated by |.")
+    application.add_argument("--draft", action="store_true")
     for name, help_text in (("show", "Show a stored vacancy."), ("brief", "Export an offline factual preparation brief.")):
         cmd = commands.add_parser(name, help=help_text)
         cmd.add_argument("id", type=int)
@@ -140,6 +152,17 @@ def main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(argv)
     data_dir = args.data_dir.expanduser().resolve()
     try:
+        if args.command == "catalog":
+            from .company_catalog import company_catalog, job_board_catalog
+            print_json((job_board_catalog if args.boards else company_catalog)(args.country or ""))
+            return 0
+        if args.command == "application":
+            from .service import discover_application, prepare_application
+            result = discover_application(data_dir, args.id, args.questions.read_text(encoding="utf-8-sig") if args.questions else "")
+            if args.draft:
+                result = prepare_application(data_dir, args.id, result["form"])
+            print_json(result)
+            return 0
         if args.command == "gui":
             from .desktop import launch
             launch(data_dir)
@@ -184,10 +207,14 @@ def main(argv: list[str] | None = None) -> int:
                 print_json({"created": created, "updated": updated})
             elif args.command == "list":
                 jobs = store.list_jobs(status=args.status, query=args.query)
+                from .countries import job_countries
+                if args.country:
+                    jobs = [job for job in jobs if (not job_countries(job) if args.country == "unknown" else args.country in job_countries(job))]
                 profile = load_profile(data_dir / "profile.json") if args.match else None
                 rows = []
                 for job in jobs:
                     row = {key: job.get(key) for key in ("id", "title", "company", "location", "status", "deadline", "last_seen_at", "source_url")}
+                    row["countries"] = job_countries(job)
                     if profile is not None:
                         row["match"] = match_job(job, profile)
                     rows.append(row)

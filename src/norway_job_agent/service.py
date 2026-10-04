@@ -71,6 +71,8 @@ def read_settings(data_dir: Path) -> dict:
     if not isinstance(result, dict) or not isinstance(result.get("sources"), list):
         raise ValueError("sources.json must contain a sources list.")
     result.setdefault("model", "qwen3:4b")
+    result.setdefault("active_country", "")
+    result.setdefault("country_presets_added", [])
     return result
 
 
@@ -80,11 +82,17 @@ def save_settings(data_dir: Path, settings: dict) -> None:
     if len(settings["sources"]) > 100:
         raise ValueError("Use at most 100 sources per run.")
     from .local_ai import validate_model_name
+    from .countries import COUNTRIES, validate_countries
+    if settings.get("active_country", "") not in {"", *COUNTRIES}:
+        raise ValueError("Choose NO, US, DE, UA or all countries.")
+    validate_countries(settings.get("country_presets_added", []))
     from .company_sources import COMPANY_SOURCE_TYPES, validate_company_source
     validate_model_name(settings.get("model", "qwen3:4b"))
     for source in settings["sources"]:
         if not isinstance(source, dict) or source.get("type") not in {"nav", "greenhouse", "lever", "job_url", *COMPANY_SOURCE_TYPES}:
             raise ValueError("Choose NAV, a supported company source or a job URL for each source.")
+        if "countries" in source:
+            validate_countries(source["countries"])
         if source["type"] in COMPANY_SOURCE_TYPES:
             validate_company_source(source)
         if source["type"] in ("greenhouse", "lever") and not str(source.get("board", "")).strip():
@@ -114,6 +122,12 @@ def _collect(data_dir: Path, settings_override: dict | None = None, *, progress=
     report = {"created": 0, "updated": 0, "withdrawn": 0, "sources": []}
     with JobStore(data_dir / "vacancies.db") as store:
         for index, source in enumerate(settings["sources"], 1):
+            country = settings.get("active_country", "")
+            if country and ((source.get("type") == "nav" and country != "NO") or
+                            (source.get("countries") and country not in source["countries"])):
+                continue
+            if country and source.get("type") != "nav":
+                source = {**source, "countries": [country]}
             if progress is not None:
                 label = source.get("name") or source.get("board") or source.get("url") or source.get("type", "source").upper()
                 progress(f"Checking {label} ({index} of {len(settings['sources'])})… You can keep browsing.")
@@ -153,12 +167,20 @@ def _collect(data_dir: Path, settings_override: dict | None = None, *, progress=
     return report
 
 
-def vacancies(data_dir: Path, query: str = "", status: str = "") -> list[dict]:
+def vacancies(data_dir: Path, query: str = "", status: str = "", country: str = "") -> list[dict]:
+    from .countries import COUNTRIES, job_countries
+    if country and country not in {*COUNTRIES, "unknown"}:
+        raise ValueError("Choose a supported country or unknown.")
     profile = read_profile(data_dir)
     with JobStore(Path(data_dir) / "vacancies.db") as store:
         jobs = store.list_jobs(status=status or None, query=query or None)
     visible = []
     for job in jobs:
+        job["countries"] = job_countries(job)
+        if country == "unknown" and job["countries"]:
+            continue
+        if country and country != "unknown" and country not in job["countries"]:
+            continue
         job["match"] = match_job(job, profile)
         # NAV requires inactive ads to leave results; an elapsed explicit
         # deadline also keeps the active search clear before the next refresh.
@@ -177,6 +199,8 @@ def get_vacancy(data_dir: Path, id: int) -> dict:
             job["provenance"] = store.provenance(id)
     if job is None:
         raise ValueError(f"Vacancy {id} does not exist.")
+    from .countries import job_countries
+    job["countries"] = job_countries(job)
     job["match"] = match_job(job, read_profile(data_dir))
     return job
 
@@ -277,7 +301,8 @@ def write_letter(data_dir: Path, id: int) -> dict:
     job = get_vacancy(data_dir, id)
     if not job.get("is_active", True):
         raise ValueError("This vacancy has been withdrawn. Select an active opportunity.")
-    profile = read_profile(data_dir)
+    from .countries import profile_for_job
+    profile = profile_for_job(read_profile(data_dir), job)
     model = read_settings(data_dir)["model"]
     result = generate_cover_letter(job, profile, model=model)
     with JobStore(Path(data_dir) / "vacancies.db") as store:
@@ -299,3 +324,79 @@ def draft_history(data_dir: Path, id: int) -> list[dict]:
 def available_models() -> list[str]:
     from .local_ai import list_local_models
     return list_local_models()
+
+
+def discover_application(data_dir: Path, id: int, manual_text: str = "") -> dict:
+    from .application_forms import discover_application_form, parse_manual_questions
+    job = get_vacancy(data_dir, id)
+    if not job.get("is_active", True):
+        raise ValueError("This vacancy has been withdrawn.")
+    form = parse_manual_questions(manual_text) if manual_text.strip() else discover_application_form(job)
+    return {"form": form, "answers": [], "review_notes": [], "job_id": id}
+
+
+def prepare_application(data_dir: Path, id: int, form: dict) -> dict:
+    from .application_answers import generate_application_answers
+    from .countries import profile_for_job
+    job = get_vacancy(data_dir, id)
+    if not job.get("is_active", True):
+        raise ValueError("This vacancy has been withdrawn.")
+    profile = profile_for_job(read_profile(data_dir), job)
+    result = generate_application_answers(job, profile, form, writing_style=profile.get("writing_style"), model=read_settings(data_dir)["model"])
+    from .application_forms import form_fingerprint
+    history = application_history(data_dir, id)
+    if history and form_fingerprint(history[0]["payload"]["form"]) == form_fingerprint(form):
+        attachments = history[0]["payload"].get("attachments")
+        if attachments:
+            result["attachments"] = attachments
+    result["job_id"] = id
+    result["profile_hash"] = profile_hash(profile)
+    save_application(data_dir, id, result)
+    return result
+
+
+def save_application(data_dir: Path, id: int, payload: dict) -> int:
+    if not isinstance(payload, dict) or not isinstance(payload.get("form"), dict) or not isinstance(payload.get("answers", []), list):
+        raise ValueError("Application preparation needs a form and an answers list.")
+    if payload.get("job_id", id) != id:
+        raise ValueError("These answers belong to a different vacancy.")
+    from .application_forms import validate_form
+    validate_form(payload["form"])
+    fields = {field["id"]: field for field in payload["form"]["fields"]}
+    seen = set()
+    for answer in payload.get("answers", []):
+        if not isinstance(answer, dict) or not isinstance(answer.get("field_id"), str) or answer["field_id"] not in fields or answer["field_id"] in seen:
+            raise ValueError("Each prepared answer must match one unique form question.")
+        seen.add(answer["field_id"])
+        if not isinstance(answer.get("answer", ""), str) or not isinstance(answer.get("selected_options", []), list) or any(not isinstance(option, str) for option in answer.get("selected_options", [])):
+            raise ValueError("Application answers must contain text and a list of option values.")
+    with JobStore(Path(data_dir) / "vacancies.db") as store:
+        return store.save_preparation(id, payload)
+
+
+def application_history(data_dir: Path, id: int) -> list[dict]:
+    with JobStore(Path(data_dir) / "vacancies.db") as store:
+        return store.preparations(id)
+
+
+def send_reviewed_application(data_dir: Path, id: int, session, preview: dict) -> dict:
+    """Called only by the explicit Send button; records intent before network work."""
+    job = get_vacancy(data_dir, id)
+    if not job.get("is_active", True):
+        raise ValueError("This vacancy has been withdrawn.")
+    snapshot = {key: preview.get(key) for key in ("destination", "fields", "files")}
+    fingerprint = hashlib.sha256(json.dumps(snapshot, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+    with JobStore(Path(data_dir) / "vacancies.db") as store:
+        attempt = store.begin_delivery(id, fingerprint, preview["destination"])
+    from .browser_delivery import BrowserDeliveryError
+    try:
+        result = session.send(preview["token"])
+    except BrowserDeliveryError:
+        result = {"status": "blocked", "message": "The reviewed browser form was no longer valid. No send request was made; prepare and review a new preview."}
+    except Exception:
+        result = {"status": "uncertain", "message": "The delivery attempt did not finish cleanly. Check the employer page for confirmation before retrying."}
+    with JobStore(Path(data_dir) / "vacancies.db") as store:
+        store.finish_delivery(attempt, result)
+    # Only an employer confirmation can establish success. Never mark applied
+    # based merely on a browser click or an HTTP response.
+    return {**result, "attempt_id": attempt}

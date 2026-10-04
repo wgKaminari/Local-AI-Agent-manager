@@ -21,6 +21,7 @@ from . import service
 from .desktop_layout import DesktopLayout, ScrollForm as _ScrollForm
 from .desktop_connections import ConnectionPages
 from .desktop_appearance import AppearanceControls
+from .desktop_applications import ApplicationPages
 from .theme import palette_for
 from .text_interactions import install_text_actions
 
@@ -85,7 +86,7 @@ def _format_report(report: dict) -> str:
     return "\n".join(rows)
 
 
-class Desktop(DesktopLayout, ConnectionPages, AppearanceControls):
+class Desktop(DesktopLayout, ConnectionPages, AppearanceControls, ApplicationPages):
     def __init__(self, root: tk.Tk, data_dir: Path):
         self.root = root
         self.data_dir = data_dir
@@ -101,6 +102,7 @@ class Desktop(DesktopLayout, ConnectionPages, AppearanceControls):
         self.profile = service.read_profile(data_dir)
         self.settings = service.read_settings(data_dir)
         self.sources = [dict(item) for item in self.settings.get("sources", [])]
+        self.country_presets_added = list(self.settings.get("country_presets_added", []))
         self.jobs: dict[int, dict] = {}
         self.fields: dict[str, tk.Text | tk.StringVar] = {}
         self.status_message = tk.StringVar(value="Your workspace is ready.")
@@ -183,7 +185,7 @@ class Desktop(DesktopLayout, ConnectionPages, AppearanceControls):
                 self.root.after_cancel(self.search_after)
                 self.search_after = None
             status = self.status_filter.get()
-            jobs = service.vacancies(self.data_dir, query=self.query.get().strip(), status="" if status == "All statuses" else status)
+            jobs = service.vacancies(self.data_dir, query=self.query.get().strip(), status="" if status == "All statuses" else status, country=self._active_country())
             view = getattr(self, "view_filter", "all")
             if view == "foryou":
                 jobs = [job for job in jobs if job.get("match", {}).get("track") in {"target", "horizon"}]
@@ -230,7 +232,7 @@ class Desktop(DesktopLayout, ConnectionPages, AppearanceControls):
     def _job_has_changes(self):
         return self.selected_id is not None and (
             _text(self.notes) != self.notes_baseline or self.workflow_status.get() != self.status_baseline or
-            _text(self.letter_text) != self.letter_baseline.strip())
+            _text(self.letter_text) != self.letter_baseline.strip() or self._application_dirty())
 
     def _clear_job(self):
         self.selected_id = None
@@ -243,6 +245,7 @@ class Desktop(DesktopLayout, ConnectionPages, AppearanceControls):
         _replace(self.letter_text, "")
         _replace(self.description, "", readonly=True)
         self.review_text.set("")
+        self._load_application(None)
 
     def _select_job(self, _event=None):
         if self.ignore_selection:
@@ -281,6 +284,7 @@ class Desktop(DesktopLayout, ConnectionPages, AppearanceControls):
         self.letter_baseline = drafts[0].get("content", "") if drafts else ""
         _replace(self.letter_text, self.letter_baseline)
         self.review_text.set(f"Latest saved version: {drafts[0].get('created_at', '')}" if drafts else "No draft yet. Generate one with local AI, or write your own here.")
+        self._load_application(job_id)
         self._sync_selection_ui()
 
     def _show_description(self, job):
@@ -353,15 +357,18 @@ class Desktop(DesktopLayout, ConnectionPages, AppearanceControls):
             return True
         dirty_notes = _text(self.notes) != self.notes_baseline or self.workflow_status.get() != self.status_baseline
         dirty_letter = _text(self.letter_text) != self.letter_baseline.strip()
-        if not dirty_notes and not dirty_letter:
+        dirty_application = self._application_dirty()
+        if not dirty_notes and not dirty_letter and not dirty_application:
             return True
-        answer = messagebox.askyesnocancel("Unsaved vacancy changes", "Save your edited letter, status and notes before leaving this vacancy?", parent=self.root)
+        answer = messagebox.askyesnocancel("Unsaved vacancy changes", "Save your edited answers, letter, status and notes before leaving this vacancy?", parent=self.root)
         if answer is None:
             return False
         if answer:
             if dirty_notes and not self._save_workflow(notify=False):
                 return False
             if dirty_letter and not self._save_letter(notify=False):
+                return False
+            if dirty_application and not self._save_application(notify=False):
                 return False
         return True
 
@@ -438,7 +445,7 @@ class Desktop(DesktopLayout, ConnectionPages, AppearanceControls):
                 self.view_filter = "all"
                 self.notebook.select(self.vacancies_page)
                 self.page_title.set("Discover opportunities")
-                self.page_subtitle.set("Your next step in Norway, one opportunity at a time.")
+                self.page_subtitle.set("Your next step, one opportunity at a time.")
                 self._update_navigation()
                 self.status_filter.set("All statuses")
                 self.track_filter.set("All vacancies")
@@ -478,6 +485,7 @@ class Desktop(DesktopLayout, ConnectionPages, AppearanceControls):
             search_languages.pop("Norwegian", None)
         profile["search_languages"] = search_languages
         profile["cv_text"] = _text(self.cv_text)
+        self._read_writing_preferences(profile)
         return profile
 
     def _fill_profile(self, profile):
@@ -496,6 +504,7 @@ class Desktop(DesktopLayout, ConnectionPages, AppearanceControls):
         self.fields["search_norwegian"].set(profile.get("search_languages", {}).get("Norwegian", ""))
         self.fields["other_languages"].set(", ".join(f"{name}: {level}" for name, level in languages.items() if name not in {"English", "Norwegian"}))
         _replace(self.cv_text, profile.get("cv_text", ""))
+        self._fill_writing_preferences(profile)
 
     def _save_profile(self, notify=True):
         try:
@@ -604,8 +613,11 @@ class Desktop(DesktopLayout, ConnectionPages, AppearanceControls):
     def _render_sources(self):
         self.source_tree.delete(*self.source_tree.get_children())
         for index, source in enumerate(self.sources):
+            country = self._active_country()
+            if country and ((source.get("type") == "nav" and country != "NO") or (source.get("countries") and country not in source["countries"])):
+                continue
             target = "Arbeidsplassen · free experimental feed" if source.get("type") == "nav" else source.get("name") or source.get("url") or source.get("board") or source.get("tenant", "")
-            self.source_tree.insert("", "end", iid=str(index), values=(source.get("type", ""), target, source.get("region", "")))
+            self.source_tree.insert("", "end", iid=str(index), values=(source.get("type", ""), target, ", ".join(source.get("countries", [])) or ("NO" if source.get("type") == "nav" else source.get("region", ""))))
         self._render_catalog()
 
     def _add_source(self):
@@ -707,7 +719,7 @@ class Desktop(DesktopLayout, ConnectionPages, AppearanceControls):
         self.status_message.set("Source removed from the form. Save settings to keep this change. Existing vacancies are retained.")
 
     def _current_settings(self):
-        return {**self.settings, "model": self.model.get().strip(), "sources": [dict(item) for item in self.sources]}
+        return {**self.settings, "model": self.model.get().strip(), "sources": [dict(item) for item in self.sources], "active_country": self._active_country(), "country_presets_added": list(self.country_presets_added)}
 
     def _save_settings(self, notify=True):
         try:

@@ -61,6 +61,11 @@ def validate_profile(profile: dict) -> dict:
         languages = profile.setdefault(field, {})
         if not isinstance(languages, dict) or any(not isinstance(k, str) or not isinstance(v, str) for k, v in languages.items()):
             raise ValueError(f"Profile '{field}' must map language names to levels as text.")
+    from .countries import COUNTRIES, validate_countries, validate_country_preferences
+    profile["target_countries"] = validate_countries(profile.get("target_countries", list(COUNTRIES)))
+    profile["country_preferences"] = validate_country_preferences(profile.get("country_preferences", {}))
+    from .application_answers import validate_writing_style
+    profile["writing_style"] = validate_writing_style(profile.get("writing_style", {}))
     return profile
 
 
@@ -77,6 +82,9 @@ def contains_phrase(text: str, phrase: str) -> bool:
 
 def match_job(job: dict, profile: dict, today: date | None = None) -> dict:
     """Return keyword evidence, never an AI assessment or eligibility verdict."""
+    from .countries import job_countries, profile_for_job
+    original_profile = profile
+    profile = profile_for_job(profile, job)
     title = str(job.get("title", ""))
     location = str(job.get("location", ""))
     body = "\n".join(str(job.get(key, "")) for key in ("title", "company", "location", "description"))
@@ -105,6 +113,15 @@ def match_job(job: dict, profile: dict, today: date | None = None) -> dict:
         configured.append((15, 1.0 if matched_locations else 0.0))
     score = round(100 * sum(weight * ratio for weight, ratio in configured) / sum(weight for weight, _ in configured)) if configured else None
     warnings = []
+    countries = job_countries(job)
+    if not countries:
+        warnings.append("Country is unknown; a remote label does not establish where you can work.")
+    elif not set(countries).intersection(original_profile.get("target_countries", countries)):
+        warnings.append("This location is outside your selected search countries.")
+    context = profile.get("country_context", {})
+    for key, label in (("remote_preference", "Work arrangement preference"), ("relocation_preference", "Relocation preference")):
+        if context.get(key):
+            warnings.append(label + ": " + context[key] + "; check the original posting.")
     if not configured:
         warnings.append("Add target roles, skills or locations to get a keyword score.")
     if exclusions:

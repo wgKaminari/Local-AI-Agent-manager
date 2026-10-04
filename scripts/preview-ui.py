@@ -68,6 +68,14 @@ def main():
         if "--library" in sys.argv:
             app._navigate("settings")
             app.settings_tabs.select(3)
+        if "--application" in sys.argv:
+            from norway_job_agent.application_forms import parse_manual_questions
+            form = parse_manual_questions("Describe a relevant project\nPreferred work arrangement | Remote | Hybrid | On-site\nWhy are you interested in this team?")
+            payload = {"job_id": app.selected_id, "form": form, "answers": [{"field_id": form["fields"][0]["id"], "answer": "I built Python pipelines for document analysis. This fictional example shows the editable application workspace.", "selected_options": [], "status": "draft", "used_evidence": ["Built Python pipelines for document analysis."], "review_notes": ["Review the draft before use."]}]}
+            app._set_application(payload)
+            app.details_tabs.select(3)
+            app.application_tree.selection_set("0")
+            app._select_application_field()
         root.title("Norway Job Agent — Design preview (fictional data)")
         root.mainloop()
 

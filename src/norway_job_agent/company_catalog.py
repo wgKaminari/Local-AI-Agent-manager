@@ -4,6 +4,8 @@ A career link is not automatically a working collector. Entries with source=None
 remain useful for opening the employer site or importing an email job alert.
 """
 from copy import deepcopy
+import json
+from pathlib import Path
 
 NORWAY_LOCATIONS = [
     "Norway", "Norge", "Oslo", "Bergen", "Trondheim", "Stavanger", "Tromsø",
@@ -15,7 +17,7 @@ NORWAY_LOCATIONS = [
 def _entry(identifier, name, careers_url, source=None, note=""):
     if source is not None:
         source = {**source, "name": name, "locations": list(NORWAY_LOCATIONS)}
-    return {"id": identifier, "name": name, "careers_url": careers_url,
+    return {"id": identifier, "name": name, "careers_url": careers_url, "countries": ["NO"], "sectors": [],
             "source": source, "note": note, "checked_at": "2026-09-10"}
 
 
@@ -95,6 +97,41 @@ COMPANY_CATALOG = [
 ]
 
 
-def company_catalog() -> list[dict]:
+def _load_directory(pattern):
+    entries = []
+    for path in sorted((Path(__file__).parent / "data").glob(pattern)):
+        entries.extend(json.loads(path.read_text(encoding="utf-8")))
+    return entries
+
+
+def company_catalog(country: str = "") -> list[dict]:
     """Return independent settings-ready entries, safe for UI edits."""
-    return deepcopy(COMPANY_CATALOG)
+    entries = {entry["id"]: deepcopy(entry) for entry in COMPANY_CATALOG}
+    for entry in _load_directory("employers_*.json"):
+        previous = entries.get(entry["id"], {})
+        entries[entry["id"]] = {**previous, **entry}
+        if previous.get("source") and not entry.get("source"):
+            entries[entry["id"]]["source"] = previous["source"]
+            entries[entry["id"]]["note"] = previous.get("note", "") + " " + entry.get("note", "")
+    result = [entry for entry in entries.values() if not country or country in entry.get("countries", [])]
+    return sorted(deepcopy(result), key=lambda entry: entry["name"].casefold())
+
+
+def job_board_catalog(country: str = "") -> list[dict]:
+    return [entry for entry in _load_directory("job_boards_*.json") if not country or country in entry.get("countries", [])]
+
+
+def source_for_countries(entry: dict, countries: list[str]) -> dict | None:
+    from .countries import COUNTRY_TERMS
+    source = deepcopy(entry.get("source"))
+    if not source:
+        return None
+    selected = [code for code in entry.get("countries", []) if code in countries]
+    if not selected:
+        return None
+    source["countries"] = selected
+    # Narrow a global board to the requested countries, preserving explicit
+    # source limits and country-specific Workday/sitemap configurations.
+    if len(entry.get("countries", [])) > 1:
+        source["locations"] = list(dict.fromkeys(term for code in selected for term in COUNTRY_TERMS[code]))
+    return source

@@ -4,13 +4,19 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "norway-job-agent"
-version = "0.1.0"
-description = "A personal job discovery and application preparation assistant for Norway."
+version = "0.2.0"
+description = "A local job discovery and application preparation assistant for Norway, USA, Germany and Ukraine."
 requires-python = ">=3.12"
 dependencies = ["pypdf>=6.18,<7"]
+
+[project.optional-dependencies]
+browser = ["playwright>=1.49,<2"]
 
 [project.scripts]
 norway-jobs = "norway_job_agent.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+norway_job_agent = ["data/*.json"]

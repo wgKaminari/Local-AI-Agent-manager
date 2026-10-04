@@ -1,4 +1,14 @@
-# Norway job assistant — first version
+# Personal job assistant — scope and decisions
+
+## Multi-country upgrade (October 2026)
+
+The search now includes Norway, USA, Germany and Ukraine. The user requested a large researched employer directory and local job-source shortlists before implementation. Country switching changes discovery sources and visible vacancies; job preferences, career facts and writing style remain shared and editable. Country-specific work authorization remains separate and is never inferred.
+
+The user revised the original preparation-only requirement: prepare the whole application for review, allow editing, then deliver only after the user presses the send button. This release supports reviewed delivery for standard public HTML forms, including explicitly selected files. Complex ATS flows, login/CAPTCHA and dynamic/embedded forms still require manual completion. Question extraction, generated answers, source collection and preview do not submit. A delivery attempt is logged durably before the one permitted request; uncertain results never retry automatically or mark a job applied.
+
+No new paid service or cloud model is required. Gmail continues to use read-only access. Public-source coverage and application-delivery coverage are separate; neither is described as universal. See [application workflow](application-preparation.md), [Norway/Ukraine research](research-no-ua.md) and [USA/Germany research](research-us-de.md).
+
+The original first-version decisions below describe the starting baseline; the explicit review-before-send requirement above supersedes its preparation-only restriction.
 
 ## Requested outcome
 

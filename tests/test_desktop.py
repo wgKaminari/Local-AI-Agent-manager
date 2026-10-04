@@ -62,6 +62,65 @@ class DesktopInteractionTests(unittest.TestCase):
         self.assertEqual(set(self.app.jobs), set(self.ids[:2]))
         self.assertIn(self.app.selected_id, self.ids[:2])
 
+    def test_country_switch_preserves_profile_and_only_adds_presets_once(self):
+        original = self.app._read_form()
+        self.app.country_filter.set("Germany")
+        self.app._country_changed()
+        self.assertEqual(self.app._read_form(), original)
+        self.assertTrue(any("DE" in item.get("countries", []) for item in self.app.sources))
+        self.assertFalse(self.app.jobs)
+        count = len(self.app.sources)
+        self.app._country_changed()
+        self.assertEqual(len(self.app.sources), count)
+        self.app.country_filter.set("All countries")
+        self.app._country_changed()
+        self.assertEqual(len(self.app.jobs), 3)
+
+    def _application_fixture(self):
+        from norway_job_agent.application_forms import parse_manual_questions
+        payload = {"job_id": self.app.selected_id, "form": parse_manual_questions("Explain your experience\nWork preference | Remote | Office"), "answers": []}
+        self.app._set_application(payload)
+        self.app.application_tree.selection_set("0")
+        self.app._select_application_field()
+        return payload
+
+    def test_application_edits_are_versioned_and_survive_vacancy_switch(self):
+        self._application_fixture()
+        job_id = self.app.selected_id
+        self.app.application_answer.insert("1.0", "A factual edited answer")
+        self.assertTrue(self.app._application_dirty())
+        self.assertTrue(self.app._save_application(notify=False))
+        self.app._load_job(next(i for i in self.ids if i != job_id))
+        self.app._load_job(job_id)
+        self.assertEqual(self.app.application_payload["answers"][0]["answer"], "A factual edited answer")
+        self.assertFalse(self.app._application_dirty())
+
+    def test_new_edits_are_preserved_when_background_draft_finishes(self):
+        payload = self._application_fixture()
+        self.app._save_application(notify=False)
+        callbacks = []
+        with patch.object(self.app, "_run", side_effect=lambda label, work, callback: callbacks.append(callback)):
+            self.app._draft_answers()
+        self.app.application_answer.insert("1.0", "My newer edit")
+        callbacks[0]({**payload, "answers": [{"field_id": payload["form"]["fields"][0]["id"], "answer": "Generated replacement", "selected_options": []}]})
+        self.assertEqual(_text(self.app.application_answer), "My newer edit")
+        self.assertIn("newer edits", self.app.status_message.get())
+
+    def test_application_choice_rejects_nonexistent_option(self):
+        self._application_fixture()
+        self.app.application_tree.selection_set("1")
+        self.app._select_application_field()
+        self.app.application_answer.insert("1.0", "Not an offered choice")
+        with self.assertRaisesRegex(ValueError, "listed option"):
+            self.app._capture_answer()
+
+    def test_application_answer_panel_can_scroll_at_compact_size(self):
+        self.root.geometry("1120x720")
+        self.app.details_tabs.select(3)
+        self.root.update_idletasks()
+        self.assertGreater(self.app.application_answer.winfo_reqheight(), 100)
+        self.assertEqual(self.app.application_answer.winfo_manager(), "pack")
+
     def test_initial_selection_does_not_scroll_an_unmapped_list(self):
         first = self.app.tree.get_children()[0]
         self.app.tree.see(first)

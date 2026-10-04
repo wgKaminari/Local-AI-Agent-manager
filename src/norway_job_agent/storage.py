@@ -28,7 +28,7 @@ _GENERIC_PATH_PARTS = frozenset(
 )
 _METADATA_FIELDS = (
     "source", "source_id", "source_url", "apply_url", "title", "company", "location",
-    "description", "employment_type", "published_at", "deadline", "raw_json",
+    "description", "employment_type", "published_at", "deadline", "raw_json", "countries",
 )
 
 
@@ -106,9 +106,9 @@ class JobStore:
         self._connection.row_factory = sqlite3.Row
         self._connection.execute("PRAGMA foreign_keys = ON")
         version = self._connection.execute("PRAGMA user_version").fetchone()[0]
-        if version > 2:
+        if version > 3:
             self.close()
-            raise ValueError(f"Database schema version {version} is newer than supported version 2")
+            raise ValueError(f"Database schema version {version} is newer than supported version 3")
         self._connection.executescript(
             """
             CREATE TABLE IF NOT EXISTS jobs (
@@ -166,7 +166,27 @@ class JobStore:
         columns = {row[1] for row in self._connection.execute("PRAGMA table_info(jobs)")}
         if "is_active" not in columns:
             self._connection.execute("ALTER TABLE jobs ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1")
-        self._connection.execute("PRAGMA user_version = 2")
+        if "countries" not in columns:
+            self._connection.execute("ALTER TABLE jobs ADD COLUMN countries TEXT NOT NULL DEFAULT '[]'")
+        self._connection.executescript("""
+            CREATE TABLE IF NOT EXISTS application_preparations (
+                id INTEGER PRIMARY KEY,
+                job_id INTEGER NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
+                payload_json TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS application_preparations_job ON application_preparations(job_id);
+            CREATE TABLE IF NOT EXISTS application_deliveries (
+                id INTEGER PRIMARY KEY,
+                job_id INTEGER NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
+                fingerprint TEXT NOT NULL,
+                destination TEXT NOT NULL,
+                status TEXT NOT NULL,
+                result_json TEXT NOT NULL DEFAULT '{}',
+                created_at TEXT NOT NULL
+            );
+        """)
+        self._connection.execute("PRAGMA user_version = 3")
         self._connection.commit()
 
     def __enter__(self) -> JobStore:
@@ -184,6 +204,7 @@ class JobStore:
             return None
         result = dict(row)
         result.pop("canonical_source_url", None)
+        result["countries"] = json.loads(result.get("countries") or "[]")
         return result
 
     def upsert_job(self, job: dict, *, fill_only: bool = False) -> tuple[int, bool]:
@@ -195,7 +216,11 @@ class JobStore:
         Conflicting identities already attached to two rows require review and
         raise ValueError instead of silently combining user data.
         """
-        incoming = {key: str(job[key]).strip() for key in _METADATA_FIELDS if job.get(key) is not None and key != "raw_json"}
+        incoming = {key: str(job[key]).strip() for key in _METADATA_FIELDS if job.get(key) is not None and key not in {"raw_json", "countries"}}
+        from .countries import job_countries
+        countries = job_countries(job)
+        if countries or job.get("location"):
+            incoming["countries"] = json.dumps(countries)
         if job.get("raw_json") not in (None, "", {}):
             raw = job["raw_json"]
             incoming["raw_json"] = raw if isinstance(raw, str) else json.dumps(raw, ensure_ascii=False, sort_keys=True)
@@ -363,3 +388,47 @@ class JobStore:
             "SELECT * FROM drafts WHERE job_id = ? ORDER BY created_at DESC, id DESC", (job_id,)
         ).fetchall()
         return [dict(row) for row in rows]
+
+    def save_preparation(self, job_id: int, payload: dict) -> int:
+        encoded = json.dumps(payload, ensure_ascii=False)
+        if len(encoded) > 500000:
+            raise ValueError("Application preparation is too large.")
+        with self._connection:
+            if self.get_job(job_id) is None:
+                raise KeyError(job_id)
+            cursor = self._connection.execute(
+                "INSERT INTO application_preparations(job_id, payload_json, created_at) VALUES (?, ?, ?)",
+                (job_id, encoded, _now()),
+            )
+        return int(cursor.lastrowid)
+
+    def preparations(self, job_id: int) -> list[dict]:
+        rows = self._connection.execute(
+            "SELECT id, payload_json, created_at FROM application_preparations WHERE job_id = ? ORDER BY id DESC", (job_id,)
+        ).fetchall()
+        return [{"id": row[0], "payload": json.loads(row[1]), "created_at": row[2]} for row in rows]
+
+    def begin_delivery(self, job_id: int, fingerprint: str, destination: str) -> int:
+        with self._connection:
+            self._connection.execute("BEGIN IMMEDIATE")
+            previous = self._connection.execute(
+                "SELECT id FROM application_deliveries WHERE job_id=? AND fingerprint=? AND status IN ('pending','uncertain','submitted_unconfirmed')",
+                (job_id, fingerprint),
+            ).fetchone()
+            if previous:
+                raise ValueError("This exact application already has a delivery attempt. Check the employer's confirmation before sending anything else.")
+            cursor = self._connection.execute(
+                "INSERT INTO application_deliveries(job_id,fingerprint,destination,status,created_at) VALUES (?,?,?,'pending',?)",
+                (job_id, fingerprint, destination, _now()),
+            )
+        return int(cursor.lastrowid)
+
+    def finish_delivery(self, attempt_id: int, result: dict) -> None:
+        status = result.get("status", "uncertain")
+        if status not in {"uncertain", "blocked", "submitted_unconfirmed"}:
+            status = "uncertain"
+        with self._connection:
+            self._connection.execute("UPDATE application_deliveries SET status=?,result_json=? WHERE id=?", (status, json.dumps(result, ensure_ascii=False), attempt_id))
+
+    def deliveries(self, job_id: int) -> list[dict]:
+        return [dict(row) for row in self._connection.execute("SELECT * FROM application_deliveries WHERE job_id=? ORDER BY id DESC", (job_id,))]
