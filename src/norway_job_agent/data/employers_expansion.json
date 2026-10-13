@@ -1,0 +1,3319 @@
+[
+  {
+    "id": "ats-1password",
+    "name": "1Password",
+    "careers_url": "https://jobs.ashbyhq.com/1password",
+    "countries": [
+      "US",
+      "DE"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "ashby",
+      "board": "1password",
+      "name": "1Password",
+      "countries": [
+        "US",
+        "DE"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://jobs.ashbyhq.com/1password",
+        "https://api.ashbyhq.com/posting-api/job-board/1password"
+      ],
+      "detail": "Actual ashby application collector completed on 2026-10-09. Read 69 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 69,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 54,
+        "DE": 1,
+        "UA": 0
+      }
+    }
+  },
+  {
+    "id": "ats-affirm",
+    "name": "Affirm",
+    "careers_url": "https://job-boards.greenhouse.io/affirm",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "affirm",
+      "name": "Affirm",
+      "countries": [
+        "US"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/affirm",
+        "https://boards-api.greenhouse.io/v1/boards/affirm/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 196 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 196,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 5,
+        "DE": 0,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Analytics Engineer II",
+          "location": "Remote Poland",
+          "source_url": "https://job-boards.greenhouse.io/affirm/jobs/7764109003"
+        },
+        {
+          "title": "Analytics Engineer II, Full Stack (Revenue Analytics)",
+          "location": "Remote Spain",
+          "source_url": "https://job-boards.greenhouse.io/affirm/jobs/7916080003"
+        },
+        {
+          "title": "Analytics Engineer II, Full Stack (Revenue Analytics)",
+          "location": "Remote Poland",
+          "source_url": "https://job-boards.greenhouse.io/affirm/jobs/7813362003"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-aksia",
+    "name": "Aksia",
+    "careers_url": "https://job-boards.greenhouse.io/aksia",
+    "countries": [
+      "NO",
+      "US"
+    ],
+    "sectors": [
+      "finance"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "aksia",
+      "name": "Aksia",
+      "countries": [
+        "NO",
+        "US"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/aksia",
+        "https://boards-api.greenhouse.io/v1/boards/aksia/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 23 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 23,
+      "country_matches_observed": {
+        "NO": 1,
+        "US": 13,
+        "DE": 0,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Data Analyst",
+          "location": "Athens",
+          "source_url": "https://job-boards.greenhouse.io/aksia/jobs/8820789002"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-almedia",
+    "name": "Almedia",
+    "careers_url": "https://jobs.ashbyhq.com/almedia",
+    "countries": [
+      "US",
+      "DE"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "ashby",
+      "board": "almedia",
+      "name": "Almedia",
+      "countries": [
+        "US",
+        "DE"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://jobs.ashbyhq.com/almedia",
+        "https://api.ashbyhq.com/posting-api/job-board/almedia"
+      ],
+      "detail": "Actual ashby application collector completed on 2026-10-09. Read 38 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 38,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 1,
+        "DE": 29,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Data Scientist",
+          "location": "Berlin; Berlin, Germany",
+          "source_url": "https://jobs.ashbyhq.com/almedia/927ae9e7-1bf8-41d3-8f56-8d5fc4dbfd8c"
+        },
+        {
+          "title": "Junior Software Engineer, Data",
+          "location": "Berlin; Berlin, Germany",
+          "source_url": "https://jobs.ashbyhq.com/almedia/9da70ef8-9cdc-4342-8e78-00206aac158d"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-amdaris",
+    "name": "Amdaris",
+    "careers_url": "https://job-boards.greenhouse.io/amdaris",
+    "countries": [
+      "UA"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "amdaris",
+      "name": "Amdaris",
+      "countries": [
+        "UA"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/amdaris",
+        "https://boards-api.greenhouse.io/v1/boards/amdaris/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 16 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 16,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 0,
+        "DE": 0,
+        "UA": 3
+      }
+    }
+  },
+  {
+    "id": "ats-arrive",
+    "name": "Arrive",
+    "careers_url": "https://jobs.ashbyhq.com/arrive",
+    "countries": [
+      "NO",
+      "US",
+      "DE"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "ashby",
+      "board": "arrive",
+      "name": "Arrive",
+      "countries": [
+        "NO",
+        "US",
+        "DE"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://jobs.ashbyhq.com/arrive",
+        "https://api.ashbyhq.com/posting-api/job-board/arrive"
+      ],
+      "detail": "Actual ashby application collector completed on 2026-10-09. Read 80 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 80,
+      "country_matches_observed": {
+        "NO": 1,
+        "US": 9,
+        "DE": 9,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Data Scientist",
+          "location": "Remote; Chișinău; Chișinău, -, Moldova",
+          "source_url": "https://jobs.ashbyhq.com/arrive/42c6afeb-143a-4c76-aaeb-07395b685db3"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-arxroboticsgmbh",
+    "name": "ARX Robotics GmbH",
+    "careers_url": "https://job-boards.greenhouse.io/arxroboticsgmbh",
+    "countries": [
+      "DE",
+      "UA"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "arxroboticsgmbh",
+      "name": "ARX Robotics GmbH",
+      "countries": [
+        "DE",
+        "UA"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/arxroboticsgmbh",
+        "https://boards-api.greenhouse.io/v1/boards/arxroboticsgmbh/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 60 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 60,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 0,
+        "DE": 48,
+        "UA": 6
+      },
+      "role_examples_observed": [
+        {
+          "title": "Junior ⁠Software Engineer (Field Test Engineer)",
+          "location": "Kyiv; Kyiv, Kyiv, Ukraine",
+          "source_url": "https://job-boards.eu.greenhouse.io/arxroboticsgmbh/jobs/5000980101"
+        },
+        {
+          "title": "Middle ⁠Software Engineer",
+          "location": "Kyiv; Kyiv, Kyiv, Ukraine",
+          "source_url": "https://job-boards.eu.greenhouse.io/arxroboticsgmbh/jobs/5000744101"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-authenticinsurance",
+    "name": "Authentic",
+    "careers_url": "https://job-boards.greenhouse.io/authenticinsurance",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "authenticinsurance",
+      "name": "Authentic",
+      "countries": [
+        "US"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/authenticinsurance",
+        "https://boards-api.greenhouse.io/v1/boards/authenticinsurance/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 13 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 13,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 13,
+        "DE": 0,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Software Engineer - Data",
+          "location": "New York, New York, United States",
+          "source_url": "https://job-boards.greenhouse.io/authenticinsurance/jobs/4114316009"
+        },
+        {
+          "title": "Software Engineer - Platform",
+          "location": "New York, New York, United States",
+          "source_url": "https://job-boards.greenhouse.io/authenticinsurance/jobs/4114312009"
+        },
+        {
+          "title": "Software Engineer - Product",
+          "location": "New York, New York, United States",
+          "source_url": "https://job-boards.greenhouse.io/authenticinsurance/jobs/4114314009"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-celonis",
+    "name": "Celonis",
+    "careers_url": "https://job-boards.greenhouse.io/celonis",
+    "countries": [
+      "US",
+      "DE"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "celonis",
+      "name": "Celonis",
+      "countries": [
+        "US",
+        "DE"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/celonis",
+        "https://boards-api.greenhouse.io/v1/boards/celonis/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 227 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 227,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 51,
+        "DE": 46,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Analytics Engineer — Data Analytics & Transformation (DAT)",
+          "location": "Bangalore, India",
+          "source_url": "https://job-boards.greenhouse.io/celonis/jobs/7986348003?gh_jid=7986348003"
+        },
+        {
+          "title": "Associate (AI) Solution Consultant",
+          "location": "Bangalore, India",
+          "source_url": "https://job-boards.greenhouse.io/celonis/jobs/7784391003?gh_jid=7784391003"
+        },
+        {
+          "title": "Associate (AI) Solution Consultant (Benelux) - Orbit Program",
+          "location": "Madrid, Spain",
+          "source_url": "https://job-boards.greenhouse.io/celonis/jobs/7885977003?gh_jid=7885977003"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-civitta",
+    "name": "Civitta",
+    "careers_url": "https://jobs.lever.co/Civitta",
+    "countries": [
+      "US",
+      "UA"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "lever",
+      "board": "Civitta",
+      "name": "Civitta",
+      "countries": [
+        "US",
+        "UA"
+      ],
+      "region": "global"
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://jobs.lever.co/Civitta",
+        "https://api.lever.co/v0/postings/Civitta?mode=json&limit=100&skip=0"
+      ],
+      "detail": "Actual lever application collector completed on 2026-10-09. Read 73 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 73,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 1,
+        "DE": 0,
+        "UA": 6
+      },
+      "role_examples_observed": [
+        {
+          "title": "AI/ML Developer | Digital & Data",
+          "location": "Hungary (Budapest)",
+          "source_url": "https://jobs.lever.co/Civitta/b611ba3f-1e3c-4b23-86e0-38c9ed6e7538"
+        },
+        {
+          "title": "Associate Partner | Digital & Data",
+          "location": "Estonia",
+          "source_url": "https://jobs.lever.co/Civitta/0e6c8835-f72f-4de0-820d-6c3cbb392c70"
+        },
+        {
+          "title": "Data Analyst | Digital & Data",
+          "location": "Lithuania",
+          "source_url": "https://jobs.lever.co/Civitta/887f39a1-779f-460e-a789-4a18212da56b"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-coherehealth",
+    "name": "Cohere Health",
+    "careers_url": "https://job-boards.greenhouse.io/coherehealth",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "coherehealth",
+      "name": "Cohere Health",
+      "countries": [
+        "US"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/coherehealth",
+        "https://boards-api.greenhouse.io/v1/boards/coherehealth/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 76 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 76,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 37,
+        "DE": 0,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Associate Software Engineer",
+          "location": "Hyderabad, Telangana, India",
+          "source_url": "https://job-boards.greenhouse.io/coherehealth/jobs/7728230003"
+        },
+        {
+          "title": "Healthcare Analytics",
+          "location": "Hyderabad, Telangana, India",
+          "source_url": "https://job-boards.greenhouse.io/coherehealth/jobs/7984191003"
+        },
+        {
+          "title": "Software Engineer II",
+          "location": "United States",
+          "source_url": "https://job-boards.greenhouse.io/coherehealth/jobs/7930480003"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-cresta",
+    "name": "Cresta",
+    "careers_url": "https://job-boards.greenhouse.io/cresta",
+    "countries": [
+      "US",
+      "DE"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "cresta",
+      "name": "Cresta",
+      "countries": [
+        "US",
+        "DE"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/cresta",
+        "https://boards-api.greenhouse.io/v1/boards/cresta/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 87 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 87,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 46,
+        "DE": 4,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Embedded AI Expert",
+          "location": "United States (Remote)",
+          "source_url": "https://job-boards.greenhouse.io/cresta/jobs/4919163008"
+        },
+        {
+          "title": "Solutions Engineer, AI Agent",
+          "location": "United States (Remote)",
+          "source_url": "https://job-boards.greenhouse.io/cresta/jobs/5369032008"
+        },
+        {
+          "title": "Solutions Engineer, AI Agent",
+          "location": "United States (Remote)",
+          "source_url": "https://job-boards.greenhouse.io/cresta/jobs/5397262008"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-dnb",
+    "name": "Dun & Bradstreet",
+    "careers_url": "https://jobs.lever.co/dnb",
+    "countries": [
+      "NO",
+      "US",
+      "DE"
+    ],
+    "sectors": [
+      "data and analytics"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "lever",
+      "board": "dnb",
+      "name": "Dun & Bradstreet",
+      "countries": [
+        "NO",
+        "US",
+        "DE"
+      ],
+      "region": "global"
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://jobs.lever.co/dnb",
+        "https://api.lever.co/v0/postings/dnb?mode=json&limit=100&skip=0"
+      ],
+      "detail": "Actual lever application collector completed on 2026-10-09. Read 113 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 113,
+      "country_matches_observed": {
+        "NO": 1,
+        "US": 40,
+        "DE": 5,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "AI Architect (R-18541)",
+          "location": "Dublin - Ireland",
+          "source_url": "https://jobs.lever.co/dnb/b93f1c68-a572-4af7-8263-cf08ef15a521"
+        },
+        {
+          "title": "AI Software Engineer II (R-19524)",
+          "location": "Dublin - Ireland",
+          "source_url": "https://jobs.lever.co/dnb/a8078a50-4713-45ee-b8e1-aa276a41b9e6"
+        },
+        {
+          "title": "AI Solution Architect (R-19393)",
+          "location": "Shenzhen - China",
+          "source_url": "https://jobs.lever.co/dnb/d62d9a7c-e5a1-480e-8fc4-458c1d264c51"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-ema",
+    "name": "Ema",
+    "careers_url": "https://jobs.ashbyhq.com/ema",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "artificial intelligence"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "ashby",
+      "board": "ema",
+      "name": "Ema",
+      "countries": [
+        "US"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://jobs.ashbyhq.com/ema",
+        "https://api.ashbyhq.com/posting-api/job-board/ema"
+      ],
+      "detail": "Actual ashby application collector completed on 2026-10-09. Read 37 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 37,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 12,
+        "DE": 0,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Software Engineer, Machine Learning",
+          "location": "San Francisco Bay Area; San Francisco Bay Area, California, USA",
+          "source_url": "https://jobs.ashbyhq.com/ema/9728a171-9617-4533-9f03-10c14c3b6ca5"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-enpal",
+    "name": "Enpal",
+    "careers_url": "https://jobs.ashbyhq.com/enpal",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "energy",
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "ashby",
+      "board": "enpal",
+      "name": "Enpal",
+      "countries": [
+        "DE"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://jobs.ashbyhq.com/enpal",
+        "https://api.ashbyhq.com/posting-api/job-board/enpal"
+      ],
+      "detail": "Actual ashby application collector completed on 2026-10-09. Read 148 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 148,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 0,
+        "DE": 108,
+        "UA": 0
+      }
+    }
+  },
+  {
+    "id": "ats-freeformfuturecorp",
+    "name": "Freeform",
+    "careers_url": "https://job-boards.greenhouse.io/freeformfuturecorp",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "freeformfuturecorp",
+      "name": "Freeform",
+      "countries": [
+        "US"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/freeformfuturecorp",
+        "https://boards-api.greenhouse.io/v1/boards/freeformfuturecorp/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 83 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 83,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 83,
+        "DE": 0,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Software Engineer (Embedded)",
+          "location": "Los Angeles, CA (On-site); El Segundo, California, United States",
+          "source_url": "https://job-boards.greenhouse.io/freeformfuturecorp/jobs/7770777003"
+        },
+        {
+          "title": "Software Engineer (Full Stack Enterprise)",
+          "location": "Los Angeles, CA (On-site); El Segundo, California, United States",
+          "source_url": "https://job-boards.greenhouse.io/freeformfuturecorp/jobs/7704562003"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-gecko-robotics",
+    "name": "Gecko Robotics",
+    "careers_url": "https://jobs.ashbyhq.com/gecko-robotics",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "ashby",
+      "board": "gecko-robotics",
+      "name": "Gecko Robotics",
+      "countries": [
+        "US"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://jobs.ashbyhq.com/gecko-robotics",
+        "https://api.ashbyhq.com/posting-api/job-board/gecko-robotics"
+      ],
+      "detail": "Actual ashby application collector completed on 2026-10-09. Read 21 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 21,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 20,
+        "DE": 0,
+        "UA": 0
+      }
+    }
+  },
+  {
+    "id": "ats-goodinside",
+    "name": "Good Inside",
+    "careers_url": "https://job-boards.greenhouse.io/goodinside",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "goodinside",
+      "name": "Good Inside",
+      "countries": [
+        "US"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/goodinside",
+        "https://boards-api.greenhouse.io/v1/boards/goodinside/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 5 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 5,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 5,
+        "DE": 0,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Machine Learning Engineer",
+          "location": "New York; 250 W. 34th Street, Suite 309, New York NY 10119",
+          "source_url": "https://job-boards.greenhouse.io/goodinside/jobs/5049043007"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-graphcore",
+    "name": "Graphcore",
+    "careers_url": "https://job-boards.greenhouse.io/graphcore",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "graphcore",
+      "name": "Graphcore",
+      "countries": [
+        "US"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/graphcore",
+        "https://boards-api.greenhouse.io/v1/boards/graphcore/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 187 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 187,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 55,
+        "DE": 0,
+        "UA": 0
+      }
+    }
+  },
+  {
+    "id": "ats-hatch",
+    "name": "Hatch",
+    "careers_url": "https://jobs.ashbyhq.com/hatch",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "ashby",
+      "board": "hatch",
+      "name": "Hatch",
+      "countries": [
+        "US"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://jobs.ashbyhq.com/hatch",
+        "https://api.ashbyhq.com/posting-api/job-board/hatch"
+      ],
+      "detail": "Actual ashby application collector completed on 2026-10-09. Read 8 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 8,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 8,
+        "DE": 0,
+        "UA": 0
+      }
+    }
+  },
+  {
+    "id": "ats-hawk",
+    "name": "Hawk",
+    "careers_url": "https://jobs.ashbyhq.com/hawk",
+    "countries": [
+      "US",
+      "DE"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "ashby",
+      "board": "hawk",
+      "name": "Hawk",
+      "countries": [
+        "US",
+        "DE"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://jobs.ashbyhq.com/hawk",
+        "https://api.ashbyhq.com/posting-api/job-board/hawk"
+      ],
+      "detail": "Actual ashby application collector completed on 2026-10-09. Read 20 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 20,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 5,
+        "DE": 9,
+        "UA": 0
+      }
+    }
+  },
+  {
+    "id": "ats-ibotta",
+    "name": "Ibotta",
+    "careers_url": "https://jobs.ashbyhq.com/ibotta",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "ashby",
+      "board": "ibotta",
+      "name": "Ibotta",
+      "countries": [
+        "US"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://jobs.ashbyhq.com/ibotta",
+        "https://api.ashbyhq.com/posting-api/job-board/ibotta"
+      ],
+      "detail": "Actual ashby application collector completed on 2026-10-09. Read 51 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 51,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 51,
+        "DE": 0,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Data Engineer",
+          "location": "Remote; Hybrid - Denver; Denver, Colorado, United States",
+          "source_url": "https://jobs.ashbyhq.com/ibotta/fe48cc5f-5be8-4575-924a-c36b21cbd706"
+        },
+        {
+          "title": "Data Scientist, Strategic Partner Analytics",
+          "location": "Remote; Hybrid - Denver; Denver, Colorado, United States",
+          "source_url": "https://jobs.ashbyhq.com/ibotta/b048fefb-c2f3-4ff2-b5e4-45245a309cce"
+        },
+        {
+          "title": "Decision Scientist, Strategic Partner and Marketing Analytics",
+          "location": "Remote; Hybrid - Denver; Denver, Colorado, United States",
+          "source_url": "https://jobs.ashbyhq.com/ibotta/cd82234a-baf9-4fd6-be63-0d268621fa93"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-idme",
+    "name": "ID.me",
+    "careers_url": "https://job-boards.greenhouse.io/idme",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "idme",
+      "name": "ID.me",
+      "countries": [
+        "US"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/idme",
+        "https://boards-api.greenhouse.io/v1/boards/idme/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 50 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 50,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 41,
+        "DE": 0,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Software Development Engineer III – Test Infrastructure",
+          "location": "Mountain View, California, United States",
+          "source_url": "https://job-boards.greenhouse.io/idme/jobs/7984003003"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-ideals",
+    "name": "Ideals",
+    "careers_url": "https://jobs.ashbyhq.com/ideals",
+    "countries": [
+      "US",
+      "DE",
+      "UA"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "ashby",
+      "board": "ideals",
+      "name": "Ideals",
+      "countries": [
+        "US",
+        "DE",
+        "UA"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://jobs.ashbyhq.com/ideals",
+        "https://api.ashbyhq.com/posting-api/job-board/ideals"
+      ],
+      "detail": "Actual ashby application collector completed on 2026-10-09. Read 51 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 51,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 7,
+        "DE": 10,
+        "UA": 4
+      }
+    }
+  },
+  {
+    "id": "ats-isaraerospace",
+    "name": "Isar Aerospace",
+    "careers_url": "https://job-boards.greenhouse.io/isaraerospace",
+    "countries": [
+      "NO",
+      "DE"
+    ],
+    "sectors": [
+      "aerospace"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "isaraerospace",
+      "name": "Isar Aerospace",
+      "countries": [
+        "NO",
+        "DE"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/isaraerospace",
+        "https://boards-api.greenhouse.io/v1/boards/isaraerospace/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 114 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 114,
+      "country_matches_observed": {
+        "NO": 6,
+        "US": 0,
+        "DE": 98,
+        "UA": 0
+      }
+    }
+  },
+  {
+    "id": "ats-langchain",
+    "name": "LangChain",
+    "careers_url": "https://jobs.ashbyhq.com/langchain",
+    "countries": [
+      "US",
+      "DE"
+    ],
+    "sectors": [
+      "artificial intelligence"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "ashby",
+      "board": "langchain",
+      "name": "LangChain",
+      "countries": [
+        "US",
+        "DE"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://jobs.ashbyhq.com/langchain",
+        "https://api.ashbyhq.com/posting-api/job-board/langchain"
+      ],
+      "detail": "Actual ashby application collector completed on 2026-10-09. Read 101 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 101,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 86,
+        "DE": 1,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Analytics Engineer",
+          "location": "Remote; Remote - US; United States",
+          "source_url": "https://jobs.ashbyhq.com/langchain/e10513d4-1b8d-492f-a6af-94bdae366a1a"
+        },
+        {
+          "title": "FullStack Engineer, AI Observability & Evals Platform (LangSmith)",
+          "location": "San Francisco, CA; United States; Boston, MA; New York, NY",
+          "source_url": "https://jobs.ashbyhq.com/langchain/ddf92275-1cc3-49c0-9f25-e8ded43b07f6"
+        },
+        {
+          "title": "Frontend Engineer, AI Observability & Evals Platform",
+          "location": "San Francisco, CA; United States; Boston, MA; New York, NY",
+          "source_url": "https://jobs.ashbyhq.com/langchain/f7de4819-e7aa-4dfb-9acd-8b81ad8caf2c"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-langdock",
+    "name": "Langdock",
+    "careers_url": "https://jobs.ashbyhq.com/langdock",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "ashby",
+      "board": "langdock",
+      "name": "Langdock",
+      "countries": [
+        "DE"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://jobs.ashbyhq.com/langdock",
+        "https://api.ashbyhq.com/posting-api/job-board/langdock"
+      ],
+      "detail": "Actual ashby application collector completed on 2026-10-09. Read 26 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 26,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 0,
+        "DE": 26,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "AI Associate - m/f/d",
+          "location": "Berlin; Germany",
+          "source_url": "https://jobs.ashbyhq.com/langdock/944946c0-b6a3-4506-a4b7-3ce8c8778ea3"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-liqid-lig",
+    "name": "LIQID",
+    "careers_url": "https://jobs.ashbyhq.com/liqid-lig",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "finance",
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "ashby",
+      "board": "liqid-lig",
+      "name": "LIQID",
+      "countries": [
+        "DE"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://jobs.ashbyhq.com/liqid-lig",
+        "https://api.ashbyhq.com/posting-api/job-board/liqid-lig"
+      ],
+      "detail": "Actual ashby application collector completed on 2026-10-09. Read 14 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 14,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 0,
+        "DE": 14,
+        "UA": 0
+      }
+    }
+  },
+  {
+    "id": "ats-maymobility",
+    "name": "May Mobility",
+    "careers_url": "https://job-boards.greenhouse.io/maymobility",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "maymobility",
+      "name": "May Mobility",
+      "countries": [
+        "US"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/maymobility",
+        "https://boards-api.greenhouse.io/v1/boards/maymobility/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 38 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 38,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 38,
+        "DE": 0,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Machine Learning Engineer II - Autonomous Driving Performance Evaluation",
+          "location": "USA - Remote; Ann Arbor, Michigan, United States",
+          "source_url": "https://job-boards.greenhouse.io/maymobility/jobs/8187068002"
+        },
+        {
+          "title": "Machine Learning Engineer II - Autonomous Driving Training Infrastructure",
+          "location": "USA - Remote; Ann Arbor, Michigan, United States",
+          "source_url": "https://job-boards.greenhouse.io/maymobility/jobs/8580411002"
+        },
+        {
+          "title": "Software Engineer II - Data Platform",
+          "location": "USA - Remote; Ann Arbor, Michigan, United States",
+          "source_url": "https://job-boards.greenhouse.io/maymobility/jobs/8552080002"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-moloco",
+    "name": "Moloco",
+    "careers_url": "https://job-boards.greenhouse.io/moloco",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "moloco",
+      "name": "Moloco",
+      "countries": [
+        "US"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/moloco",
+        "https://boards-api.greenhouse.io/v1/boards/moloco/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 42 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 42,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 26,
+        "DE": 0,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Data Scientist II, Product - Moloco Commerce Media",
+          "location": "Menlo Park, California, United States",
+          "source_url": "https://job-boards.greenhouse.io/moloco/jobs/7985823003"
+        },
+        {
+          "title": "Machine Learning Engineer (머신러닝 엔지니어)",
+          "location": "Seoul, Korea",
+          "source_url": "https://job-boards.greenhouse.io/moloco/jobs/5820201003"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-newsbreak",
+    "name": "NewsBreak",
+    "careers_url": "https://job-boards.greenhouse.io/newsbreak",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "newsbreak",
+      "name": "NewsBreak",
+      "countries": [
+        "US"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/newsbreak",
+        "https://boards-api.greenhouse.io/v1/boards/newsbreak/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 58 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 58,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 58,
+        "DE": 0,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "AI Engineer — AI-Native Product Engineering(frontend focus)",
+          "location": "Mountain View, California, United States",
+          "source_url": "https://job-boards.greenhouse.io/newsbreak/jobs/4700550006"
+        },
+        {
+          "title": "Applied AI Engineer, Advertising Agents",
+          "location": "Mountain View, California, United States",
+          "source_url": "https://job-boards.greenhouse.io/newsbreak/jobs/4690262006"
+        },
+        {
+          "title": "NewsBreak Venture, AI Growth Intelligence Engineer (New Grad）",
+          "location": "Mountain View, California, United States",
+          "source_url": "https://job-boards.greenhouse.io/newsbreak/jobs/4694899006"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-notion",
+    "name": "Notion",
+    "careers_url": "https://jobs.ashbyhq.com/notion",
+    "countries": [
+      "US",
+      "DE"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "ashby",
+      "board": "notion",
+      "name": "Notion",
+      "countries": [
+        "US",
+        "DE"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://jobs.ashbyhq.com/notion",
+        "https://api.ashbyhq.com/posting-api/job-board/notion"
+      ],
+      "detail": "Actual ashby application collector completed on 2026-10-09. Read 134 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 134,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 78,
+        "DE": 3,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Software Engineer, Early Career (AI)",
+          "location": "Remote; San Francisco, California; San Francisco, California, United States",
+          "source_url": "https://jobs.ashbyhq.com/notion/85947779-6b87-466a-98bc-30a640448c28"
+        },
+        {
+          "title": "Software Engineer, Early Career",
+          "location": "San Francisco, California; San Francisco, California, United States",
+          "source_url": "https://jobs.ashbyhq.com/notion/297b4ece-765f-4eea-b1b8-46057cb6501f"
+        },
+        {
+          "title": "Workflow + Process Designer (AI Enablement)",
+          "location": "Remote; San Francisco, California; San Francisco, California, United States",
+          "source_url": "https://jobs.ashbyhq.com/notion/c799f1f0-0e7b-4eac-98ce-44223130f2b0"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-oneapp",
+    "name": "OnePay",
+    "careers_url": "https://jobs.ashbyhq.com/oneapp",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "finance",
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "ashby",
+      "board": "oneapp",
+      "name": "OnePay",
+      "countries": [
+        "US"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://jobs.ashbyhq.com/oneapp",
+        "https://api.ashbyhq.com/posting-api/job-board/oneapp"
+      ],
+      "detail": "Actual ashby application collector completed on 2026-10-09. Read 46 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 46,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 42,
+        "DE": 0,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Software Engineer, Risk",
+          "location": "Remote; United States (Remote); USA",
+          "source_url": "https://jobs.ashbyhq.com/oneapp/44f5758e-8964-42af-9481-572b6f8dad2b"
+        },
+        {
+          "title": "Analytics Engineer",
+          "location": "Remote; United States (Remote); USA",
+          "source_url": "https://jobs.ashbyhq.com/oneapp/e6d678ed-28b8-4ed9-97c1-7bc819746e6e"
+        },
+        {
+          "title": "Software Engineer, Credit Card",
+          "location": "Remote; United States (Remote); USA",
+          "source_url": "https://jobs.ashbyhq.com/oneapp/45395ba3-6845-4707-ab55-4e0a4e4baffb"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-ontic",
+    "name": "Ontic",
+    "careers_url": "https://jobs.ashbyhq.com/ontic",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "ashby",
+      "board": "ontic",
+      "name": "Ontic",
+      "countries": [
+        "US"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://jobs.ashbyhq.com/ontic",
+        "https://api.ashbyhq.com/posting-api/job-board/ontic"
+      ],
+      "detail": "Actual ashby application collector completed on 2026-10-09. Read 17 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 17,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 12,
+        "DE": 0,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Analytics Engineer",
+          "location": "Remote; Remote, United States; United States",
+          "source_url": "https://jobs.ashbyhq.com/ontic/27d32707-54e2-47be-be62-376df6d2b0f3"
+        },
+        {
+          "title": "Associate Software Engineer - Full Stack",
+          "location": "Remote; Austin, Texas, United States",
+          "source_url": "https://jobs.ashbyhq.com/ontic/d50b6bea-876f-43fc-afb9-716efe9eca02"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-oscar",
+    "name": "Oscar Health",
+    "careers_url": "https://job-boards.greenhouse.io/oscar",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "oscar",
+      "name": "Oscar Health",
+      "countries": [
+        "US"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/oscar",
+        "https://boards-api.greenhouse.io/v1/boards/oscar/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 239 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 239,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 239,
+        "DE": 0,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Analytics Engineer I",
+          "location": "New York, New York, United States",
+          "source_url": "https://job-boards.greenhouse.io/oscar/jobs/7914958"
+        },
+        {
+          "title": "Data Scientist I",
+          "location": "New York, New York, United States; Los Angeles, California, United States; Tempe, Arizona, United States",
+          "source_url": "https://job-boards.greenhouse.io/oscar/jobs/7592274"
+        },
+        {
+          "title": "Data Scientist II",
+          "location": "Tempe, Arizona, United States; Los Angeles, California, United States; New York, New York, United States",
+          "source_url": "https://job-boards.greenhouse.io/oscar/jobs/7594416"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-owkin",
+    "name": "Owkin",
+    "careers_url": "https://jobs.ashbyhq.com/owkin",
+    "countries": [
+      "US",
+      "DE"
+    ],
+    "sectors": [
+      "healthcare",
+      "artificial intelligence"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "ashby",
+      "board": "owkin",
+      "name": "Owkin",
+      "countries": [
+        "US",
+        "DE"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://jobs.ashbyhq.com/owkin",
+        "https://api.ashbyhq.com/posting-api/job-board/owkin"
+      ],
+      "detail": "Actual ashby application collector completed on 2026-10-09. Read 5 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 5,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 1,
+        "DE": 3,
+        "UA": 0
+      }
+    }
+  },
+  {
+    "id": "ats-pandadoc",
+    "name": "PandaDoc",
+    "careers_url": "https://job-boards.greenhouse.io/pandadoc",
+    "countries": [
+      "US",
+      "DE",
+      "UA"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "pandadoc",
+      "name": "PandaDoc",
+      "countries": [
+        "US",
+        "DE",
+        "UA"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/pandadoc",
+        "https://boards-api.greenhouse.io/v1/boards/pandadoc/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 10 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 10,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 3,
+        "DE": 1,
+        "UA": 2
+      }
+    }
+  },
+  {
+    "id": "ats-justanswer",
+    "name": "Pearl / JustAnswer",
+    "careers_url": "https://job-boards.greenhouse.io/justanswer",
+    "countries": [
+      "US",
+      "UA"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "justanswer",
+      "name": "Pearl / JustAnswer",
+      "countries": [
+        "US",
+        "UA"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/justanswer",
+        "https://boards-api.greenhouse.io/v1/boards/justanswer/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 13 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 13,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 5,
+        "DE": 0,
+        "UA": 6
+      },
+      "role_examples_observed": [
+        {
+          "title": "Associate AI Conversation Designer (German)",
+          "location": "United States; San Francisco, California, United States",
+          "source_url": "https://job-boards.greenhouse.io/justanswer/jobs/8587759002"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-perionnetworkltd",
+    "name": "Perion Network Ltd",
+    "careers_url": "https://job-boards.greenhouse.io/perionnetworkltd",
+    "countries": [
+      "US",
+      "UA"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "perionnetworkltd",
+      "name": "Perion Network Ltd",
+      "countries": [
+        "US",
+        "UA"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/perionnetworkltd",
+        "https://boards-api.greenhouse.io/v1/boards/perionnetworkltd/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 7 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 7,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 1,
+        "DE": 0,
+        "UA": 1
+      },
+      "role_examples_observed": [
+        {
+          "title": "Machine Learning Engineer, Outmax",
+          "location": "FR-Montpellier; Paris, France",
+          "source_url": "https://job-boards.greenhouse.io/perionnetworkltd/jobs/4716234006"
+        },
+        {
+          "title": "Machine Learning Engineer, Outmax",
+          "location": "Paris, France",
+          "source_url": "https://job-boards.greenhouse.io/perionnetworkltd/jobs/4699316006"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-perpay",
+    "name": "Perpay",
+    "careers_url": "https://job-boards.greenhouse.io/perpay",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "perpay",
+      "name": "Perpay",
+      "countries": [
+        "US"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/perpay",
+        "https://boards-api.greenhouse.io/v1/boards/perpay/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 22 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 22,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 22,
+        "DE": 0,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Mid-Level Software Engineer",
+          "location": "Philadelphia, Pennsylvania, United States",
+          "source_url": "https://job-boards.greenhouse.io/perpay/jobs/4034545007"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-picogrid",
+    "name": "Picogrid",
+    "careers_url": "https://jobs.ashbyhq.com/picogrid",
+    "countries": [
+      "US",
+      "UA"
+    ],
+    "sectors": [
+      "technology",
+      "defence technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "ashby",
+      "board": "picogrid",
+      "name": "Picogrid",
+      "countries": [
+        "US",
+        "UA"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://jobs.ashbyhq.com/picogrid",
+        "https://api.ashbyhq.com/posting-api/job-board/picogrid"
+      ],
+      "detail": "Actual ashby application collector completed on 2026-10-09. Read 19 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 19,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 18,
+        "DE": 0,
+        "UA": 1
+      }
+    }
+  },
+  {
+    "id": "ats-praxipal",
+    "name": "Praxipal",
+    "careers_url": "https://jobs.ashbyhq.com/praxipal",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "healthcare",
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "ashby",
+      "board": "praxipal",
+      "name": "Praxipal",
+      "countries": [
+        "DE"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://jobs.ashbyhq.com/praxipal",
+        "https://api.ashbyhq.com/posting-api/job-board/praxipal"
+      ],
+      "detail": "Actual ashby application collector completed on 2026-10-09. Read 8 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 8,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 0,
+        "DE": 8,
+        "UA": 0
+      }
+    }
+  },
+  {
+    "id": "ats-provectus",
+    "name": "Provectus",
+    "careers_url": "https://jobs.lever.co/provectus",
+    "countries": [
+      "US",
+      "UA"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "lever",
+      "board": "provectus",
+      "name": "Provectus",
+      "countries": [
+        "US",
+        "UA"
+      ],
+      "region": "global"
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://jobs.lever.co/provectus",
+        "https://api.lever.co/v0/postings/provectus?mode=json&limit=100&skip=0"
+      ],
+      "detail": "Actual lever application collector completed on 2026-10-09. Read 38 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 38,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 14,
+        "DE": 0,
+        "UA": 4
+      },
+      "role_examples_observed": [
+        {
+          "title": "Go to Market (GTM) Partnerships & Alliances Associate – AI Consulting Solutions (AWS, Anthropic partner)",
+          "location": "New York",
+          "source_url": "https://jobs.lever.co/provectus/228f102f-76fb-4d77-9cff-dc6dad9e8184"
+        },
+        {
+          "title": "Go to Market (GTM) Partnerships & Alliances Associate – AI Consulting Solutions (AWS, Anthropic partner)",
+          "location": "Philadelphia, Pennsylvania",
+          "source_url": "https://jobs.lever.co/provectus/7a79b0f2-e2f9-40a3-8ed6-94ad7c558167"
+        },
+        {
+          "title": "Junior AI/ML Engineer (GenAI, AWS)",
+          "location": "Ukraine",
+          "source_url": "https://jobs.lever.co/provectus/ce930027-43a2-4b4c-af03-ea3edb8f7581"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-qgenda",
+    "name": "QGenda",
+    "careers_url": "https://job-boards.greenhouse.io/qgenda",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "qgenda",
+      "name": "QGenda",
+      "countries": [
+        "US"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/qgenda",
+        "https://boards-api.greenhouse.io/v1/boards/qgenda/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 8 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 8,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 8,
+        "DE": 0,
+        "UA": 0
+      }
+    }
+  },
+  {
+    "id": "ats-raisin",
+    "name": "Raisin",
+    "careers_url": "https://job-boards.greenhouse.io/raisin",
+    "countries": [
+      "US",
+      "DE"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "raisin",
+      "name": "Raisin",
+      "countries": [
+        "US",
+        "DE"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/raisin",
+        "https://boards-api.greenhouse.io/v1/boards/raisin/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 41 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 41,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 3,
+        "DE": 34,
+        "UA": 0
+      }
+    }
+  },
+  {
+    "id": "ats-rasa",
+    "name": "Rasa",
+    "careers_url": "https://jobs.ashbyhq.com/rasa",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "ashby",
+      "board": "rasa",
+      "name": "Rasa",
+      "countries": [
+        "US"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://jobs.ashbyhq.com/rasa",
+        "https://api.ashbyhq.com/posting-api/job-board/rasa"
+      ],
+      "detail": "Actual ashby application collector completed on 2026-10-09. Read 2 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 2,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 1,
+        "DE": 0,
+        "UA": 0
+      }
+    }
+  },
+  {
+    "id": "ats-robinhood",
+    "name": "Robinhood",
+    "careers_url": "https://job-boards.greenhouse.io/robinhood",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "robinhood",
+      "name": "Robinhood",
+      "countries": [
+        "US"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/robinhood",
+        "https://boards-api.greenhouse.io/v1/boards/robinhood/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 170 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 170,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 134,
+        "DE": 0,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Data Solutions & Validation Sr. Specialist",
+          "location": "Denver, CO; New York, NY; Westlake, TX",
+          "source_url": "https://boards.greenhouse.io/robinhood/jobs/8120681?t=gh_src=&gh_jid=8120681"
+        },
+        {
+          "title": "Full Stack Software Engineer, Credit Cards & Banking",
+          "location": "Bellevue, WA; Menlo Park, CA; New York, NY",
+          "source_url": "https://boards.greenhouse.io/robinhood/jobs/8008723?t=gh_src=&gh_jid=8008723"
+        },
+        {
+          "title": "Software Engineer, Backend",
+          "location": "Menlo Park, CA; New York, NY",
+          "source_url": "https://boards.greenhouse.io/robinhood/jobs/7263592?t=gh_src=&gh_jid=7263592"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-rocketfactoryaugsburgag",
+    "name": "Rocket Factory Augsburg",
+    "careers_url": "https://job-boards.greenhouse.io/rocketfactoryaugsburgag",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "aerospace"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "rocketfactoryaugsburgag",
+      "name": "Rocket Factory Augsburg",
+      "countries": [
+        "DE"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/rocketfactoryaugsburgag",
+        "https://boards-api.greenhouse.io/v1/boards/rocketfactoryaugsburgag/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 52 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 52,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 0,
+        "DE": 45,
+        "UA": 0
+      }
+    }
+  },
+  {
+    "id": "ats-rocketlab",
+    "name": "Rocket Lab",
+    "careers_url": "https://job-boards.greenhouse.io/rocketlab",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "aerospace"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "rocketlab",
+      "name": "Rocket Lab",
+      "countries": [
+        "US"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/rocketlab",
+        "https://boards-api.greenhouse.io/v1/boards/rocketlab/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 575 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 575,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 462,
+        "DE": 0,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Flight Software Engineer",
+          "location": "Auckland, NZ; Auckland, New Zealand",
+          "source_url": "https://job-boards.greenhouse.io/rocketlab/jobs/7985939003"
+        },
+        {
+          "title": "Flight Software Engineer II",
+          "location": "Long Beach, CA; Littleton, Colorado, United States",
+          "source_url": "https://job-boards.greenhouse.io/rocketlab/jobs/7993343003"
+        },
+        {
+          "title": "Flight Software Engineer II",
+          "location": "Littleton, CO; Littleton, Colorado, United States",
+          "source_url": "https://job-boards.greenhouse.io/rocketlab/jobs/7983815003"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-sanity",
+    "name": "Sanity",
+    "careers_url": "https://jobs.ashbyhq.com/Sanity",
+    "countries": [
+      "NO",
+      "US",
+      "DE"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "ashby",
+      "board": "Sanity",
+      "name": "Sanity",
+      "countries": [
+        "NO",
+        "US",
+        "DE"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://jobs.ashbyhq.com/Sanity",
+        "https://api.ashbyhq.com/posting-api/job-board/Sanity"
+      ],
+      "detail": "Actual ashby application collector completed on 2026-10-09. Read 36 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 36,
+      "country_matches_observed": {
+        "NO": 4,
+        "US": 21,
+        "DE": 3,
+        "UA": 0
+      }
+    }
+  },
+  {
+    "id": "ats-scaleai",
+    "name": "Scale AI",
+    "careers_url": "https://job-boards.greenhouse.io/scaleai",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "scaleai",
+      "name": "Scale AI",
+      "countries": [
+        "US"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/scaleai",
+        "https://boards-api.greenhouse.io/v1/boards/scaleai/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 182 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 182,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 133,
+        "DE": 0,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "AI Advisory Consultant",
+          "location": "San Francisco, CA; New York, NY; San Francisco, California, United States",
+          "source_url": "https://job-boards.greenhouse.io/scaleai/jobs/4715970005"
+        },
+        {
+          "title": "Applied AI Engineer, Global Public Sector",
+          "location": "Doha, Qatar; London, UK; London, England, United Kingdom",
+          "source_url": "https://job-boards.greenhouse.io/scaleai/jobs/4413992005"
+        },
+        {
+          "title": "Enterprise AI Development Strategist",
+          "location": "New York, NY; San Francisco, CA; San Francisco, California, United States",
+          "source_url": "https://job-boards.greenhouse.io/scaleai/jobs/4741087005"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-sensmore",
+    "name": "sensmore",
+    "careers_url": "https://jobs.ashbyhq.com/sensmore",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "ashby",
+      "board": "sensmore",
+      "name": "sensmore",
+      "countries": [
+        "DE"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://jobs.ashbyhq.com/sensmore",
+        "https://api.ashbyhq.com/posting-api/job-board/sensmore"
+      ],
+      "detail": "Actual ashby application collector completed on 2026-10-09. Read 11 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 11,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 0,
+        "DE": 11,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "ML Ops / Data Engineer - Robotics",
+          "location": "Potsdam Office; Potsdam, Brandenburg, Germany; Berlin Office",
+          "source_url": "https://jobs.ashbyhq.com/sensmore/9186b8bd-96af-4f83-8e36-216479721a2d"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-silvus",
+    "name": "Silvus Technologies",
+    "careers_url": "https://job-boards.greenhouse.io/silvus",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "silvus",
+      "name": "Silvus Technologies",
+      "countries": [
+        "US"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/silvus",
+        "https://boards-api.greenhouse.io/v1/boards/silvus/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 45 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 45,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 44,
+        "DE": 0,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Embedded Software Engineer",
+          "location": "Irvine CA; Irvine, California, United States",
+          "source_url": "https://job-boards.greenhouse.io/silvus/jobs/5263637008"
+        },
+        {
+          "title": "Embedded Software Engineer",
+          "location": "Los Angeles; Los Angeles, California, United States",
+          "source_url": "https://job-boards.greenhouse.io/silvus/jobs/5263661008"
+        },
+        {
+          "title": "Embedded Software Engineer - Research And Development (R&D)",
+          "location": "Los Angeles; Los Angeles, California, United States",
+          "source_url": "https://job-boards.greenhouse.io/silvus/jobs/5263735008"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-simulmedia",
+    "name": "Simulmedia",
+    "careers_url": "https://jobs.lever.co/simulmedia",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "lever",
+      "board": "simulmedia",
+      "name": "Simulmedia",
+      "countries": [
+        "US"
+      ],
+      "region": "global"
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://jobs.lever.co/simulmedia",
+        "https://api.lever.co/v0/postings/simulmedia?mode=json&limit=100&skip=0"
+      ],
+      "detail": "Actual lever application collector completed on 2026-10-09. Read 5 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 5,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 5,
+        "DE": 0,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "AI Product Specialist",
+          "location": "New York, New York",
+          "source_url": "https://jobs.lever.co/simulmedia/774e8abb-48b9-4f6a-a6b5-359234afcbba"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-singlestore",
+    "name": "SingleStore",
+    "careers_url": "https://job-boards.greenhouse.io/singlestore",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "singlestore",
+      "name": "SingleStore",
+      "countries": [
+        "US"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/singlestore",
+        "https://boards-api.greenhouse.io/v1/boards/singlestore/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 44 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 44,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 29,
+        "DE": 0,
+        "UA": 0
+      }
+    }
+  },
+  {
+    "id": "ats-sirenopt",
+    "name": "SirenOpt",
+    "careers_url": "https://job-boards.greenhouse.io/sirenopt",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "sirenopt",
+      "name": "SirenOpt",
+      "countries": [
+        "US"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/sirenopt",
+        "https://boards-api.greenhouse.io/v1/boards/sirenopt/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 12 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 12,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 12,
+        "DE": 0,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Data Scientist",
+          "location": "San Leandro, California, United States",
+          "source_url": "https://job-boards.greenhouse.io/sirenopt/jobs/4430491009"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-skydio",
+    "name": "Skydio",
+    "careers_url": "https://jobs.ashbyhq.com/skydio",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "ashby",
+      "board": "skydio",
+      "name": "Skydio",
+      "countries": [
+        "US"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://jobs.ashbyhq.com/skydio",
+        "https://api.ashbyhq.com/posting-api/job-board/skydio"
+      ],
+      "detail": "Actual ashby application collector completed on 2026-10-09. Read 157 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 157,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 140,
+        "DE": 0,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Autonomy Software Engineer",
+          "location": "Remote; San Mateo, California, United States",
+          "source_url": "https://jobs.ashbyhq.com/skydio/a48fe41b-030b-4f11-bf25-df7446151854"
+        },
+        {
+          "title": "Software Engineer - Autonomy Infrastructure, Systems and Tools",
+          "location": "Remote; San Mateo, California, United States",
+          "source_url": "https://jobs.ashbyhq.com/skydio/9e42a7af-6369-4036-ae6f-6626ee3a4fb3"
+        },
+        {
+          "title": "Software Engineer - Autonomy Infrastructure, Systems and Tools",
+          "location": "Remote; Zurich, Switzerland",
+          "source_url": "https://jobs.ashbyhq.com/skydio/49da6783-223e-4b2c-81f6-3b47de1c52e7"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-sonymusicde",
+    "name": "Sony Music Entertainment Germany",
+    "careers_url": "https://job-boards.greenhouse.io/sonymusicde",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "music",
+      "media"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "sonymusicde",
+      "name": "Sony Music Entertainment Germany",
+      "countries": [
+        "DE"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/sonymusicde",
+        "https://boards-api.greenhouse.io/v1/boards/sonymusicde/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 4 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 4,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 0,
+        "DE": 2,
+        "UA": 0
+      }
+    }
+  },
+  {
+    "id": "ats-speechify",
+    "name": "Speechify",
+    "careers_url": "https://job-boards.greenhouse.io/speechify",
+    "countries": [
+      "US",
+      "DE"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "speechify",
+      "name": "Speechify",
+      "countries": [
+        "US",
+        "DE"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/speechify",
+        "https://boards-api.greenhouse.io/v1/boards/speechify/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 492 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 492,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 143,
+        "DE": 7,
+        "UA": 0
+      }
+    }
+  },
+  {
+    "id": "ats-striveworks",
+    "name": "Striveworks",
+    "careers_url": "https://job-boards.greenhouse.io/striveworks",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "artificial intelligence"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "striveworks",
+      "name": "Striveworks",
+      "countries": [
+        "US"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/striveworks",
+        "https://boards-api.greenhouse.io/v1/boards/striveworks/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 30 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 30,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 30,
+        "DE": 0,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Data Scientist (Active Secret Clearance)",
+          "location": "Austin, Texas, United States",
+          "source_url": "https://job-boards.greenhouse.io/striveworks/jobs/7712528003"
+        },
+        {
+          "title": "Junior Machine Learning Engineer",
+          "location": "Austin, Texas, United States",
+          "source_url": "https://job-boards.greenhouse.io/striveworks/jobs/8002515003"
+        },
+        {
+          "title": "Junior Software Engineer",
+          "location": "Austin, Texas, United States",
+          "source_url": "https://job-boards.greenhouse.io/striveworks/jobs/8002825003"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-stubhubinc",
+    "name": "StubHub",
+    "careers_url": "https://job-boards.greenhouse.io/stubhubinc",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "stubhubinc",
+      "name": "StubHub",
+      "countries": [
+        "US"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/stubhubinc",
+        "https://boards-api.greenhouse.io/v1/boards/stubhubinc/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 31 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 31,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 29,
+        "DE": 0,
+        "UA": 0
+      }
+    }
+  },
+  {
+    "id": "ats-swarmer",
+    "name": "Swarmer",
+    "careers_url": "https://jobs.ashbyhq.com/swarmer",
+    "countries": [
+      "US",
+      "UA"
+    ],
+    "sectors": [
+      "robotics",
+      "defence technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "ashby",
+      "board": "swarmer",
+      "name": "Swarmer",
+      "countries": [
+        "US",
+        "UA"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://jobs.ashbyhq.com/swarmer",
+        "https://api.ashbyhq.com/posting-api/job-board/swarmer"
+      ],
+      "detail": "Actual ashby application collector completed on 2026-10-09. Read 13 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 13,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 1,
+        "DE": 0,
+        "UA": 6
+      }
+    }
+  },
+  {
+    "id": "ats-taktile",
+    "name": "Taktile",
+    "careers_url": "https://jobs.ashbyhq.com/taktile",
+    "countries": [
+      "US",
+      "DE"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "ashby",
+      "board": "taktile",
+      "name": "Taktile",
+      "countries": [
+        "US",
+        "DE"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://jobs.ashbyhq.com/taktile",
+        "https://api.ashbyhq.com/posting-api/job-board/taktile"
+      ],
+      "detail": "Actual ashby application collector completed on 2026-10-09. Read 39 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 39,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 14,
+        "DE": 19,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Sr. Applied AI Engineer",
+          "location": "Remote; New York Office; New York, United States",
+          "source_url": "https://jobs.ashbyhq.com/taktile/11d61fee-388b-453a-a98e-e8aa75d8d214"
+        },
+        {
+          "title": "Sr. Applied AI Engineer",
+          "location": "Remote; London Office; London, United Kingdom; Berlin Office",
+          "source_url": "https://jobs.ashbyhq.com/taktile/fd4d4145-62df-438d-9667-92b5ecbbfa7d"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-tandem-health",
+    "name": "Tandem Health",
+    "careers_url": "https://jobs.ashbyhq.com/tandem-health",
+    "countries": [
+      "NO",
+      "DE"
+    ],
+    "sectors": [
+      "healthcare",
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "ashby",
+      "board": "tandem-health",
+      "name": "Tandem Health",
+      "countries": [
+        "NO",
+        "DE"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://jobs.ashbyhq.com/tandem-health",
+        "https://api.ashbyhq.com/posting-api/job-board/tandem-health"
+      ],
+      "detail": "Actual ashby application collector completed on 2026-10-09. Read 72 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 72,
+      "country_matches_observed": {
+        "NO": 1,
+        "US": 0,
+        "DE": 11,
+        "UA": 0
+      }
+    }
+  },
+  {
+    "id": "ats-tenstorrent",
+    "name": "Tenstorrent",
+    "careers_url": "https://job-boards.greenhouse.io/tenstorrent",
+    "countries": [
+      "US",
+      "DE"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "tenstorrent",
+      "name": "Tenstorrent",
+      "countries": [
+        "US",
+        "DE"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/tenstorrent",
+        "https://boards-api.greenhouse.io/v1/boards/tenstorrent/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 130 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 130,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 84,
+        "DE": 7,
+        "UA": 0
+      }
+    }
+  },
+  {
+    "id": "ats-thequalitygroupgmbh2",
+    "name": "The Quality Group",
+    "careers_url": "https://job-boards.greenhouse.io/thequalitygroupgmbh2",
+    "countries": [
+      "DE"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "thequalitygroupgmbh2",
+      "name": "The Quality Group",
+      "countries": [
+        "DE"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/thequalitygroupgmbh2",
+        "https://boards-api.greenhouse.io/v1/boards/thequalitygroupgmbh2/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 93 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 93,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 0,
+        "DE": 91,
+        "UA": 0
+      }
+    }
+  },
+  {
+    "id": "ats-valency",
+    "name": "Valency Systems",
+    "careers_url": "https://jobs.ashbyhq.com/valency",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "artificial intelligence"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "ashby",
+      "board": "valency",
+      "name": "Valency Systems",
+      "countries": [
+        "US"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://jobs.ashbyhq.com/valency",
+        "https://api.ashbyhq.com/posting-api/job-board/valency"
+      ],
+      "detail": "Actual ashby application collector completed on 2026-10-09. Read 8 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 8,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 8,
+        "DE": 0,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Software Engineer (Full-stack)",
+          "location": "Remote; Berkeley, CA; Berkeley, California, United States",
+          "source_url": "https://jobs.ashbyhq.com/valency/2bcd9b30-d76b-40ee-afc7-43302ce18fff"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-wolt",
+    "name": "Wolt",
+    "careers_url": "https://job-boards.greenhouse.io/wolt",
+    "countries": [
+      "NO",
+      "DE"
+    ],
+    "sectors": [
+      "technology",
+      "logistics"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "wolt",
+      "name": "Wolt",
+      "countries": [
+        "NO",
+        "DE"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/wolt",
+        "https://boards-api.greenhouse.io/v1/boards/wolt/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 221 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 221,
+      "country_matches_observed": {
+        "NO": 3,
+        "US": 0,
+        "DE": 34,
+        "UA": 0
+      }
+    }
+  },
+  {
+    "id": "ats-worldly",
+    "name": "Worldly",
+    "careers_url": "https://jobs.ashbyhq.com/worldly",
+    "countries": [
+      "US",
+      "DE"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "ashby",
+      "board": "worldly",
+      "name": "Worldly",
+      "countries": [
+        "US",
+        "DE"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://jobs.ashbyhq.com/worldly",
+        "https://api.ashbyhq.com/posting-api/job-board/worldly"
+      ],
+      "detail": "Actual ashby application collector completed on 2026-10-09. Read 8 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 8,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 5,
+        "DE": 1,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Sustainability Data Analyst",
+          "location": "Remote; United States - Remote; Concord, California, United States",
+          "source_url": "https://jobs.ashbyhq.com/worldly/4c6865c2-9cf3-49cc-bfaf-2490420b7b72"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-wppmedia",
+    "name": "WPP Media",
+    "careers_url": "https://job-boards.greenhouse.io/wppmedia",
+    "countries": [
+      "NO",
+      "US",
+      "DE"
+    ],
+    "sectors": [
+      "advertising",
+      "data and analytics"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "wppmedia",
+      "name": "WPP Media",
+      "countries": [
+        "NO",
+        "US",
+        "DE"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/wppmedia",
+        "https://boards-api.greenhouse.io/v1/boards/wppmedia/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 978 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 978,
+      "country_matches_observed": {
+        "NO": 3,
+        "US": 49,
+        "DE": 109,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Data Engineer",
+          "location": "Stockholm, Sweden; Stockholm, Stockholm, Sweden",
+          "source_url": "https://job-boards.greenhouse.io/wppmedia/jobs/5396729008"
+        },
+        {
+          "title": "Data Engineer - Azure",
+          "location": "Bangalore, India; Gurgaon, India",
+          "source_url": "https://job-boards.greenhouse.io/wppmedia/jobs/5419149008"
+        },
+        {
+          "title": "Data Engineer (Mid-level)",
+          "location": "Johannesburg, South Africa; Johannesburg, Gauteng, South Africa",
+          "source_url": "https://job-boards.greenhouse.io/wppmedia/jobs/5240001008"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ats-wurljobs",
+    "name": "Wurl",
+    "careers_url": "https://job-boards.greenhouse.io/wurljobs",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "wurljobs",
+      "name": "Wurl",
+      "countries": [
+        "US"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/wurljobs",
+        "https://boards-api.greenhouse.io/v1/boards/wurljobs/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 2 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 2,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 2,
+        "DE": 0,
+        "UA": 0
+      }
+    }
+  },
+  {
+    "id": "ats-yipitdatajobs",
+    "name": "YipitData",
+    "careers_url": "https://job-boards.greenhouse.io/yipitdatajobs",
+    "countries": [
+      "US"
+    ],
+    "sectors": [
+      "technology"
+    ],
+    "access_mode": "automatic",
+    "source": {
+      "type": "greenhouse",
+      "board": "yipitdatajobs",
+      "name": "YipitData",
+      "countries": [
+        "US"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://job-boards.greenhouse.io/yipitdatajobs",
+        "https://boards-api.greenhouse.io/v1/boards/yipitdatajobs/jobs?content=true"
+      ],
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 50 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 50,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 29,
+        "DE": 0,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Data Analyst",
+          "location": "Singapore",
+          "source_url": "https://job-boards.greenhouse.io/yipitdatajobs/jobs/7364207"
+        },
+        {
+          "title": "Data QA Associate",
+          "location": "India Remote; India",
+          "source_url": "https://job-boards.greenhouse.io/yipitdatajobs/jobs/7026089"
+        },
+        {
+          "title": "Data QA Associate",
+          "location": "India Remote; India",
+          "source_url": "https://job-boards.greenhouse.io/yipitdatajobs/jobs/7026087"
+        }
+      ]
+    }
+  }
+]

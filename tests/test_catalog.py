@@ -19,7 +19,7 @@ class CatalogTests(unittest.TestCase):
     def test_directories_are_packaged_as_json_resources(self):
         data = files("norway_job_agent").joinpath("data")
         expected = {
-            "employers_no_ua.json", "employers_us_de.json",
+            "employers_no_ua.json", "employers_us_de.json", "employers_expansion.json",
             "job_boards_no_ua.json", "job_boards_us_de.json",
         }
         self.assertTrue(expected <= {item.name for item in data.iterdir()})
@@ -95,7 +95,7 @@ class CatalogTests(unittest.TestCase):
             if not source:
                 continue
             with self.subTest(entry=row["id"]):
-                self.assertIn(source["type"], COMPANY_SOURCE_TYPES | {"greenhouse", "lever"})
+                self.assertIn(source["type"], COMPANY_SOURCE_TYPES | {"greenhouse", "lever", "ashby"})
                 if source["type"] in COMPANY_SOURCE_TYPES:
                     validate_company_source(source)
                 else:
@@ -103,8 +103,8 @@ class CatalogTests(unittest.TestCase):
                     self.assertNotIn(source["board"].casefold(), {"example", "demo", "placeholder"})
                     if source["type"] == "lever":
                         self.assertIn(source.get("region", "global"), {"global", "eu"})
-                self.assertTrue(source["locations"])
-                self.assertTrue(all(isinstance(term, str) and term.strip() for term in source["locations"]))
+                self.assertTrue(source.get("countries") or source.get("locations"))
+                self.assertTrue(all(isinstance(term, str) and term.strip() for term in source.get("locations", [])))
                 if "countries" in source:
                     self.assertEqual(set(source["countries"]), set(row["countries"]))
                 identity = (source["type"], source.get("board", ""), source.get("region", "global"), source.get("url", ""))
@@ -120,8 +120,8 @@ class CatalogTests(unittest.TestCase):
                 with self.subTest(entry=row["id"], country=code):
                     source = source_for_countries(row, [code])
                     self.assertEqual(source["countries"], [code])
-                    self.assertEqual(source["locations"], list(dict.fromkeys(COUNTRY_TERMS[code])))
-                    source["locations"].clear()
+                    self.assertFalse(source.get("locations"))
+                    source["countries"].clear()
                     self.assertEqual(json.dumps(row, sort_keys=True), before)
             self.assertIsNone(source_for_countries(row, []))
             other = [code for code in COUNTRIES if code not in row["countries"]]
@@ -134,8 +134,51 @@ class CatalogTests(unittest.TestCase):
                 continue
             with self.subTest(entry=original["id"]):
                 source = source_for_countries(loaded[original["id"]], ["NO"])
-                self.assertEqual(source, {**original["source"], "countries": ["NO"]})
-                self.assertIsNone(source_for_countries(loaded[original["id"]], ["US", "DE", "UA"]))
+                for key in ("type", "url", "search_text", "sitemap_url", "job_path", "url_keywords", "max_jobs"):
+                    if key in original["source"]:
+                        self.assertEqual(source[key], original["source"][key])
+                self.assertEqual(source["countries"], ["NO"])
+                self.assertFalse(source.get("locations"))
+
+    def test_country_scope_does_not_replace_a_custom_city_filter(self):
+        entry = {"countries": ["US", "DE"], "source": {
+            "type": "greenhouse", "board": "example", "locations": ["Berlin"],
+            "max_jobs": 80,
+        }}
+        self.assertEqual(source_for_countries(entry, ["DE"]), {
+            **entry["source"], "countries": ["DE"],
+        })
+
+    def test_verified_expansion_has_live_country_evidence_and_independent_feeds(self):
+        new = [row for row in company_catalog() if (row.get("source") or {}).get("type")
+               in {"greenhouse", "lever", "ashby"}]
+        self.assertGreaterEqual(len(new), 90)
+        self.assertGreaterEqual(sum(row["source"]["type"] == "ashby" for row in new), 25)
+        for row in new:
+            with self.subTest(entry=row["id"]):
+                self.assertIn("jobs_observed", row["verification"])
+                observed = row["verification"]["country_matches_observed"]
+                self.assertTrue(all(code in observed for code in row["countries"]))
+                self.assertTrue(all(isinstance(value, int) and value >= 0 for value in observed.values()))
+                self.assertTrue(all(value <= row["verification"]["jobs_observed"] for value in observed.values()))
+                if row["id"].startswith("ats-"):
+                    self.assertTrue(all(observed[code] > 0 for code in row["countries"]))
+        for country, minimum in {"US": 70, "DE": 40, "NO": 15, "UA": 20}.items():
+            self.assertGreaterEqual(sum(bool(row.get("source")) for row in company_catalog(country)), minimum)
+
+    def test_all_generated_country_lists_retire_without_removing_custom_scope(self):
+        from itertools import combinations
+        for size in range(1, len(COUNTRY_TERMS) + 1):
+            for selected in combinations(COUNTRY_TERMS, size):
+                entry = {"countries": list(selected), "source": {
+                    "type": "greenhouse", "board": "example",
+                    "locations": [term for code in selected for term in COUNTRY_TERMS[code]],
+                }}
+                self.assertNotIn("locations", source_for_countries(entry, [selected[0]]))
+        entry = {"countries": ["US"], "source": {
+            "type": "greenhouse", "board": "example", "locations": ["Boston", "Austin"],
+        }}
+        self.assertEqual(source_for_countries(entry, ["US"])["locations"], ["Boston", "Austin"])
 
     def test_manual_directories_are_independent_copies(self):
         first = job_board_catalog("US")

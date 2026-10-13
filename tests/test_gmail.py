@@ -7,6 +7,7 @@ import json
 import os
 import sys
 import tempfile
+import threading
 import time
 import unittest
 from email.message import EmailMessage
@@ -210,10 +211,51 @@ class GmailAuthorizationTests(unittest.TestCase):
             def __exit__(self, *args):
                 return False
 
-        with patch.object(gmail, "HTTPServer", FakeServer), patch.object(gmail.webbrowser, "open", return_value=True), patch.object(gmail, "_save_token") as save, patch.object(gmail, "_request_json") as request, self.assertRaisesRegex(gmail.GmailError, "cancelled"):
+        with patch.object(gmail, "HTTPServer", FakeServer), patch.object(gmail.webbrowser, "open", return_value=True) as browser, patch.object(gmail, "_save_token") as save, patch.object(gmail, "_request_json") as request, self.assertRaisesRegex(gmail.GmailError, "cancelled"):
             gmail.connect(self.folder, self.client_path, cancel_event=cancellation)
         save.assert_not_called()
         request.assert_not_called()
+        browser.assert_not_called()
+
+    def test_sign_in_cancelled_at_callback_or_during_token_exchange_never_saves_credentials(self):
+        for phase in ("callback", "exchange"):
+            with self.subTest(phase=phase):
+                cancellation = threading.Event()
+                captured = {}
+
+                class FakeServer:
+                    def __init__(self, address, handler):
+                        self.server_port, self.handler = 54321, handler
+                    def __enter__(self):
+                        return self
+                    def __exit__(self, *args):
+                        return False
+                    def handle_request(self):
+                        callback = object.__new__(self.handler)
+                        callback.server = self
+                        callback.headers = {"Host": "127.0.0.1:54321"}
+                        callback.path = "/oauth2callback?" + urlencode({"state": captured["state"], "code": "fixture-code"})
+                        callback.send_response = Mock()
+                        callback.send_header = Mock()
+                        callback.end_headers = Mock()
+                        callback.wfile = io.BytesIO()
+                        callback.do_GET()
+                        if phase == "callback":
+                            cancellation.set()
+
+                def open_browser(url, **kwargs):
+                    captured["state"] = parse_qs(urlsplit(url).query)["state"][0]
+                    return True
+
+                def exchange(*args, **kwargs):
+                    cancellation.set()
+                    return {"access_token": "new-access", "refresh_token": "new-refresh", "scope": gmail.SCOPE}
+
+                with patch.object(gmail, "HTTPServer", FakeServer), patch.object(gmail.webbrowser, "open", side_effect=open_browser), patch.object(gmail, "_request_json", side_effect=exchange) as request, patch.object(gmail, "_save_token") as save:
+                    with self.assertRaisesRegex(gmail.GmailError, "cancelled"):
+                        gmail.connect(self.folder, self.client_path, cancel_event=cancellation)
+                self.assertEqual(request.call_count, 1 if phase == "exchange" else 0)
+                save.assert_not_called()
 
     def test_broad_scope_and_malformed_token_response_rejected(self):
         for response in ({"access_token": "access", "scope": gmail.SCOPE + " https://www.googleapis.com/auth/gmail.send"}, {"access_token": "access", "scope": None}, {"access_token": "access", "expires_in": "bad"}, {"access_token": "access", "refresh_token": {}}, {"access_token": []}):

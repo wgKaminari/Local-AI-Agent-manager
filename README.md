@@ -1,114 +1,101 @@
 # Personal Job Agent
 
-A private Python desktop assistant for discovering vacancies in Norway, the USA, Germany and Ukraine, organizing opportunities, and preparing application answers and cover letters. Supported standard web forms can be sent after you review them and press the send button.
+A private **Python desktop application** for discovering vacancies in Norway, the USA, Germany and Ukraine, organizing opportunities, and preparing application answers and cover letters. Version 0.3 opens in its own desktop window with a modern, locally packaged interface. Your existing profile, SQLite database and draft histories stay in the same private folder.
 
 ## Start
 
-Double-click **Start-Norway-Job-Agent.cmd**, or run:
+Use Python **3.12 or newer**. Install the dependencies once, then start the application:
 
 ```powershell
+python -m pip install -r requirements.txt
 python run.py gui
 ```
 
-Your profile, CV text, database, notes and draft history are stored in `%USERPROFILE%\.norway-job-agent`, outside this OneDrive project. The personalized bootstrap profile under `private/` is excluded from Git.
+You can also double-click **Start-Personal-Job-Agent.cmd**. The existing **Start-Norway-Job-Agent.cmd** launcher remains compatible. Windows needs the Microsoft Edge WebView2 Runtime for the desktop window.
 
-On a fresh Python installation, run `python -m pip install -r requirements.txt` once for PDF support. You can also choose **Sources & AI → Local AI → Install PDF support**; this installs into the exact Python environment running the app.
+The interface uses bundled HTML, CSS and JavaScript inside pywebview; Python runs the application logic. The workspace opens as a desktop application, with no hosted website to configure. Opening an employer link or completing Google sign-in uses your normal browser. The earlier Tkinter interface remains available with:
 
-## What works
+```powershell
+python run.py gui --classic
+```
 
-- A country switcher that changes vacancy filters and sources while preserving your shared profile, job preferences and writing style. The first selection of a country adds its verified employer source presets to the editable configuration; save settings or collect to keep them.
-- A researched directory of **294 employer entries** (291 distinct employer names): Norway 69, USA 89, Germany 80, Ukraine 67. Some employers cover multiple countries. **36 distinct employer collectors** are configured; the remaining entries are career links for browser research and alert/manual import.
-- A separate **Country job boards** directory with 46 researched source entries and explicit access notes. These are curated starting points, not a measured popularity ranking.
-- A modern Windows workspace with light and dark themes, a collapsible sidebar, opportunity cards, selectable headings, copy menus and keyboard navigation.
-- NAV/Arbeidsplassen collection using its free experimental feed, with resumable pagination, updates and withdrawal handling.
-- Greenhouse and Lever company-board connectors; configurable location filters.
-- Individual public company job pages with `JobPosting` structured data, plus manual vacancy import for unsupported sites.
-- A searchable **Company library** with official career links and supported automatic collectors, including bounded Workday and public career sitemap scans. Each entry explains its collection mode.
-- A **Gmail alerts** workspace with read-only OAuth, LinkedIn/job-alert link extraction, editable review candidates, `.eml` import and email provenance on imported vacancies.
-- SQLite duplicate detection, source links, private notes and application statuses.
-- Transparent keyword matching, with related research roles requiring a connection to the relevant technical fields.
-- Local AI cover-letter drafts and CV profile suggestions through **Ollama**, with review and editing before use.
-- CV text import from TXT, Markdown, DOCX and text PDFs using the free `pypdf` package.
-- Versioned cover letters and `.txt` export. Generating a letter never marks a job as applied.
-- **Application answers**: extract public Greenhouse questions or static HTML fields, paste missing questions, draft locally, edit choices/text, attach your selected files, save versions and export.
-- Configurable tone, language, instructions, examples, phrases to avoid and answer length under **Profile & CV → Countries & writing**. Work authorization is recorded separately for each country.
+Your profile, CV text, database, notes and drafts remain in `%USERPROFILE%\.norway-job-agent`, outside this OneDrive project. The personalized bootstrap profile under `private/` is excluded from Git. See [desktop setup and migration](docs/modern-desktop.md) for runtime requirements, data continuity and troubleshooting.
 
-**Review in browser → Send reviewed application** supports native public HTTPS forms with matching questions and a same-site POST destination. Login, CAPTCHA, embedded and JavaScript-dependent applications require manual completion on the employer site. Gmail stays read-only. Nothing is sent by collection, generation, saving or previewing. A send attempt never silently retries or marks the vacancy as applied; check the employer confirmation first. See [application preparation and delivery](docs/application-preparation.md).
+## Daily workflow
 
-Optional free browser runtime (needed only for supported delivery):
+1. Open **Profile & writing**. Review your facts, years of professional experience (for example, 2.5), actual language proficiency, search preferences, CV, writing style and country-specific work authorization. Save before generating drafts.
+2. Choose **Searching in**, then **Find opportunities**. Switching countries changes discovery and source context while keeping your shared profile. A country's supported employer presets are added and saved on first selection; later switches respect removed sources.
+3. Browse **Discover**, **For you**, **Saved** and **Applications**. Search, stage and experience filters narrow the list. For you excludes clear experience conflicts by default, balances results across employers, and keeps unknown requirements marked for review. All experience levels remain available, and Saved/Applications keep your follow-up records. Keyword overlap is supporting evidence, not eligibility or hiring probability.
+4. Open **Notes & stage** to record next steps. You control the stage: generating or sending material never automatically marks a vacancy as applied.
+5. Open **Cover letter**, choose **Draft with local AI**, check every claim, then edit and save a version or export it.
+6. Open **Application**, read public questions or paste them, draft answers, review the choices and attach files explicitly. Use **Review & send** for supported forms, or transfer the prepared material to the employer's site.
+
+Editing buffers stay with you between pages and vacancies. Save versions before closing; the native window warns about unsaved work or tasks still running. Collection and AI generation run in the background, and the status area describes actual activity. Failed operations keep previously saved records available.
+
+Use **Ctrl K** for Quick actions, **Ctrl F** for opportunity search, **Ctrl S** to save the current editor, and **Ctrl Shift L** to switch light/dark appearance. The Help control lists these shortcuts. The redesign includes both themes, semantic form controls, keyboard navigation and responsive reading/editor layouts. Read the [UI/UX research](docs/ui-ux-research.md) for design references and validation targets.
+
+## Features and coverage
+
+- **366 researched employer entries**: Norway 77, USA 154, Germany 116 and Ukraine 77. Some employers cover multiple countries.
+- **109 available automatic employer collectors** (80 USA, 48 Germany, 18 Norway, 21 Ukraine), plus **46 job-source directory entries**. Other career and job-board links support research, alerts and manual import; a directory listing does not enable scraping.
+- NAV/Arbeidsplassen's incremental feed, Greenhouse, Lever and Ashby company boards, bounded Workday and public career sitemap scans, and individual public pages with `JobPosting` structured data.
+- **Source library** with country filters, coverage notes and separate labels for automatic collectors and career links. **Add visible collectors** applies to the filtered list. **Add all country collectors** adds the current catalog to an existing country configuration. The coverage panel separates available collectors, configured sources and successful/failed checks.
+- **Job alerts** with read-only Gmail access, editable review candidates, `.eml` import and email provenance. Candidates enter the database only after you select and import them.
+- SQLite duplicate detection, private notes, explicit stages, saved cover-letter versions, application-answer versions and delivery history.
+- CV text import from TXT, Markdown, DOCX and text PDFs. Local AI suggestions require review before becoming profile facts. Scanned PDFs need OCR or pasted text.
+- Configurable tone, language, instructions, examples, phrases to avoid and answer length. Writing examples guide wording; they do not supply biographical facts.
+
+Read the [discovery rework and verified coverage](docs/discovery-rework.md), including examples of early-career roles and remaining limitations. Earlier source evidence and access limits are in [Norway and Ukraine research](docs/research-no-ua.md) and [USA and Germany research](docs/research-us-de.md). These are curated starting points, not measured popularity rankings.
+
+NAV begins with the last **90 days of feed updates**, reads at most five pages per regular collection and resumes from a saved checkpoint. A backlog notice means more pages remain. Changed search terms restart that window. This is not every active vacancy, and NAV excludes FINN-origin vacancies. The public token is experimental; for ongoing use, register with NAV for a private token and set `NAV_API_TOKEN`. See [NAV documentation](https://navikt.github.io/pam-stilling-feed/) and [usage terms](https://arbeidsplassen.nav.no/vilkar-api).
+
+Company scans are bounded by configured limits and report failures or partial coverage under **Settings & activity**. A successful check may return zero jobs. Unlike NAV, company scans restart at their listing window and do not maintain historical pagination. NAV withdrawals and complete successful Greenhouse, Lever and Ashby board snapshots retire vanished postings from active discovery. Failed or partial scans do not retire records. Saved/application records retain notes and drafts when a posting is withdrawn. Check the original vacancy before applying.
+
+The configuration limit is 250 sources. Country/source additions that exceed it are rejected without partially changing configuration. Country/city matching is a discovery hint, not proof of remote eligibility or work authorization. FINN, Indeed, Stepstone, Work.ua and LinkedIn remain browser/email/manual routes. Login requirements and blocked or unsupported pages require manual import or a dedicated connector. Robots restrictions are respected. The app does not collect while closed.
+
+## Local AI
+
+AI runs through **Ollama** at `127.0.0.1:11434` with a downloaded local text model. Remote endpoints and cloud model aliases are rejected. No paid AI API or cloud model account is required.
+
+1. Install and open [Ollama for Windows](https://ollama.com/download/windows).
+2. Under **Settings & activity**, choose **Start Ollama**, then **Download saved model**. The default is `qwen3:4b`, downloaded separately from Ollama itself. Save a different model name before downloading it.
+3. Use **Check setup** to list installed models, select one and save settings.
+
+The optional `scripts/setup-local-ai.ps1` downloads the official installer, verifies its Authenticode publisher signature, installs Ollama and pulls the model. Collection and manual editing work while AI is unavailable. **Install PDF support** repairs PDF support in the exact Python environment running the app.
+
+Only saved profile facts are used in matching and drafting. Employment dates or years of experience absent from the evidence must not be invented. Search-language preferences never upgrade the proficiency stated in application materials.
+
+## Reviewed application delivery
+
+Read or paste questions, generate local drafts, edit them and choose your files. **Review & send** prepares a summary and opens the supported employer form for inspection. Only **Send reviewed application**, after your confirmation, starts one guarded delivery attempt.
+
+Delivery supports native public HTTPS forms with matching questions and a same-origin POST destination. Login, CAPTCHA, embedded and JavaScript-dependent applications need manual completion. Question extraction is partial: check for conditional or missing questions. Gmail stays read-only.
+
+Nothing is sent by collection, generation, saving or previewing. Reviewed files are snapshotted, changed forms require another review, and attempted payloads are not silently retried. A successful HTTP request is **submitted but unconfirmed**, not proof the employer accepted it. Check the employer confirmation before changing the stage. See [application preparation and delivery](docs/application-preparation.md).
+
+Install the optional free runtime for supported delivery and browser-based development tests:
 
 ```powershell
 python -m pip install "playwright>=1.49,<2"
 python -m playwright install chromium
 ```
 
-## Daily workflow
-
-1. Review your facts under **Profile & CV**. Actual language proficiency and search preferences are separate fields.
-2. Select a **Country**, then choose **Find opportunities**. Review or customize sources under **Sources & AI**; country switching does not rewrite your profile. Read errors or remaining-backlog notices under **Collection activity**.
-3. Browse **Discover** or **For you**, which includes target and related roles. Search updates as you type. Match scores reflect keyword evidence, not hiring probability or eligibility.
-4. Set an opportunity's stage to **saved** under **Notes & status** to keep it in **Saved**. **Applications** shows preparing, ready, applied and interview stages.
-5. Open **Cover letter → Draft with AI**, review every claim, edit the letter, and save a version or export it.
-6. Open **Application answers → Read questions**, review the extracted form, then **Draft answers**. Edit missing details yourself. For supported forms, use **Review in browser**, check all answers and files, and press **Send reviewed application**. Otherwise copy/export to the original site.
-
-Use **Ctrl K** to focus search and **Ctrl S** to save the current profile, settings, notes or cover letter. **Ctrl 1/2/3** opens opportunities, profile and settings. Use arrow keys in the opportunity list. Drag the divider to adjust the reading pane. Fields show unsaved changes; switching to another opportunity asks before replacing your edited notes or letter. If a filter hides an opportunity with unsaved edits, its editor remains open with a notice.
-
-Use **Dark mode / Light mode** in the top toolbar, or **Ctrl Shift L**, to switch appearance. **Hide sidebar / Show sidebar** or **Ctrl B** gives the reading pane more room. These preferences are saved separately in `appearance.json` in your private data folder and restored on restart; changing them keeps unsaved drafts, form edits and editor undo history. **Ctrl 4** opens Gmail alerts. **Shortcuts** or **Ctrl /** opens the keyboard guide.
-
-Page headings, job titles and employer details support mouse selection and **Ctrl C**. Right-click other labels to copy their text, or a table cell to copy the cell or selected rows. Opportunity cards support **Ctrl C** and a context menu; **Copy details** includes the original vacancy link. Text fields have Cut, Copy, Paste and Select all menus; read-only content supports copying without editing.
-
-Profile fields are grouped into **About you**, **Search preferences** and **Your CV**. Source configuration, local model setup and collection activity have their own tabs. These page changes keep form edits in memory until you save or close the app.
-
-Only saved profile facts are used in matching and generation. CV extraction suggests changes for review and does not silently replace your saved profile. The CV does not supply employment dates or total years of experience, so those must not be invented.
-
-## Zero paid APIs
-
-Collection and organization use the Python standard library. AI runs through Ollama at `127.0.0.1:11434` using a downloaded local model; cloud model aliases and remote endpoints are rejected. No AI subscription, paid API key, hosted server, or paid search service is required.
-
-One-time local AI setup:
-
-1. Install and open [Ollama for Windows](https://ollama.com/download/windows).
-2. In **Sources & AI → Local AI**, choose **Start Ollama**, then **Download model**. The default `qwen3:4b` is approximately 2.5 GB. Download progress appears in the app; retrying resumes partial downloads.
-3. Choose **Check setup**, select an installed model and save settings. The model list confirms local text-generation capability.
-
-The optional setup script `scripts/setup-local-ai.ps1` downloads the official installer, checks its Authenticode publisher signature, installs Ollama and pulls the model. It requires normal Windows filesystem/network permissions. Collection and manual editing work while AI is unavailable.
-
-The model is a separate download from Ollama itself. An empty installed-model list means the runtime is present but generation is not ready yet. PDF import can be repaired independently using **Install PDF support**. Scanned image PDFs still need OCR or pasted text.
+This Chromium runtime is separate from WebView2, which displays the desktop application.
 
 ## Gmail job alerts
 
-Open **Gmail alerts → Setup guide** to create your own Google Desktop OAuth client and enable the Gmail API. Then choose **Connect Gmail**, select the credentials JSON, and complete Google sign-in and consent yourself. The app requests only `gmail.readonly`, stores the refresh token outside the project (encrypted for the current Windows user), and never sends, deletes or marks mail as read. **Cancel sign-in** stops an unfinished connection. **Disconnect** forgets local credentials; Google Account settings can revoke the grant separately.
+Open **Job alerts → Setup guide** to create a Google Desktop OAuth client and enable the Gmail API. Choose **Connect Gmail**, select its credentials JSON and complete Google sign-in yourself. Only `gmail.readonly` is requested. The refresh token stays outside the project and is encrypted for the current Windows user. The app never sends, deletes or marks mail as read. **Disconnect Gmail** forgets the local connection; Google Account settings can revoke the grant separately.
 
-The default search covers job alerts from the last 90 days. Change the Gmail search query to broaden it, including removing `newer_than:90d` for all matching history. Each fetch reads at most 50 messages; **Next batch** continues. Neither fetching nor parsing adds vacancies automatically. Select extracted opportunities, use **Edit details** to fill missing employer/location information, then choose **Add selected to vacancies**.
+Each fetch reads at most 50 messages. **Next batch** continues; edit the query to change its default 90-day window. Review candidates, fill missing details and use **Add selected**. Repeated vacancy URLs deduplicate, and partial email excerpts do not replace full employer descriptions.
 
-The parser reads text and links in the email itself, including job-specific LinkedIn links and supported tracking wrappers. It does not scrape LinkedIn, load tracking images, fetch attachments or follow email links automatically. Email excerpts are labelled as partial descriptions; check the original posting. Unsupported formats may need manual entry. Repeated vacancy URLs deduplicate, and short email excerpts do not overwrite complete employer postings. Original message references remain attached to the vacancy.
+The parser reads email links and text. It does not scrape LinkedIn, load tracking images, fetch attachments or automatically visit email links. **Import .eml** works without an account connection. See [Gmail setup and limits](docs/gmail-setup.md).
 
-You can use **Import .eml** immediately without connecting an account. In Gmail, download a job-alert message as `.eml`, then select it in the app. See [Gmail setup and limits](docs/gmail-setup.md).
-
-## Coverage and limitations
-
-NAV starts with the last **90 days of feed updates**, then resumes from a saved checkpoint. Each regular collection reads at most five pages. A backlog notice means more pages remain; collect again to continue. Changed search terms restart this window so previously skipped records can be reconsidered. This window does not represent every active vacancy in Norway, and NAV excludes FINN-origin vacancies.
-
-NAV's public token is explicitly for experiments. For ongoing use, register directly with NAV for a private token and set `NAV_API_TOKEN` in your environment. The app never emails NAV or creates an account for you. Read [NAV's feed documentation](https://navikt.github.io/pam-stilling-feed/) and [usage terms](https://arbeidsplassen.nav.no/vilkar-api).
-
-The employer directory has 69 Norway, 89 USA, 80 Germany and 67 Ukraine entries. Configured collector coverage by country is 10, 15, 12 and 10 respectively; shared boards make these counts non-additive. The directory distinguishes successful collector checks, reviewed official pages and access-limited links. Each refresh reports failures and partial coverage; a successful check can return zero jobs. Company postings are retained as research records; automatic disappearance detection currently applies to NAV. Always check the original vacancy before applying. Country/city matching is a discovery hint, not proof of remote eligibility or work authorization.
-
-Read the country shortlists, evidence and limits in [Norway and Ukraine research](docs/research-no-ua.md) and [USA and Germany research](docs/research-us-de.md). National portals such as FINN, Indeed, Stepstone, Work.ua and LinkedIn remain browser/email/manual routes; listing a source does not enable automated scraping. NAV uses the existing incremental feed adapter.
-
-Use **Sources & AI → Company library** to browse employers by country, name or sector, open career sites, or add selected automatic sources. **Add supported companies** applies to the currently filtered list. A maximum of 100 configured sources is accepted; the UI reports when that cap prevents adding more. Country source presets activate once, so a later country switch does not re-add sources you removed. Save settings to keep edits.
-
-Company collection is bounded by source limits. Workday searches and sitemap scans report their coverage under **Collection activity**, including unreadable pages and truncated results. Company scans currently restart at the source's listing window on each run; unlike NAV, they do not maintain a historical pagination cursor. A source's `max_jobs` can be configured up to 100. URL-based country filters can miss postings whose URLs omit location. Robots-disallowed or unsupported sites are not bypassed.
-
-FINN and LinkedIn use manual URL/text import in this version. Generic company-page import needs public structured job data and respects robots rules. JavaScript-only pages, login requirements and blocked pages need a dedicated connector or manual import. The app does not search the entire web or continuously run while closed.
-
-Related suggestions currently use configured related fields and posting content. They are not a learned model of browsing behavior. Search language preferences keep possibilities visible for review; they never upgrade the language proficiency stated in application materials.
-
-## Command line
+## Command line and source configuration
 
 ```powershell
 python run.py init
 python run.py collect
-python run.py list --match
+python run.py list --country DE --match
 python run.py show 1
 python run.py status 1 saved
 python run.py notes 1 "Check language requirements"
@@ -117,52 +104,46 @@ python run.py brief 1 --output "preparation-brief.md"
 python run.py import "my-vacancy.json"
 python run.py import-url "https://company.example/careers/specific-job"
 python run.py models
-python run.py catalog --country DE
+python run.py catalog --country US
 python run.py catalog --country UA --boards
-python run.py list --country US --match
 python run.py application 1
 python run.py application 1 --questions questions.txt --draft
 ```
 
-`brief` creates an offline factual preparation brief; `letter` uses the local AI model. Use `--data-dir "C:\your\folder"` **before** the command to choose another private data directory. See `python run.py --help`.
+`brief` creates an offline factual preparation brief; `letter` uses local AI. Put `--data-dir "C:\your\folder"` **before** the command to choose another private folder. See `python run.py --help`.
 
-## Source configuration
-
-Edit sources in the app, or edit the private `sources.json`:
+Edit sources under **Settings & activity → Advanced source configuration**, or in the private `sources.json`. An example source array is:
 
 ```json
-{
-  "model": "qwen3:4b",
-  "sources": [
-    {"type": "nav"},
-    {"type": "lever", "board": "bekk", "region": "global", "locations": ["Oslo", "Trondheim"]},
-    {"type": "greenhouse", "board": "cognite", "locations": ["Norway", "Oslo"]}
-  ]
-}
+[
+  {"type": "nav"},
+  {"type": "lever", "board": "bekk", "region": "global", "locations": ["Oslo", "Trondheim"]},
+  {"type": "greenhouse", "board": "cognite", "locations": ["Norway", "Oslo"]}
+]
 ```
 
-Without `locations`, a company board returns all its locations. Lever also supports `region: "eu"`. Use source IDs from the employer's published career page, not guessed company names. Connector references: [Greenhouse](https://docs.greenhouse.io/job-board.html), [Lever](https://github.com/lever/postings-api), [JobPosting](https://schema.org/JobPosting).
+Without `locations`, a company board returns all locations. Lever also supports `region: "eu"`. Use IDs published by the employer, not guessed names. Connector references: [Greenhouse](https://docs.greenhouse.io/job-board.html), [Lever](https://github.com/lever/postings-api), [JobPosting](https://schema.org/JobPosting).
 
 ## Development and checks
 
-Requires Python 3.12+ with Tkinter and `pypdf` for PDF import. Gmail/OAuth, collection, storage and the desktop UI use the standard library.
+Python 3.12+, Flask, Waitress and pywebview run the local desktop shell; `pypdf` handles PDFs. Tkinter is needed for the classic fallback and its tests. UI assets and employer catalogs ship in the Python package, with no remote font or UI CDN.
 
 ```powershell
 python -m unittest discover -s tests -v
-python scripts/preview-ui.py
-python scripts/preview-ui.py --dark --compact
 ```
 
-Tests use temporary databases and mocked source/model responses. They cover duplicate identity, preservation of notes/status/drafts, resumable NAV state, withdrawals, source URL restrictions, local-only model checks, grounded evidence, truthful language claims and the offline workflow. The design preview opens fictional sample opportunities in a temporary workspace without changing personal data. Live collection and desktop checks are separate.
+Tests use temporary fictional profiles/databases and mocked external services. They cover collection, countries, profile grounding, migrations, duplicate identity, batch rollback, histories, reviewed delivery and local API request boundaries. Native launcher unit tests cover lifecycle logic; they do not by themselves prove a real WebView2 window opens correctly.
 
-The browser integration tests use real Chromium with every request intercepted by fictional fixtures; no employer receives test applications. Run them after installing the optional browser runtime:
+Enable real Chromium tests after installing the optional browser runtime:
 
 ```powershell
 $env:RUN_BROWSER_TESTS='1'
+python -m unittest discover -s tests -p test_modern_ui.py -v
 python -m unittest discover -s tests -p test_browser_integration.py -v
 ```
 
-Existing databases migrate in place to retain vacancies, notes, statuses, letters and identities while adding country tags, answer versions and a delivery attempt log. The private data folder and existing launcher/CLI names stay compatible.
+Interface tests exercise the bundled UI against an isolated local Python service. Delivery tests intercept requests with fictional forms; no employer receives test applications. Native-window startup, closing, rendering and file dialogs require separate checks. Consult the change report for checks actually run; research acceptance criteria are targets, not accessibility certification.
 
-See [requirements](docs/requirements.md) for the agreed scope. Personal data, model downloads and generated application materials are excluded from version control.
+`python scripts/preview-ui.py` previews the **classic Tkinter** interface with fictional data. The default `gui` command opens the new desktop application against your selected private data folder.
 
+Existing databases migrate through the storage layer while retaining vacancies, notes, stages, letters and identities. Close the app before backing up the whole private folder. Avoid running both interfaces against it while editing shared profile/settings files. Personal data, credentials, model downloads and generated application materials are excluded from Git. See [requirements](docs/requirements.md) for the agreed scope.

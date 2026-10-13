@@ -5,6 +5,7 @@ import json
 import re
 import unicodedata
 from datetime import date
+from functools import lru_cache
 from pathlib import Path
 
 
@@ -15,8 +16,9 @@ TEXT_FIELDS = ("name", "summary", "work_authorization", "cv_text", "cover_letter
 # qualifications. Unrelated disciplines must still be explicitly configured.
 _ROLE_ALIASES = (
     ("data scientist", "dataviter"),
-    ("ai engineer", "artificial intelligence engineer", "ki ingeniør", "ki ingeniør", "ki utvikler"),
-    ("machine learning engineer", "ml engineer", "maskinlæringsingeniør", "maskinlærings ingeniør"),
+    ("ai engineer", "artificial intelligence engineer", "engineer ai", "engineer artificial intelligence", "ki ingeniør", "ki utvikler", "ai/ml engineer", "ai / ml engineer", "ai and ml engineer", "ai & ml engineer"),
+    ("machine learning engineer", "ml engineer", "engineer machine learning", "machine learning software engineer", "maskinlæringsingeniør", "maskinlærings ingeniør", "ai/ml engineer", "ai / ml engineer", "ai and ml engineer", "ai & ml engineer"),
+    ("applied scientist", "applied ai scientist", "applied machine learning scientist"),
     ("data engineer", "dataingeniør", "data ingeniør"),
     ("data analyst", "dataanalytiker", "data analytiker"),
     ("mathematician", "matematiker"),
@@ -24,22 +26,30 @@ _ROLE_ALIASES = (
 )
 
 
+_ROLE_SEPARATORS = re.compile(r"[-‐‑‒–—_,:]+")
+
+
 def _role_text(value: str) -> str:
     value = unicodedata.normalize("NFKC", value).casefold()
     # Employers mix hyphens (including Unicode dashes), spaces and line breaks.
     # Keep +/# intact so language and specialist titles do not become broader.
-    return " ".join(re.sub(r"[-‐‑‒–—_]+", " ", value).split())
+    return " ".join(_ROLE_SEPARATORS.sub(" ", value).split())
+
+
+@lru_cache(maxsize=1024)
+def _role_terms(role: str) -> tuple[str, ...]:
+    normalized = _role_text(role)
+    return tuple(dict.fromkeys([normalized, *(alias for aliases in _ROLE_ALIASES
+                              if normalized in aliases for alias in aliases)]))
+
+
+def _role_matches_normalized(title: str, role: str, *, folded_title: str | None = None) -> bool:
+    return any(contains_phrase(title, term, folded_text=folded_title) for term in _role_terms(role))
 
 
 def role_matches(title: str, role: str) -> bool:
     """Match a configured title or an explicit equivalent, with word boundaries."""
-    normalized_title, normalized_role = _role_text(title), _role_text(role)
-    if contains_phrase(normalized_title, normalized_role):
-        return True
-    for aliases in _ROLE_ALIASES:
-        if normalized_role in aliases:
-            return any(contains_phrase(normalized_title, alias) for alias in aliases)
-    return False
+    return _role_matches_normalized(_role_text(title), role)
 
 
 def load_profile(path: str | Path) -> dict:
@@ -49,6 +59,8 @@ def load_profile(path: str | Path) -> dict:
 def validate_profile(profile: dict) -> dict:
     if not isinstance(profile, dict):
         raise ValueError("Profile must be a JSON object.")
+    from .experience_matching import validate_experience_years
+    profile["years_of_experience"] = validate_experience_years(profile.get("years_of_experience"))
     for key in LIST_FIELDS:
         value = profile.setdefault(key, [])
         if not isinstance(value, list) or any(not isinstance(item, str) for item in value):
@@ -73,38 +85,81 @@ def profile_hash(profile: dict) -> str:
     return hashlib.sha256(json.dumps(profile, sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest()
 
 
-def contains_phrase(text: str, phrase: str) -> bool:
+@lru_cache(maxsize=2048)
+def _literal_pattern(phrase: str):
+    return re.compile(re.escape(phrase), re.IGNORECASE)
+
+
+def _search_hint(text: str) -> str:
+    # Unicode IGNORECASE equates both Turkish I variants with ASCII I; plain
+    # casefold alone would miss those matches. Other casefold expansions can
+    # only create a candidate here: the exact regex still decides the result.
+    return text.replace("İ", "i").replace("ı", "i").casefold()
+
+
+@lru_cache(maxsize=2048)
+def _phrase_hint(phrase: str) -> str:
+    return _search_hint(phrase)
+
+
+def contains_phrase(text: str, phrase: str, *, folded_text: str | None = None) -> bool:
     """Match literal terms without treating e.g. 'Java' as a match for 'JavaScript'."""
-    if not phrase.strip():
+    phrase = phrase.strip()
+    if not phrase:
         return False
-    return re.search(r"(?<!\w)" + re.escape(phrase.strip()) + r"(?!\w)", text, re.IGNORECASE) is not None
+    if folded_text is not None and _phrase_hint(phrase) not in folded_text:
+        return False
+    # A leading lookbehind makes Python's regex engine visit every character
+    # for every skill. Find the literal first, then check its boundaries. Keep
+    # IGNORECASE's Unicode semantics and check overlapping literal occurrences.
+    pattern = _literal_pattern(phrase)
+    start = 0
+    while match := pattern.search(text, start):
+        left, right = match.span()
+        if (not left or not (text[left - 1].isalnum() or text[left - 1] == "_")) and (
+                right == len(text) or not (text[right].isalnum() or text[right] == "_")):
+            return True
+        start = left + 1
+    return False
 
 
-def match_job(job: dict, profile: dict, today: date | None = None) -> dict:
-    """Return keyword evidence, never an AI assessment or eligibility verdict."""
+def match_job(job: dict, profile: dict, today: date | None = None, *, recommendations_only: bool = False) -> dict | None:
+    """Return matching evidence, or skip an unrelated title when requested.
+
+    Recommendation searches use the same role evaluation as full discovery,
+    but avoid scanning skills and experience in adverts they will discard.
+    """
     from .countries import job_countries, profile_for_job
     original_profile = profile
     profile = profile_for_job(profile, job)
     title = str(job.get("title", ""))
+    normalized_title = _role_text(title)
+    folded_title = _search_hint(normalized_title)
     location = str(job.get("location", ""))
     body = "\n".join(str(job.get(key, "")) for key in ("title", "company", "location", "description"))
     configured = []
-    matched_roles = [x for x in profile.get("target_roles", []) if role_matches(title, x)]
+    matched_roles = [x for x in profile.get("target_roles", []) if _role_matches_normalized(normalized_title, x, folded_title=folded_title)]
     broad_topics = {"artificial intelligence", "data science", "maskinlæring", "kunstig intelligens"}
     technical_title = re.search(r"engineer|ingeniør|scientist|forsker|research|utvikler|developer|matemati|mathemati", title, re.IGNORECASE)
     matched_roles = [role for role in matched_roles if role.casefold() not in broad_topics or technical_title]
-    related_roles = [x for x in profile.get("related_roles", []) if role_matches(title, x)]
+    related_roles = [x for x in profile.get("related_roles", []) if _role_matches_normalized(normalized_title, x, folded_title=folded_title)]
     research_labels = {"phd", "stipendiat", "research assistant", "research scientist", "research engineer"}
-    research_overlap = any(term in body.casefold() for term in ("mathemat", "matemat", "statistic", "statistikk", "data science", "machine learning", "maskinlæring", "quantitative", "reinforcement learning", "kunstig intelligens"))
+    academic_title = re.search(r"\bphd\b|stipendiat|postdoc|postdoktor", title, re.IGNORECASE)
+    research_overlap = False
+    if academic_title or any(role.casefold() in research_labels for role in related_roles):
+        folded_body = body.casefold()
+        research_overlap = any(term in folded_body for term in ("mathemat", "matemat", "statistic", "statistikk", "data science", "machine learning", "maskinlæring", "quantitative", "reinforcement learning", "kunstig intelligens"))
     # Broad academic titles alone should not recommend an unrelated discipline.
     related_roles = [role for role in related_roles if role.casefold() not in research_labels or research_overlap]
-    academic_title = re.search(r"\bphd\b|stipendiat|postdoc|postdoktor", title, re.IGNORECASE)
     if academic_title and research_overlap:
         related_roles = list(dict.fromkeys([*related_roles, "Research in a related field"]))
         matched_roles = []
-    matched_skills = [x for x in profile.get("skills", []) if contains_phrase(body, x)]
+    if recommendations_only and not (matched_roles or related_roles):
+        return None
+    search_body = _search_hint(body)
+    matched_skills = [x for x in profile.get("skills", []) if contains_phrase(body, x, folded_text=search_body)]
     matched_locations = [x for x in profile.get("preferred_locations", []) if contains_phrase(location, x)]
-    exclusions = [x for x in profile.get("excluded_keywords", []) if contains_phrase(body, x)]
+    exclusions = [x for x in profile.get("excluded_keywords", []) if contains_phrase(body, x, folded_text=search_body)]
     if profile.get("target_roles"):
         configured.append((50, 1.0 if matched_roles else 0.0))
     if profile.get("skills"):
@@ -113,6 +168,9 @@ def match_job(job: dict, profile: dict, today: date | None = None) -> dict:
         configured.append((15, 1.0 if matched_locations else 0.0))
     score = round(100 * sum(weight * ratio for weight, ratio in configured) / sum(weight for weight, _ in configured)) if configured else None
     warnings = []
+    from .experience_matching import assess_experience
+    experience = assess_experience(job, profile.get("years_of_experience"))
+    warnings.extend(experience["reasons"])
     countries = job_countries(job)
     if not countries:
         warnings.append("Country is unknown; a remote label does not establish where you can work.")
@@ -155,19 +213,22 @@ def match_job(job: dict, profile: dict, today: date | None = None) -> dict:
     return {"score": score, "method": "keyword_overlap", "matched_roles": matched_roles,
             "matched_skills": matched_skills, "matched_locations": matched_locations,
             "excluded_terms": exclusions, "expired": expired, "warnings": warnings,
-            "track": track, "reasons": reasons, "related_roles": related_roles}
+            "track": track, "reasons": reasons, "related_roles": related_roles,
+            "experience": experience}
 
 
 def preparation_brief(job: dict, profile: dict) -> str:
     """Produce a factual writing brief while the AI provider is unconfigured."""
     match = match_job(job, profile)
     evidence = profile.get("evidence", [])
+    from .experience_matching import experience_fact
+    candidate_facts = "\n".join(filter(None, [profile.get("summary"), experience_fact(profile.get("years_of_experience"))]))
     evidence_text = "\n".join("- " + fact for fact in evidence) or "No achievement examples supplied yet."
     return "\n\n".join([
         f"# Application preparation: {job.get('title', '')} — {job.get('company', '')}",
         "This is a preparation brief, not a generated cover letter or a submitted application.",
         f"Source: {job.get('source_url', '')}\nApply: {job.get('apply_url', '')}\nDeadline: {job.get('deadline', '') or 'Not provided'}",
-        "## Candidate facts\n" + (profile.get("summary") or "No summary supplied yet."),
+        "## Candidate facts\n" + (candidate_facts or "No summary supplied yet."),
         "## Supplied experience examples\n" + evidence_text,
         "## Matching skill terms\n" + (", ".join(match["matched_skills"]) or "No matching terms identified."),
         "## Review before applying\n" + "\n".join("- " + warning for warning in match["warnings"]),

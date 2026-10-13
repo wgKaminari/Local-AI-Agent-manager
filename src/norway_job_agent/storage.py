@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import re
 import sqlite3
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
@@ -103,6 +104,7 @@ class JobStore:
             Path(self.db_path).expanduser().resolve().parent.mkdir(parents=True, exist_ok=True)
             self.db_path = str(Path(self.db_path).expanduser())
         self._connection = sqlite3.connect(self.db_path, timeout=30)
+        self._savepoint_sequence = 0
         self._connection.row_factory = sqlite3.Row
         self._connection.execute("PRAGMA foreign_keys = ON")
         version = self._connection.execute("PRAGMA user_version").fetchone()[0]
@@ -198,6 +200,32 @@ class JobStore:
     def close(self) -> None:
         self._connection.close()
 
+    @contextmanager
+    def transaction(self):
+        """Commit a complete use case, including writes through nested methods.
+
+        SQLite connection context managers commit even when nested, so they
+        cannot protect a batch that calls several independently useful writes.
+        Savepoints let those writes join a batch without committing its prefix.
+        """
+        nested = self._connection.in_transaction
+        self._savepoint_sequence += 1
+        savepoint = f"job_store_{self._savepoint_sequence}"
+        self._connection.execute(f"SAVEPOINT {savepoint}" if nested else "BEGIN IMMEDIATE")
+        try:
+            yield self
+            if nested:
+                self._connection.execute(f"RELEASE SAVEPOINT {savepoint}")
+            else:
+                self._connection.commit()
+        except BaseException:
+            if nested:
+                self._connection.execute(f"ROLLBACK TO SAVEPOINT {savepoint}")
+                self._connection.execute(f"RELEASE SAVEPOINT {savepoint}")
+            else:
+                self._connection.rollback()
+            raise
+
     @staticmethod
     def _job_dict(row: sqlite3.Row | None) -> dict | None:
         if row is None:
@@ -243,8 +271,7 @@ class JobStore:
 
         # An immediate transaction also prevents two local processes from both
         # deciding that the same external posting is new.
-        with self._connection:
-            self._connection.execute("BEGIN IMMEDIATE")
+        with self.transaction():
             matches = set()
             for kind, value in identities:
                 row = self._connection.execute(
@@ -303,7 +330,7 @@ class JobStore:
     def record_provenance(self, job_id: int, kind: str, external_id: str, payload: dict) -> None:
         if not external_id:
             raise ValueError("Provenance requires an external message identifier")
-        with self._connection:
+        with self.transaction():
             self._connection.execute(
                 "INSERT OR IGNORE INTO job_provenance (job_id, kind, external_id, payload_json, created_at) VALUES (?, ?, ?, ?, ?)",
                 (job_id, kind, external_id, json.dumps(payload, ensure_ascii=False), _now()),
@@ -346,26 +373,49 @@ class JobStore:
         the identity lets a later genuine reopening refresh the same record.
         """
         identity = json.dumps([source, source_id])
-        with self._connection:
+        with self.transaction():
             row = self._connection.execute("SELECT job_id FROM job_identities WHERE kind = 'source_id' AND value = ?", (identity,)).fetchone()
             if row is None:
                 return False
             self._connection.execute("UPDATE jobs SET is_active = 0, description = '', raw_json = '{}', last_seen_at = ? WHERE id = ?", (_now(), row[0]))
         return True
 
+    def reconcile_source_snapshot(self, source: str, prefix: str, current_ids) -> int:
+        """Retire vanished jobs after one complete public ATS board snapshot.
+
+        Match the current primary source, never a historical cross-provider
+        alias. Preserve advert text and all personal notes and drafts. A
+        bounded or failed collector must never call this method.
+        """
+        if source not in {"greenhouse", "lever", "ashby"} or not isinstance(prefix, str) or not prefix.endswith(":") or len(prefix) < 2:
+            raise ValueError("A complete ATS snapshot needs a specific board prefix.")
+        ids = set(current_ids)
+        if any(not isinstance(identifier, str) or not identifier.startswith(prefix) for identifier in ids):
+            raise ValueError("Snapshot identifiers must belong to the requested board.")
+        with self.transaction():
+            rows = self._connection.execute(
+                "SELECT id, source_id FROM jobs WHERE source = ? AND substr(source_id, 1, ?) = ? AND is_active = 1",
+                (source, len(prefix), prefix),
+            ).fetchall()
+            missing = [(row[0],) for row in rows if row[1] not in ids]
+            self._connection.executemany("UPDATE jobs SET is_active = 0 WHERE id = ?", missing)
+        return len(missing)
+
     def get_job(self, id: int) -> dict | None:
         return self._job_dict(self._connection.execute("SELECT * FROM jobs WHERE id = ?", (id,)).fetchone())
 
     def update_status(self, id: int, status: str) -> dict:
         _validate_status(status)
-        with self._connection:
+        with self.transaction():
             cursor = self._connection.execute("UPDATE jobs SET status = ? WHERE id = ?", (status, id))
             if not cursor.rowcount:
                 raise KeyError(id)
         return self.get_job(id)
 
     def update_notes(self, id: int, notes: str) -> dict:
-        with self._connection:
+        if not isinstance(notes, str):
+            raise ValueError("Vacancy notes must be text.")
+        with self.transaction():
             cursor = self._connection.execute("UPDATE jobs SET notes = ? WHERE id = ?", (notes, id))
             if not cursor.rowcount:
                 raise KeyError(id)
@@ -374,7 +424,7 @@ class JobStore:
     def save_draft(self, job_id: int, content: str, model: str = "", profile_hash: str = "") -> int:
         if not isinstance(content, str) or not content.strip():
             raise ValueError("Draft content must not be empty")
-        with self._connection:
+        with self.transaction():
             if self.get_job(job_id) is None:
                 raise KeyError(job_id)
             cursor = self._connection.execute(
@@ -393,7 +443,7 @@ class JobStore:
         encoded = json.dumps(payload, ensure_ascii=False)
         if len(encoded) > 500000:
             raise ValueError("Application preparation is too large.")
-        with self._connection:
+        with self.transaction():
             if self.get_job(job_id) is None:
                 raise KeyError(job_id)
             cursor = self._connection.execute(
@@ -409,8 +459,7 @@ class JobStore:
         return [{"id": row[0], "payload": json.loads(row[1]), "created_at": row[2]} for row in rows]
 
     def begin_delivery(self, job_id: int, fingerprint: str, destination: str) -> int:
-        with self._connection:
-            self._connection.execute("BEGIN IMMEDIATE")
+        with self.transaction():
             previous = self._connection.execute(
                 "SELECT id FROM application_deliveries WHERE job_id=? AND fingerprint=? AND status IN ('pending','uncertain','submitted_unconfirmed')",
                 (job_id, fingerprint),
@@ -427,7 +476,7 @@ class JobStore:
         status = result.get("status", "uncertain")
         if status not in {"uncertain", "blocked", "submitted_unconfirmed"}:
             status = "uncertain"
-        with self._connection:
+        with self.transaction():
             self._connection.execute("UPDATE application_deliveries SET status=?,result_json=? WHERE id=?", (status, json.dumps(result, ensure_ascii=False), attempt_id))
 
     def deliveries(self, job_id: int) -> list[dict]:

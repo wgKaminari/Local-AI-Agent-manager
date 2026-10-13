@@ -1,4 +1,4 @@
-"""Norway employer watchlist, checked against official career sites in September 2026.
+"""Employer directory with separately verified public collection routes.
 
 A career link is not automatically a working collector. Entries with source=None
 remain useful for opening the employer site or importing an email job alert.
@@ -123,6 +123,7 @@ def job_board_catalog(country: str = "") -> list[dict]:
 
 def source_for_countries(entry: dict, countries: list[str]) -> dict | None:
     from .countries import COUNTRY_TERMS
+    from itertools import combinations
     source = deepcopy(entry.get("source"))
     if not source:
         return None
@@ -130,8 +131,17 @@ def source_for_countries(entry: dict, countries: list[str]) -> dict | None:
     if not selected:
         return None
     source["countries"] = selected
-    # Narrow a global board to the requested countries, preserving explicit
-    # source limits and country-specific Workday/sitemap configurations.
-    if len(entry.get("countries", [])) > 1:
-        source["locations"] = list(dict.fromkeys(term for code in selected for term in COUNTRY_TERMS[code]))
+    # Country inference is authoritative. A second city allowlist silently
+    # discarded valid locations not present in the old short vocabulary.
+    # Retire only exact generated lists; preserve an intentional city scope.
+    terms = {term.casefold() for term in source.get("locations", [])}
+    generated = [{term.casefold() for term in NORWAY_LOCATIONS}]
+    groups = list(COUNTRY_TERMS.values())
+    generated.extend(
+        {term.casefold() for group in chosen for term in group}
+        for size in range(1, len(groups) + 1)
+        for chosen in combinations(groups, size)
+    )
+    if not terms or terms in generated:
+        source.pop("locations", None)
     return source

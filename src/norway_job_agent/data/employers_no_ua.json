@@ -115,25 +115,60 @@
   {
     "id": "cognite",
     "name": "Cognite",
-    "careers_url": "https://www.cognite.com/en/company/careers",
+    "careers_url": "https://job-boards.greenhouse.io/cognite",
     "countries": [
-      "NO"
+      "NO",
+      "US",
+      "DE"
     ],
     "sectors": [
       "technology"
     ],
-    "source": null,
-    "note": "Existing Norway employer; preserve its current collector when merging this metadata. Open the career page to check relevant roles.",
-    "checked_at": "2026-10-03",
+    "source": {
+      "type": "greenhouse",
+      "board": "cognite",
+      "name": "Cognite",
+      "countries": [
+        "NO",
+        "US",
+        "DE"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
     "verification": {
-      "status": "collector_verified",
+      "status": "collector_checked",
       "evidence_urls": [
-        "https://www.cognite.com/en/company/careers"
+        "https://job-boards.greenhouse.io/cognite",
+        "https://boards-api.greenhouse.io/v1/boards/cognite/jobs?content=true"
       ],
-      "detail": "Actual greenhouse application collector completed on 2026-10-03 using the existing Norway configuration inherited from company_catalog.py. 47 postings read, 10 with Norway location hints. Full public board. Counts are point-in-time probe observations, not guarantees. No applications sent.",
-      "jobs_observed": 47,
-      "country_matches_observed": 10
-    }
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 52 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 52,
+      "country_matches_observed": {
+        "NO": 10,
+        "US": 9,
+        "DE": 2,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Academy Engineer - (Data Scientist- Training)",
+          "location": "India (Bengaluru)",
+          "source_url": "https://job-boards.eu.greenhouse.io/cognite/jobs/4969944101"
+        },
+        {
+          "title": "Data Engineer",
+          "location": "India (Bengaluru)",
+          "source_url": "https://job-boards.eu.greenhouse.io/cognite/jobs/4941489101"
+        },
+        {
+          "title": "Data Engineer II",
+          "location": "Norway (Oslo)",
+          "source_url": "https://job-boards.eu.greenhouse.io/cognite/jobs/4986981101"
+        }
+      ]
+    },
+    "access_mode": "automatic"
   },
   {
     "id": "bekk",
@@ -145,41 +180,90 @@
     "sectors": [
       "technology"
     ],
-    "source": null,
-    "note": "Existing Norway employer; preserve its current collector when merging this metadata. Open the career page to check relevant roles.",
-    "checked_at": "2026-10-03",
-    "verification": {
-      "status": "collector_verified",
-      "evidence_urls": [
-        "https://jobs.lever.co/bekk"
+    "source": {
+      "type": "lever",
+      "board": "bekk",
+      "name": "Bekk",
+      "countries": [
+        "NO"
       ],
-      "detail": "Actual lever application collector completed on 2026-10-03 using the existing Norway configuration inherited from company_catalog.py. 10 postings read, 10 with Norway location hints. Full public board. Counts are point-in-time probe observations, not guarantees. No applications sent.",
-      "jobs_observed": 10,
-      "country_matches_observed": 10
-    }
+      "region": "global"
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://jobs.lever.co/bekk",
+        "https://api.lever.co/v0/postings/bekk?mode=json&limit=100&skip=0"
+      ],
+      "detail": "Actual lever application collector completed on 2026-10-09. Read 8 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 8,
+      "country_matches_observed": {
+        "NO": 8,
+        "US": 0,
+        "DE": 0,
+        "UA": 0
+      }
+    },
+    "access_mode": "automatic"
   },
   {
     "id": "netlight",
     "name": "Netlight",
     "careers_url": "https://jobs.lever.co/netlight",
     "countries": [
-      "NO"
+      "NO",
+      "DE"
     ],
     "sectors": [
       "technology"
     ],
-    "source": null,
-    "note": "Existing Norway employer; preserve its current collector when merging this metadata. Open the career page to check relevant roles.",
-    "checked_at": "2026-10-03",
-    "verification": {
-      "status": "collector_verified",
-      "evidence_urls": [
-        "https://jobs.lever.co/netlight"
+    "source": {
+      "type": "lever",
+      "board": "netlight",
+      "name": "Netlight",
+      "countries": [
+        "NO",
+        "DE"
       ],
-      "detail": "Actual lever application collector completed on 2026-10-03 using the existing Norway configuration inherited from company_catalog.py. 36 postings read, 3 with Norway location hints. Full public board. Counts are point-in-time probe observations, not guarantees. No applications sent.",
-      "jobs_observed": 36,
-      "country_matches_observed": 3
-    }
+      "region": "global"
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
+    "verification": {
+      "status": "collector_checked",
+      "evidence_urls": [
+        "https://jobs.lever.co/netlight",
+        "https://api.lever.co/v0/postings/netlight?mode=json&limit=100&skip=0"
+      ],
+      "detail": "Actual lever application collector completed on 2026-10-09. Read 34 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 34,
+      "country_matches_observed": {
+        "NO": 2,
+        "US": 0,
+        "DE": 14,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Analytics Engineer (in-house)",
+          "location": "Stockholm",
+          "source_url": "https://jobs.lever.co/netlight/349c9bae-5dc1-43c0-b5f9-fe82432fc213"
+        },
+        {
+          "title": "Data Engineering Consultant",
+          "location": "Toronto",
+          "source_url": "https://jobs.lever.co/netlight/5d9a5e61-e756-4101-bb55-1801f18f001c"
+        },
+        {
+          "title": "Data Platform & Data Architecture Consultant",
+          "location": "Berlin",
+          "source_url": "https://jobs.lever.co/netlight/bb410caa-e65d-4b64-8a36-55cff5132cda"
+        }
+      ]
+    },
+    "access_mode": "automatic"
   },
   {
     "id": "crayon",
@@ -191,18 +275,32 @@
     "sectors": [
       "technology"
     ],
-    "source": null,
-    "note": "Existing Norway employer; preserve its current collector when merging this metadata. Open the career page to check relevant roles.",
-    "checked_at": "2026-10-03",
+    "source": {
+      "type": "greenhouse",
+      "board": "crayon",
+      "name": "Crayon",
+      "countries": [
+        "NO"
+      ]
+    },
+    "note": "Public feed responded successfully but contained no published jobs on the verification date. Retained for future scans; this is not evidence of current vacancies.",
+    "checked_at": "2026-10-09",
     "verification": {
-      "status": "collector_verified",
+      "status": "collector_checked",
       "evidence_urls": [
-        "https://job-boards.greenhouse.io/crayon"
+        "https://job-boards.greenhouse.io/crayon",
+        "https://boards-api.greenhouse.io/v1/boards/crayon/jobs?content=true"
       ],
-      "detail": "Actual greenhouse application collector completed on 2026-10-03 using the existing Norway configuration inherited from company_catalog.py. 0 postings read, 0 with Norway location hints. Valid empty public board; no vacancies observed. Counts are point-in-time probe observations, not guarantees. No applications sent.",
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 0 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
       "jobs_observed": 0,
-      "country_matches_observed": 0
-    }
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 0,
+        "DE": 0,
+        "UA": 0
+      }
+    },
+    "access_mode": "automatic"
   },
   {
     "id": "sopra-steria",
@@ -1480,7 +1578,8 @@
     "name": "Ajax Systems",
     "careers_url": "https://jobs.lever.co/ajax",
     "countries": [
-      "UA"
+      "UA",
+      "DE"
     ],
     "sectors": [
       "electronics and security"
@@ -1489,60 +1588,38 @@
       "type": "lever",
       "board": "ajax",
       "name": "Ajax Systems",
-      "locations": [
-        "Ukraine",
-        "Україна",
-        "Украина",
-        "Kyiv",
-        "Kiev",
-        "Київ",
-        "Киев",
-        "Lviv",
-        "Львів",
-        "Львов",
-        "Kharkiv",
-        "Харків",
-        "Харьков",
-        "Odesa",
-        "Odessa",
-        "Одеса",
-        "Dnipro",
-        "Дніпро",
-        "Vinnytsia",
-        "Ivano-Frankivsk",
-        "Uzhhorod",
-        "Ternopil",
-        "Chernivtsi",
-        "Rivne",
-        "Lutsk",
-        "Zhytomyr",
-        "Cherkasy",
-        "Zaporizhzhia"
-      ],
       "countries": [
-        "UA"
+        "UA",
+        "DE"
       ],
       "region": "global"
     },
-    "note": "Public Lever employer board; automatically collects published postings and filters for Ukraine location terms. Global or unspecified remote roles are not assumed to be Ukraine-eligible. Review each vacancy’s actual location and eligibility.",
-    "checked_at": "2026-10-03",
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
     "verification": {
-      "status": "collector_verified",
+      "status": "collector_checked",
       "evidence_urls": [
         "https://jobs.lever.co/ajax",
         "https://api.lever.co/v0/postings/ajax?mode=json&limit=100&skip=0"
       ],
-      "detail": "Actual application fetch_lever function completed on 2026-10-03: 197 public postings, 104 with a Ukraine location hint. Counts are a point-in-time smoke check, not promised active vacancies or eligibility. Pagination was exercised for Ajax. No applications were sent.",
-      "jobs_observed": 197,
-      "country_matches_observed": 104
-    }
+      "detail": "Actual lever application collector completed on 2026-10-09. Read 194 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 194,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 0,
+        "DE": 3,
+        "UA": 100
+      }
+    },
+    "access_mode": "automatic"
   },
   {
     "id": "ua-readdle",
     "name": "Readdle",
-    "careers_url": "https://readdle.com/careers",
+    "careers_url": "https://job-boards.greenhouse.io/readdle70",
     "countries": [
-      "UA"
+      "UA",
+      "DE"
     ],
     "sectors": [
       "software"
@@ -1551,57 +1628,34 @@
       "type": "greenhouse",
       "board": "readdle70",
       "name": "Readdle",
-      "locations": [
-        "Ukraine",
-        "Україна",
-        "Украина",
-        "Kyiv",
-        "Kiev",
-        "Київ",
-        "Киев",
-        "Lviv",
-        "Львів",
-        "Львов",
-        "Kharkiv",
-        "Харків",
-        "Харьков",
-        "Odesa",
-        "Odessa",
-        "Одеса",
-        "Dnipro",
-        "Дніпро",
-        "Vinnytsia",
-        "Ivano-Frankivsk",
-        "Uzhhorod",
-        "Ternopil",
-        "Chernivtsi",
-        "Rivne",
-        "Lutsk",
-        "Zhytomyr",
-        "Cherkasy",
-        "Zaporizhzhia"
-      ],
       "countries": [
-        "UA"
+        "UA",
+        "DE"
       ]
     },
-    "note": "Public Greenhouse employer board; automatically collects published postings and filters for Ukraine location terms. Global or unspecified remote roles are not assumed to be Ukraine-eligible. Review each vacancy’s actual location and eligibility.",
-    "checked_at": "2026-10-03",
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
     "verification": {
-      "status": "collector_verified",
+      "status": "collector_checked",
       "evidence_urls": [
-        "https://readdle.com/careers",
+        "https://job-boards.greenhouse.io/readdle70",
         "https://boards-api.greenhouse.io/v1/boards/readdle70/jobs?content=true"
       ],
-      "detail": "Actual application fetch_greenhouse function completed on 2026-10-03: 9 public postings, 5 with a Ukraine location hint. Counts are a point-in-time smoke check, not promised active vacancies or eligibility. Pagination was exercised for Ajax. No applications were sent.",
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 9 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
       "jobs_observed": 9,
-      "country_matches_observed": 5
-    }
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 0,
+        "DE": 4,
+        "UA": 5
+      }
+    },
+    "access_mode": "automatic"
   },
   {
     "id": "ua-appflame",
     "name": "appflame",
-    "careers_url": "https://job-boards.greenhouse.io/appflame/",
+    "careers_url": "https://job-boards.greenhouse.io/appflame",
     "countries": [
       "UA"
     ],
@@ -1612,59 +1666,48 @@
       "type": "greenhouse",
       "board": "appflame",
       "name": "appflame",
-      "locations": [
-        "Ukraine",
-        "Україна",
-        "Украина",
-        "Kyiv",
-        "Kiev",
-        "Київ",
-        "Киев",
-        "Lviv",
-        "Львів",
-        "Львов",
-        "Kharkiv",
-        "Харків",
-        "Харьков",
-        "Odesa",
-        "Odessa",
-        "Одеса",
-        "Dnipro",
-        "Дніпро",
-        "Vinnytsia",
-        "Ivano-Frankivsk",
-        "Uzhhorod",
-        "Ternopil",
-        "Chernivtsi",
-        "Rivne",
-        "Lutsk",
-        "Zhytomyr",
-        "Cherkasy",
-        "Zaporizhzhia"
-      ],
       "countries": [
         "UA"
       ]
     },
-    "note": "Public Greenhouse employer board; automatically collects published postings and filters for Ukraine location terms. Global or unspecified remote roles are not assumed to be Ukraine-eligible. Review each vacancy’s actual location and eligibility.",
-    "checked_at": "2026-10-03",
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
     "verification": {
-      "status": "collector_verified",
+      "status": "collector_checked",
       "evidence_urls": [
-        "https://job-boards.greenhouse.io/appflame/",
+        "https://job-boards.greenhouse.io/appflame",
         "https://boards-api.greenhouse.io/v1/boards/appflame/jobs?content=true"
       ],
-      "detail": "Actual application fetch_greenhouse function completed on 2026-10-03: 15 public postings, 14 with a Ukraine location hint. Counts are a point-in-time smoke check, not promised active vacancies or eligibility. Pagination was exercised for Ajax. No applications were sent.",
-      "jobs_observed": 15,
-      "country_matches_observed": 14
-    }
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 14 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 14,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 0,
+        "DE": 0,
+        "UA": 13
+      },
+      "role_examples_observed": [
+        {
+          "title": "Marketing Data Analyst",
+          "location": "Kyiv, Ukraine; Kyiv, Kyiv, Ukraine",
+          "source_url": "https://job-boards.eu.greenhouse.io/appflame/jobs/4909670101"
+        },
+        {
+          "title": "Product Data Analyst",
+          "location": "Europe; Kyiv, Ukraine; Poland; Ukraine; Kyiv, Kyiv, Ukraine",
+          "source_url": "https://job-boards.eu.greenhouse.io/appflame/jobs/4939827101"
+        }
+      ]
+    },
+    "access_mode": "automatic"
   },
   {
     "id": "ua-healthjoy",
     "name": "HealthJoy",
     "careers_url": "https://job-boards.greenhouse.io/healthjoy",
     "countries": [
-      "UA"
+      "UA",
+      "US"
     ],
     "sectors": [
       "health technology"
@@ -1673,59 +1716,37 @@
       "type": "greenhouse",
       "board": "healthjoy",
       "name": "HealthJoy",
-      "locations": [
-        "Ukraine",
-        "Україна",
-        "Украина",
-        "Kyiv",
-        "Kiev",
-        "Київ",
-        "Киев",
-        "Lviv",
-        "Львів",
-        "Львов",
-        "Kharkiv",
-        "Харків",
-        "Харьков",
-        "Odesa",
-        "Odessa",
-        "Одеса",
-        "Dnipro",
-        "Дніпро",
-        "Vinnytsia",
-        "Ivano-Frankivsk",
-        "Uzhhorod",
-        "Ternopil",
-        "Chernivtsi",
-        "Rivne",
-        "Lutsk",
-        "Zhytomyr",
-        "Cherkasy",
-        "Zaporizhzhia"
-      ],
       "countries": [
-        "UA"
+        "UA",
+        "US"
       ]
     },
-    "note": "Public Greenhouse employer board; automatically collects published postings and filters for Ukraine location terms. Global or unspecified remote roles are not assumed to be Ukraine-eligible. Review each vacancy’s actual location and eligibility.",
-    "checked_at": "2026-10-03",
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
     "verification": {
-      "status": "collector_verified",
+      "status": "collector_checked",
       "evidence_urls": [
         "https://job-boards.greenhouse.io/healthjoy",
         "https://boards-api.greenhouse.io/v1/boards/healthjoy/jobs?content=true"
       ],
-      "detail": "Actual application fetch_greenhouse function completed on 2026-10-03: 5 public postings, 3 with a Ukraine location hint. Counts are a point-in-time smoke check, not promised active vacancies or eligibility. Pagination was exercised for Ajax. No applications were sent.",
-      "jobs_observed": 5,
-      "country_matches_observed": 3
-    }
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 3 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 3,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 2,
+        "DE": 0,
+        "UA": 1
+      }
+    },
+    "access_mode": "automatic"
   },
   {
     "id": "ua-enavate",
     "name": "Enavate",
     "careers_url": "https://job-boards.greenhouse.io/enavatecareers",
     "countries": [
-      "UA"
+      "UA",
+      "US"
     ],
     "sectors": [
       "IT services"
@@ -1734,52 +1755,29 @@
       "type": "greenhouse",
       "board": "enavatecareers",
       "name": "Enavate",
-      "locations": [
-        "Ukraine",
-        "Україна",
-        "Украина",
-        "Kyiv",
-        "Kiev",
-        "Київ",
-        "Киев",
-        "Lviv",
-        "Львів",
-        "Львов",
-        "Kharkiv",
-        "Харків",
-        "Харьков",
-        "Odesa",
-        "Odessa",
-        "Одеса",
-        "Dnipro",
-        "Дніпро",
-        "Vinnytsia",
-        "Ivano-Frankivsk",
-        "Uzhhorod",
-        "Ternopil",
-        "Chernivtsi",
-        "Rivne",
-        "Lutsk",
-        "Zhytomyr",
-        "Cherkasy",
-        "Zaporizhzhia"
-      ],
       "countries": [
-        "UA"
+        "UA",
+        "US"
       ]
     },
-    "note": "Public Greenhouse employer board; automatically collects published postings and filters for Ukraine location terms. Global or unspecified remote roles are not assumed to be Ukraine-eligible. Review each vacancy’s actual location and eligibility.",
-    "checked_at": "2026-10-03",
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
     "verification": {
-      "status": "collector_verified",
+      "status": "collector_checked",
       "evidence_urls": [
         "https://job-boards.greenhouse.io/enavatecareers",
         "https://boards-api.greenhouse.io/v1/boards/enavatecareers/jobs?content=true"
       ],
-      "detail": "Actual application fetch_greenhouse function completed on 2026-10-03: 9 public postings, 1 with a Ukraine location hint. Counts are a point-in-time smoke check, not promised active vacancies or eligibility. Pagination was exercised for Ajax. No applications were sent.",
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 9 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
       "jobs_observed": 9,
-      "country_matches_observed": 1
-    }
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 7,
+        "DE": 0,
+        "UA": 1
+      }
+    },
+    "access_mode": "automatic"
   },
   {
     "id": "ua-sevenpro",
@@ -1795,52 +1793,28 @@
       "type": "greenhouse",
       "board": "sevenpro",
       "name": "SevenPro",
-      "locations": [
-        "Ukraine",
-        "Україна",
-        "Украина",
-        "Kyiv",
-        "Kiev",
-        "Київ",
-        "Киев",
-        "Lviv",
-        "Львів",
-        "Львов",
-        "Kharkiv",
-        "Харків",
-        "Харьков",
-        "Odesa",
-        "Odessa",
-        "Одеса",
-        "Dnipro",
-        "Дніпро",
-        "Vinnytsia",
-        "Ivano-Frankivsk",
-        "Uzhhorod",
-        "Ternopil",
-        "Chernivtsi",
-        "Rivne",
-        "Lutsk",
-        "Zhytomyr",
-        "Cherkasy",
-        "Zaporizhzhia"
-      ],
       "countries": [
         "UA"
       ]
     },
-    "note": "Public Greenhouse employer board; automatically collects published postings and filters for Ukraine location terms. Global or unspecified remote roles are not assumed to be Ukraine-eligible. Review each vacancy’s actual location and eligibility.",
-    "checked_at": "2026-10-03",
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
     "verification": {
-      "status": "collector_verified",
+      "status": "collector_checked",
       "evidence_urls": [
         "https://job-boards.greenhouse.io/sevenpro",
         "https://boards-api.greenhouse.io/v1/boards/sevenpro/jobs?content=true"
       ],
-      "detail": "Actual application fetch_greenhouse function completed on 2026-10-03: 7 public postings, 5 with a Ukraine location hint. Counts are a point-in-time smoke check, not promised active vacancies or eligibility. Pagination was exercised for Ajax. No applications were sent.",
-      "jobs_observed": 7,
-      "country_matches_observed": 5
-    }
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 6 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 6,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 0,
+        "DE": 0,
+        "UA": 5
+      }
+    },
+    "access_mode": "automatic"
   },
   {
     "id": "ua-eduki",
@@ -1856,59 +1830,36 @@
       "type": "greenhouse",
       "board": "eduki",
       "name": "eduki",
-      "locations": [
-        "Ukraine",
-        "Україна",
-        "Украина",
-        "Kyiv",
-        "Kiev",
-        "Київ",
-        "Киев",
-        "Lviv",
-        "Львів",
-        "Львов",
-        "Kharkiv",
-        "Харків",
-        "Харьков",
-        "Odesa",
-        "Odessa",
-        "Одеса",
-        "Dnipro",
-        "Дніпро",
-        "Vinnytsia",
-        "Ivano-Frankivsk",
-        "Uzhhorod",
-        "Ternopil",
-        "Chernivtsi",
-        "Rivne",
-        "Lutsk",
-        "Zhytomyr",
-        "Cherkasy",
-        "Zaporizhzhia"
-      ],
       "countries": [
         "UA"
       ]
     },
-    "note": "Public Greenhouse employer board; automatically collects published postings and filters for Ukraine location terms. Global or unspecified remote roles are not assumed to be Ukraine-eligible. Review each vacancy’s actual location and eligibility.",
-    "checked_at": "2026-10-03",
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
     "verification": {
-      "status": "collector_verified",
+      "status": "collector_checked",
       "evidence_urls": [
         "https://job-boards.greenhouse.io/eduki",
         "https://boards-api.greenhouse.io/v1/boards/eduki/jobs?content=true"
       ],
-      "detail": "Actual application fetch_greenhouse function completed on 2026-10-03: 3 public postings, 3 with a Ukraine location hint. Counts are a point-in-time smoke check, not promised active vacancies or eligibility. Pagination was exercised for Ajax. No applications were sent.",
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 3 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
       "jobs_observed": 3,
-      "country_matches_observed": 3
-    }
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 0,
+        "DE": 0,
+        "UA": 3
+      }
+    },
+    "access_mode": "automatic"
   },
   {
     "id": "ua-tatari",
     "name": "Tatari",
     "careers_url": "https://job-boards.greenhouse.io/tatari",
     "countries": [
-      "UA"
+      "UA",
+      "US"
     ],
     "sectors": [
       "advertising technology"
@@ -1917,59 +1868,37 @@
       "type": "greenhouse",
       "board": "tatari",
       "name": "Tatari",
-      "locations": [
-        "Ukraine",
-        "Україна",
-        "Украина",
-        "Kyiv",
-        "Kiev",
-        "Київ",
-        "Киев",
-        "Lviv",
-        "Львів",
-        "Львов",
-        "Kharkiv",
-        "Харків",
-        "Харьков",
-        "Odesa",
-        "Odessa",
-        "Одеса",
-        "Dnipro",
-        "Дніпро",
-        "Vinnytsia",
-        "Ivano-Frankivsk",
-        "Uzhhorod",
-        "Ternopil",
-        "Chernivtsi",
-        "Rivne",
-        "Lutsk",
-        "Zhytomyr",
-        "Cherkasy",
-        "Zaporizhzhia"
-      ],
       "countries": [
-        "UA"
+        "UA",
+        "US"
       ]
     },
-    "note": "Public Greenhouse employer board; automatically collects published postings and filters for Ukraine location terms. Global or unspecified remote roles are not assumed to be Ukraine-eligible. Review each vacancy’s actual location and eligibility.",
-    "checked_at": "2026-10-03",
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
     "verification": {
-      "status": "collector_verified",
+      "status": "collector_checked",
       "evidence_urls": [
         "https://job-boards.greenhouse.io/tatari",
         "https://boards-api.greenhouse.io/v1/boards/tatari/jobs?content=true"
       ],
-      "detail": "Actual application fetch_greenhouse function completed on 2026-10-03: 53 public postings, 3 with a Ukraine location hint. Counts are a point-in-time smoke check, not promised active vacancies or eligibility. Pagination was exercised for Ajax. No applications were sent.",
-      "jobs_observed": 53,
-      "country_matches_observed": 3
-    }
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 39 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 39,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 35,
+        "DE": 0,
+        "UA": 4
+      }
+    },
+    "access_mode": "automatic"
   },
   {
     "id": "ua-airslate",
     "name": "airSlate",
     "careers_url": "https://jobs.lever.co/airslate",
     "countries": [
-      "UA"
+      "UA",
+      "US"
     ],
     "sectors": [
       "software"
@@ -1978,53 +1907,30 @@
       "type": "lever",
       "board": "airslate",
       "name": "airSlate",
-      "locations": [
-        "Ukraine",
-        "Україна",
-        "Украина",
-        "Kyiv",
-        "Kiev",
-        "Київ",
-        "Киев",
-        "Lviv",
-        "Львів",
-        "Львов",
-        "Kharkiv",
-        "Харків",
-        "Харьков",
-        "Odesa",
-        "Odessa",
-        "Одеса",
-        "Dnipro",
-        "Дніпро",
-        "Vinnytsia",
-        "Ivano-Frankivsk",
-        "Uzhhorod",
-        "Ternopil",
-        "Chernivtsi",
-        "Rivne",
-        "Lutsk",
-        "Zhytomyr",
-        "Cherkasy",
-        "Zaporizhzhia"
-      ],
       "countries": [
-        "UA"
+        "UA",
+        "US"
       ],
       "region": "global"
     },
-    "note": "Public Lever employer board; automatically collects published postings and filters for Ukraine location terms. Global or unspecified remote roles are not assumed to be Ukraine-eligible. Review each vacancy’s actual location and eligibility.",
-    "checked_at": "2026-10-03",
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
     "verification": {
-      "status": "collector_verified",
+      "status": "collector_checked",
       "evidence_urls": [
         "https://jobs.lever.co/airslate",
         "https://api.lever.co/v0/postings/airslate?mode=json&limit=100&skip=0"
       ],
-      "detail": "Actual application fetch_lever function completed on 2026-10-03: 13 public postings, 1 with a Ukraine location hint. Counts are a point-in-time smoke check, not promised active vacancies or eligibility. Pagination was exercised for Ajax. No applications were sent.",
+      "detail": "Actual lever application collector completed on 2026-10-09. Read 13 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
       "jobs_observed": 13,
-      "country_matches_observed": 1
-    }
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 3,
+        "DE": 0,
+        "UA": 1
+      }
+    },
+    "access_mode": "automatic"
   },
   {
     "id": "ua-softserve",
@@ -2471,7 +2377,7 @@
   {
     "id": "ua-boosta",
     "name": "Boosta",
-    "careers_url": "https://job-boards.eu.greenhouse.io/boosta",
+    "careers_url": "https://job-boards.greenhouse.io/boosta",
     "countries": [
       "UA"
     ],
@@ -2482,52 +2388,40 @@
       "type": "greenhouse",
       "board": "boosta",
       "name": "Boosta",
-      "locations": [
-        "Ukraine",
-        "Україна",
-        "Украина",
-        "Kyiv",
-        "Kiev",
-        "Київ",
-        "Киев",
-        "Lviv",
-        "Львів",
-        "Львов",
-        "Kharkiv",
-        "Харків",
-        "Харьков",
-        "Odesa",
-        "Odessa",
-        "Одеса",
-        "Dnipro",
-        "Дніпро",
-        "Vinnytsia",
-        "Ivano-Frankivsk",
-        "Uzhhorod",
-        "Ternopil",
-        "Chernivtsi",
-        "Rivne",
-        "Lutsk",
-        "Zhytomyr",
-        "Cherkasy",
-        "Zaporizhzhia"
-      ],
       "countries": [
         "UA"
       ]
     },
-    "note": "Public Greenhouse employer board; automatically collects published postings and filters for Ukraine location terms. Global or unspecified remote roles are not assumed to be Ukraine-eligible. Review each vacancy’s actual location and eligibility.",
-    "checked_at": "2026-10-03",
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
     "verification": {
-      "status": "collector_verified",
+      "status": "collector_checked",
       "evidence_urls": [
-        "https://job-boards.eu.greenhouse.io/boosta",
+        "https://job-boards.greenhouse.io/boosta",
         "https://boards-api.greenhouse.io/v1/boards/boosta/jobs?content=true"
       ],
-      "detail": "Actual application fetch_greenhouse function completed on 2026-10-03: 52 public postings, 52 with a Ukraine location hint. Counts are a point-in-time smoke check, not promised active vacancies or eligibility. Pagination was exercised for Ajax. No applications were sent.",
-      "jobs_observed": 52,
-      "country_matches_observed": 52
-    }
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 55 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 55,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 0,
+        "DE": 0,
+        "UA": 55
+      },
+      "role_examples_observed": [
+        {
+          "title": "AI Automation Engineer | Kosmo",
+          "location": "Remote, Ukraine",
+          "source_url": "https://job-boards.eu.greenhouse.io/boosta/jobs/4973425101"
+        },
+        {
+          "title": "Data Engineer | Honeytech",
+          "location": "Remote, Europe; Remote, Ukraine",
+          "source_url": "https://job-boards.eu.greenhouse.io/boosta/jobs/4973458101"
+        }
+      ]
+    },
+    "access_mode": "automatic"
   },
   {
     "id": "ua-obrio",
@@ -3270,22 +3164,42 @@
   {
     "id": "ua-wargaming",
     "name": "Wargaming",
-    "careers_url": "https://wargaming.com/en/careers/",
+    "careers_url": "https://job-boards.greenhouse.io/wargamingen",
     "countries": [
-      "UA"
+      "UA",
+      "US",
+      "DE"
     ],
     "sectors": [
       "games"
     ],
-    "source": null,
-    "note": "Official employer career directory. Check the country and work eligibility for each vacancy. Use the career page or import vacancy text; no collector is enabled.",
-    "checked_at": "2026-10-02",
+    "source": {
+      "type": "greenhouse",
+      "board": "wargamingen",
+      "name": "Wargaming",
+      "countries": [
+        "UA",
+        "US",
+        "DE"
+      ]
+    },
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
     "verification": {
-      "status": "official_page_reviewed",
+      "status": "collector_checked",
       "evidence_urls": [
-        "https://wargaming.com/en/careers/"
+        "https://job-boards.greenhouse.io/wargamingen",
+        "https://boards-api.greenhouse.io/v1/boards/wargamingen/jobs?content=true"
       ],
-      "detail": "Official-site response and page title/heading checked; no vacancy collection or country availability is implied. {\"http_status\": 200, \"url\": \"https://wargaming.com/en/careers/\", \"title\": \"Careers and Vacancies at Wargaming\", \"h1\": \"Live your passion. Share ours.\"}"
-    }
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 39 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 39,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 1,
+        "DE": 1,
+        "UA": 1
+      }
+    },
+    "access_mode": "automatic"
   }
 ]

@@ -229,6 +229,11 @@ def connect(data_dir: Path, credentials_path: Path, *, timeout_seconds: float = 
     The user performs login and consent. A short-lived listener binds only to
     127.0.0.1 and checks a random state plus PKCE before accepting a callback.
     """
+    def check_cancelled():
+        if cancel_event is not None and cancel_event.is_set():
+            raise GmailError("Gmail connection cancelled. Your existing connection was kept.")
+
+    check_cancelled()
     client = _client_credentials(credentials_path)
     state = secrets.token_urlsafe(32)
     verifier = secrets.token_urlsafe(64)
@@ -270,15 +275,16 @@ def connect(data_dir: Path, credentials_path: Path, *, timeout_seconds: float = 
             raise GmailError("Could not open your browser for Google sign-in. Set a default browser and try again.")
         deadline = time.monotonic() + max(1, min(timeout_seconds, 300))
         while not result and time.monotonic() < deadline:
-            if cancel_event is not None and cancel_event.is_set():
-                raise GmailError("Gmail connection cancelled. Your existing connection was kept.")
+            check_cancelled()
             server.handle_request()
+    check_cancelled()
     if not result:
         raise GmailError("Google sign-in timed out. Connect Gmail again when you are ready.")
     if result.get("error"):
         raise GmailError(result["error"])
     response = _request_json(TOKEN_URL, form={**client, "code": result["code"], "code_verifier": verifier, "redirect_uri": redirect, "grant_type": "authorization_code"})
     token = _normalize_token(response, client)
+    check_cancelled()
     _save_token(data_dir, token)
     return connection_status(data_dir)
 

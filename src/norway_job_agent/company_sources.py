@@ -12,11 +12,12 @@ import xml.etree.ElementTree as ET
 from html.parser import HTMLParser
 from urllib.parse import quote, urlencode, urljoin, urlsplit, urlunsplit
 
-from .sources import SourceError, _board, _fetch, _job, _link, _plain, _url_parts, fetch_job_url
+from .sources import SourceError, _board, _fetch, _job, _link, _plain, _url_parts, _set_location_countries, fetch_job_url, geographic_rejection, source_location_terms
 
 COMPANY_SOURCE_TYPES = frozenset({"workday", "smartrecruiters", "career_page"})
 MAX_JOBS = 100
 MAX_LIST_PAGES = 10
+MAX_SCAN_JOBS = 500
 REQUEST_PAUSE = 0.15
 
 
@@ -24,6 +25,13 @@ def _limit(source: dict) -> int:
     value = source.get("max_jobs", 60)
     if isinstance(value, bool) or not isinstance(value, int) or not 1 <= value <= MAX_JOBS:
         raise SourceError("Company collection limit must be a whole number from 1 to 100.")
+    return value
+
+
+def _scan_limit(source: dict) -> int:
+    value = source.get("max_scan_jobs", min(MAX_SCAN_JOBS, max(100, _limit(source) * 3)))
+    if isinstance(value, bool) or not isinstance(value, int) or not 1 <= value <= MAX_SCAN_JOBS:
+        raise SourceError("Company scan limit must be a whole number from 1 to 500.")
     return value
 
 
@@ -44,6 +52,11 @@ def validate_company_source(source: dict) -> None:
     if not isinstance(source, dict) or source.get("type") not in COMPANY_SOURCE_TYPES:
         raise SourceError("Unsupported company source type.")
     _limit(source)
+    _scan_limit(source)
+    source_location_terms(source)
+    if "countries" in source:
+        from .countries import validate_countries
+        validate_countries(source["countries"])
     if not isinstance(source.get("name", ""), str) or len(source.get("name", "")) > 200:
         raise SourceError("Company name must be at most 200 characters.")
     if source["type"] == "workday":
@@ -88,10 +101,16 @@ def _workday(source):
     origin, tenant, board = _workday_parts(source["url"])
     base = f"{origin}/wday/cxs/{tenant}/{board}"
     limit = _limit(source)
+    scan_limit = _scan_limit(source)
+    terms = source_location_terms(source)
+    filtered = bool(terms or source.get("countries"))
+    counters = {"fetched": 0, "filtered_location": 0, "filtered_country": 0, "unknown_country": 0}
     jobs, seen = [], set()
     offset, total = 0, None
     for _ in range(MAX_LIST_PAGES):
-        batch = min(20, limit - len(jobs))
+        batch = min(20, scan_limit - offset, 20 if filtered else limit - len(jobs))
+        if batch <= 0:
+            break
         payload = _json(base + "/jobs", method="POST", body=json.dumps({
             "appliedFacets": {}, "limit": batch, "offset": offset,
             "searchText": source.get("search_text", ""),
@@ -105,7 +124,9 @@ def _workday(source):
             if offset < total:
                 raise SourceError("Workday stopped pagination before the advertised total; retry later.")
             break
+        processed = 0
         for item in items[:batch]:
+            processed += 1
             if not isinstance(item, dict):
                 raise SourceError("Workday returned an incomplete posting.")
             path = item.get("externalPath", "")
@@ -120,29 +141,52 @@ def _workday(source):
                 raise SourceError("Workday returned incomplete vacancy details.")
             locations = [detail.get("location", "")]
             additional = detail.get("additionalLocations", [])
-            if isinstance(additional, list):
-                locations.extend(value if isinstance(value, str) else value.get("descriptor", "") for value in additional if isinstance(value, (str, dict)))
+            if not isinstance(additional, list):
+                raise SourceError("Workday returned invalid additional locations.")
+            locations.extend(value if isinstance(value, str) else value.get("descriptor", "") for value in additional if isinstance(value, (str, dict)))
+            country = detail.get("country")
+            if isinstance(country, dict) and country.get("descriptor"):
+                locations.append(_plain(country["descriptor"]))
             link = f"{origin}/en-US/{board}{path}"
-            jobs.append(_job(title=_plain(detail["title"]), company=source.get("name") or tenant,
+            job = _job(title=_plain(detail["title"]), company=source.get("name") or tenant,
                 location="; ".join(dict.fromkeys(filter(None, locations))) or _plain(item.get("locationsText")),
                 description=_plain(detail.get("jobDescription")), source="workday",
                 source_id=f"{tenant}:{board}:{detail.get('jobReqId') or path}", source_url=link, apply_url=link,
-                employment_type=_plain(detail.get("timeType")), published_at=detail.get("startDate"), deadline=detail.get("endDate")))
-        offset += len(items)
-        if offset >= total or len(jobs) >= limit:
+                employment_type=_plain(detail.get("timeType")), published_at=detail.get("startDate"), deadline=detail.get("endDate"))
+            _set_location_countries(job, [(detail.get("location") or item.get("locationsText", ""),
+                                          country.get("descriptor") if isinstance(country, dict) else None),
+                                         *((value if isinstance(value, str) else value.get("descriptor", ""), None)
+                                           for value in additional if isinstance(value, (str, dict)))])
+            counters["fetched"] += 1
+            reason = geographic_rejection(job, source, location_terms=terms)
+            if reason:
+                counters[reason] += 1
+            else:
+                jobs.append(job)
+            if len(jobs) >= limit:
+                break
+        offset += processed
+        if offset >= total or offset >= scan_limit or len(jobs) >= limit:
             break
         time.sleep(REQUEST_PAUSE)
     more = offset < (total or 0)
-    return _report(jobs, f"Read {len(jobs)} of {total or 0} public Workday search results. Geographic filtering is applied after collection." + (" Collection limit reached; this is partial coverage." if more else ""), more)
+    return {**_report(jobs, f"Checked {offset} of {total or 0} public Workday search results; kept {len(jobs)} after geographic filtering." + (" Collection budget reached; this is partial coverage." if more else ""), more),
+            **counters, "scanned": offset, "available": total or 0}
 
 
 def _smartrecruiters(source):
     board, limit = _board(source["board"]), _limit(source)
+    scan_limit = _scan_limit(source)
+    terms = source_location_terms(source)
+    filtered = bool(terms or source.get("countries"))
+    counters = {"fetched": 0, "filtered_location": 0, "filtered_country": 0, "unknown_country": 0}
     base = f"https://api.smartrecruiters.com/v1/companies/{board}/postings"
     jobs, seen = [], set()
     offset, total = 0, 0
     for _ in range(MAX_LIST_PAGES):
-        batch = min(100, limit - len(jobs))
+        batch = min(100, scan_limit - offset, 100 if filtered else limit - len(jobs))
+        if batch <= 0:
+            break
         query = urlencode({"country": source.get("country", "no"), "destination": "PUBLIC", "limit": batch, "offset": offset})
         data = _json(base + "?" + query)
         items, total = data.get("content"), data.get("totalFound")
@@ -152,7 +196,9 @@ def _smartrecruiters(source):
             raise SourceError("SmartRecruiters ignored the requested page size.")
         if not items and offset < total:
             raise SourceError("SmartRecruiters returned an incomplete page.")
-        for item in items[:limit - len(jobs)]:
+        processed = 0
+        for item in items:
+            processed += 1
             identifier = item.get("id") if isinstance(item, dict) else None
             if not isinstance(identifier, (str, int)) or isinstance(identifier, bool) or not re.fullmatch(r"[a-zA-Z0-9-]+", str(identifier)):
                 raise SourceError("SmartRecruiters returned an invalid job identifier.")
@@ -174,15 +220,26 @@ def _smartrecruiters(source):
                 raise SourceError("SmartRecruiters returned invalid vacancy sections.")
             description = "\n\n".join(_plain(section.get("text")) for section in sections.values() if isinstance(section, dict))
             link = _link(detail.get("postingUrl"), base) or f"https://jobs.smartrecruiters.com/{board}/{identifier}"
-            jobs.append(_job(title=_plain(detail["name"]), company=_plain(company.get("name")) or source.get("name") or board,
+            job = _job(title=_plain(detail["name"]), company=_plain(company.get("name")) or source.get("name") or board,
                 location=", ".join(_plain(location.get(k)) for k in ("city", "region", "country") if location.get(k)),
                 description=description, source="smartrecruiters", source_id=f"{board}:{identifier}",
                 source_url=link, apply_url=_link(detail.get("applyUrl"), link) or link,
-                published_at=detail.get("releasedDate"), employment_type=_plain(employment.get("label"))))
-        offset += len(items)
-        if offset >= total or len(jobs) >= limit:
+                published_at=detail.get("releasedDate"), employment_type=_plain(employment.get("label")))
+            _set_location_countries(job, [(job["location"], location.get("country"))])
+            counters["fetched"] += 1
+            reason = geographic_rejection(job, source, location_terms=terms)
+            if reason:
+                counters[reason] += 1
+            else:
+                jobs.append(job)
+            if len(jobs) >= limit:
+                break
+        offset += processed
+        if offset >= total or offset >= scan_limit or len(jobs) >= limit:
             break
-    return _report(jobs, f"Read {len(jobs)} of {total} public country-filtered SmartRecruiters listings.", offset < total)
+    more = offset < total
+    return {**_report(jobs, f"Checked {offset} of {total} public country-filtered SmartRecruiters listings; kept {len(jobs)} after geographic filtering." + (" Collection budget reached; this is partial coverage." if more else ""), more),
+            **counters, "scanned": offset, "available": total}
 
 
 class _Links(HTMLParser):
@@ -241,9 +298,12 @@ def _career_page(source):
     if not selected:
         raise SourceError("No matching public vacancy links were found. The site may be empty or have changed; open the career page to check.")
     limit = _limit(source)
+    scan_limit = _scan_limit(source)
+    terms = source_location_terms(source)
+    counters = {"fetched": 0, "filtered_location": 0, "filtered_country": 0, "unknown_country": 0}
     jobs, failures, job_seen = [], [], set()
     capped, checked = False, 0
-    for link in selected[:limit]:
+    for link in selected[:scan_limit]:
         time.sleep(REQUEST_PAUSE)
         checked += 1
         try:
@@ -254,10 +314,15 @@ def _career_page(source):
         for job in found:
             key = (job["source_id"], job["source_url"])
             if key not in job_seen:
+                job_seen.add(key)
+                counters["fetched"] += 1
+                reason = geographic_rejection(job, source, location_terms=terms)
+                if reason:
+                    counters[reason] += 1
+                    continue
                 if len(jobs) >= limit:
                     capped = True
                     break
-                job_seen.add(key)
                 # The catalog identifies the employer, avoiding ATS branding.
                 if source.get("name"):
                     job["company"] = source["name"]
@@ -266,16 +331,16 @@ def _career_page(source):
             capped = capped or checked < len(selected)
             break
     if not jobs and failures:
-        raise SourceError(f"Could not read any of {min(limit, len(selected))} vacancy pages. {failures[0]}")
-    more = capped or len(selected) > limit or bool(failures) or not source.get("sitemap_url")
+        raise SourceError(f"Could not read any matching jobs from {checked} vacancy pages. {failures[0]}")
+    more = capped or len(selected) > checked or bool(failures) or not source.get("sitemap_url")
     coverage = f"Checked {checked} of {len(selected)} matching links in the public " + ("sitemap." if source.get("sitemap_url") else "listing page; other pages may contain more jobs.")
     if keywords:
         coverage += " URL filtering: " + ", ".join(source["url_keywords"]) + "; jobs without these words in the URL are outside this scan."
-    if capped or len(selected) > limit:
+    if capped or len(selected) > checked:
         coverage += " Collection limit reached; this is partial coverage."
     if failures:
         coverage += f" {len(failures)} pages could not be read: {failures[0]}"
-    return _report(jobs, coverage, more)
+    return {**_report(jobs, coverage, more), **counters, "scanned": checked, "available": len(selected)}
 
 
 def fetch_company_source(source: dict) -> dict:

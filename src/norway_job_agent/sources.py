@@ -18,8 +18,12 @@ from datetime import datetime, timezone
 from html.parser import HTMLParser
 from urllib.parse import quote, urljoin, urlsplit, urlunsplit
 from urllib.robotparser import RobotFileParser
+from itertools import combinations
+
+from .countries import country_code
 
 MAX_RESPONSE_BYTES = 2 * 1024 * 1024
+MAX_ATS_RESPONSE_BYTES = 20 * 1024 * 1024
 TIMEOUT_SECONDS = 15
 MAX_REDIRECTS = 5
 USER_AGENT = "NorwayJobAgent/0.1"
@@ -76,7 +80,8 @@ def _public_addresses(host: str, port: int) -> list[str]:
     return addresses
 
 
-def _request_once(url: str, *, method: str = "GET", body: bytes | None = None) -> tuple[int, dict[str, str], bytes]:
+def _request_once(url: str, *, method: str = "GET", body: bytes | None = None,
+                  max_response_bytes: int = MAX_RESPONSE_BYTES) -> tuple[int, dict[str, str], bytes]:
     """Pin connections to checked IPs, including HTTPS hostname verification.
 
     No environment proxies are used. DNS is never resolved a second time when
@@ -84,6 +89,9 @@ def _request_once(url: str, *, method: str = "GET", body: bytes | None = None) -
     """
     if method not in {"GET", "POST"} or (body is not None and (not isinstance(body, bytes) or len(body) > 65536)):
         raise SourceError("Unsupported source request or oversized request body.")
+    if isinstance(max_response_bytes, bool) or not isinstance(max_response_bytes, int) or not 1 <= max_response_bytes <= MAX_ATS_RESPONSE_BYTES:
+        raise SourceError("Invalid source download budget.")
+    budget_label = f"{max_response_bytes / (1024 * 1024):g} MB"
     parts, host, port = _url_parts(url)
     addresses = _public_addresses(host, port)
     deadline = time.monotonic() + TIMEOUT_SECONDS
@@ -120,8 +128,8 @@ def _request_once(url: str, *, method: str = "GET", body: bytes | None = None) -
         response = connection.getresponse()
         headers = {key.lower(): value for key, value in response.getheaders()}
         length = headers.get("content-length")
-        if length and (not length.isdecimal() or int(length) > MAX_RESPONSE_BYTES):
-            raise SourceError("The source response exceeds 2 MB or has an invalid Content-Length.")
+        if length and (not length.isdecimal() or int(length) > max_response_bytes):
+            raise SourceError(f"The source response exceeds {budget_label} or has an invalid Content-Length.")
         if headers.get("content-encoding", "identity").lower() not in {"", "identity"}:
             raise SourceError("The source returned unsupported compressed content.")
         chunks = []
@@ -132,12 +140,12 @@ def _request_once(url: str, *, method: str = "GET", body: bytes | None = None) -
                 raise SourceError("The source request timed out; try again later.")
             if connection.sock is not None:
                 connection.sock.settimeout(remaining)
-            chunk = response.read1(min(65536, MAX_RESPONSE_BYTES + 1 - total))
+            chunk = response.read1(min(65536, max_response_bytes + 1 - total))
             if not chunk:
                 break
             total += len(chunk)
-            if total > MAX_RESPONSE_BYTES:
-                raise SourceError("The source response exceeds the 2 MB download limit.")
+            if total > max_response_bytes:
+                raise SourceError(f"The source response exceeds the {budget_label} download limit.")
             chunks.append(chunk)
         return response.status, headers, b"".join(chunks)
     except SourceError:
@@ -175,14 +183,17 @@ def _check_robots(url: str, cache: dict[str, RobotFileParser | None]) -> None:
 
 
 def _fetch(url: str, *, respect_robots: bool = False, allow_missing: bool = False,
-           method: str = "GET", body: bytes | None = None):
+           method: str = "GET", body: bytes | None = None, max_response_bytes: int = MAX_RESPONSE_BYTES):
     current = url
     robots_cache: dict[str, RobotFileParser | None] = {}
     for _ in range(MAX_REDIRECTS + 1):
         _url_parts(current)
         if respect_robots:
             _check_robots(current, robots_cache)
-        if method == "GET" and body is None:
+        if max_response_bytes != MAX_RESPONSE_BYTES:
+            status, headers, response_body = _request_once(current, method=method, body=body,
+                                                           max_response_bytes=max_response_bytes)
+        elif method == "GET" and body is None:
             status, headers, response_body = _request_once(current)
         else:
             status, headers, response_body = _request_once(current, method=method, body=body)
@@ -209,8 +220,9 @@ def _fetch(url: str, *, respect_robots: bool = False, allow_missing: bool = Fals
     raise SourceError("The source redirected too many times; use the final career page URL.")
 
 
-def _json(url: str):
-    _, _, body, _ = _fetch(url)
+def _json(url: str, *, max_response_bytes: int = MAX_RESPONSE_BYTES):
+    kwargs = {"max_response_bytes": max_response_bytes} if max_response_bytes != MAX_RESPONSE_BYTES else {}
+    _, _, body, _ = _fetch(url, **kwargs)
     try:
         return json.loads(body)
     except (ValueError, UnicodeError, RecursionError) as exc:
@@ -281,24 +293,91 @@ def _job(**values) -> dict[str, str]:
     return {key: str(values.get(key) or "").strip() for key in fields}
 
 
+def _set_location_countries(job, locations):
+    """Retain structured countries; infer only locations without that metadata."""
+    from .countries import job_countries
+    codes, evidence = [], []
+    for location, country in locations:
+        country = _plain(country.get("name") or country.get("code")) if isinstance(country, dict) else _plain(country)
+        evidence.append(country)
+        if country:
+            if code := country_code(country):
+                codes.append(code)
+        else:
+            codes.extend(job_countries({"location": location}))
+    if codes:
+        job["countries"] = list(dict.fromkeys(codes))
+    # Also persist incomplete evidence so a refreshed posting does not retain
+    # a previous snapshot's structured country after its locations change.
+    job["raw_json"] = {"location_country_evidence": evidence,
+                       "resolved_location_countries": list(dict.fromkeys(codes))}
+    return job
+
+
+def source_location_terms(source: dict) -> list[str]:
+    """Keep user location filters, but retire redundant legacy country city lists."""
+    terms = source.get("locations", [])
+    if not isinstance(terms, list) or any(not isinstance(term, str) or not term.strip() for term in terms):
+        raise ValueError("A source's locations filter must be a list of nonempty location names.")
+    if source.get("countries") and terms:
+        from .countries import COUNTRY_TERMS
+        from .company_catalog import NORWAY_LOCATIONS
+        terms_set = {term.casefold() for term in terms}
+        if terms_set == {term.casefold() for term in NORWAY_LOCATIONS}:
+            return []
+        groups = list(COUNTRY_TERMS.values())
+        for size in range(1, len(groups) + 1):
+            for selected in combinations(groups, size):
+                if terms_set == {term.casefold() for group in selected for term in group}:
+                    return []
+    return terms
+
+
+def geographic_rejection(job: dict, source: dict, *, location_terms=None) -> str | None:
+    from .countries import job_countries, validate_countries
+    terms = source_location_terms(source) if location_terms is None else location_terms
+    if terms and not any(term.casefold() in str(job.get("location", "")).casefold() for term in terms):
+        return "filtered_location"
+    if source.get("countries"):
+        requested = validate_countries(source["countries"])
+        countries = job_countries(job)
+        if not countries:
+            return "unknown_country"
+        if not set(countries).intersection(requested):
+            return "filtered_country"
+    return None
+
+
 def fetch_greenhouse(board: str) -> list[dict]:
     """Fetch one employer's published jobs; no API key is required."""
     board = _board(board)
     base = f"https://boards-api.greenhouse.io/v1/boards/{board}"
     metadata = _json(base)
-    payload = _json(base + "/jobs?content=true")
+    payload = _json(base + "/jobs?content=true", max_response_bytes=MAX_ATS_RESPONSE_BYTES)
     if not isinstance(metadata, dict) or not isinstance(payload, dict) or not isinstance(payload.get("jobs"), list):
         raise SourceError("Unexpected Greenhouse response; check the board ID.")
     company = _plain(metadata.get("name")) or board
+    total = (payload.get("meta") or {}).get("total") if isinstance(payload.get("meta") or {}, dict) else None
+    if total is not None and (isinstance(total, bool) or not isinstance(total, int) or total != len(payload["jobs"])):
+        raise SourceError("Greenhouse returned an incomplete board snapshot; retry later.")
     jobs = []
+    seen = set()
     for item in payload["jobs"]:
-        if not isinstance(item, dict) or not item.get("id") or not _plain(item.get("title")):
+        if not isinstance(item, dict) or isinstance(item.get("id"), bool) or not isinstance(item.get("id"), (str, int)) or not str(item["id"]).strip() or not _plain(item.get("title")):
             raise SourceError("Greenhouse returned an incomplete job record.")
+        identifier = str(item["id"])
+        if identifier in seen:
+            raise SourceError("Greenhouse repeated a job in its board snapshot; retry later.")
+        seen.add(identifier)
         location = item.get("location") or {}
+        locations = [_plain(location.get("name")) if isinstance(location, dict) else _plain(location)]
+        offices = item.get("offices") or []
+        if isinstance(offices, list):
+            locations.extend(_plain(office.get("location")) for office in offices if isinstance(office, dict))
         link = _link(item.get("absolute_url"), base)
         jobs.append(_job(
             title=_plain(item.get("title")), company=company,
-            location=_plain(location.get("name")) if isinstance(location, dict) else _plain(location),
+            location="; ".join(dict.fromkeys(filter(None, locations))),
             description=_plain(item.get("content")), source="greenhouse",
             source_id=f"{board}:{item['id']}", source_url=link, apply_url=link,
             published_at=item.get("first_published") or item.get("published_at"),
@@ -316,6 +395,64 @@ def _date(value) -> str:
         except (ValueError, OverflowError, OSError):
             pass
     return ""
+
+
+def fetch_ashby(board: str, name: str = "") -> list[dict]:
+    """Read Ashby's public job board feed, including its structured locations."""
+    board = _board(board)
+    base = f"https://api.ashbyhq.com/posting-api/job-board/{board}"
+    payload = _json(base, max_response_bytes=MAX_ATS_RESPONSE_BYTES)
+    if not isinstance(payload, dict) or not isinstance(payload.get("jobs"), list):
+        raise SourceError("Unexpected Ashby response; check the board ID.")
+    jobs, seen = [], set()
+    for item in payload["jobs"]:
+        if not isinstance(item, dict):
+            raise SourceError("Ashby returned an incomplete job record.")
+        if item.get("isListed") is False:
+            continue
+        link = _link(item.get("jobUrl"), base)
+        title = _plain(item.get("title"))
+        if not title or not link:
+            raise SourceError("Ashby returned an incomplete public job record.")
+        if link in seen:
+            continue
+        seen.add(link)
+        address = item.get("address")
+        if address is None:
+            address = {}
+        if not isinstance(address, dict):
+            raise SourceError("Ashby returned invalid address metadata.")
+        locations = [_plain(item.get("location"))]
+        locations.append(_location(address.get("postalAddress") or address))
+        additional = item.get("secondaryLocations")
+        if additional is None:
+            additional = []
+        if not isinstance(additional, list):
+            raise SourceError("Ashby returned invalid secondary locations.")
+        for other in additional:
+            if not isinstance(other, dict):
+                raise SourceError("Ashby returned invalid secondary location metadata.")
+            other_address = other.get("address") or {}
+            if not isinstance(other_address, dict):
+                raise SourceError("Ashby returned invalid secondary address metadata.")
+            locations.extend([_plain(other.get("location")), _location(other_address.get("postalAddress") or other_address)])
+        if item.get("isRemote"):
+            locations.insert(0, "Remote")
+        job = _job(title=title, company=_plain(name) or board,
+            location="; ".join(dict.fromkeys(filter(None, locations))),
+            description=_plain(item.get("descriptionHtml") or item.get("descriptionPlain")),
+            source="ashby", source_id=f"{board}:{urlsplit(link).path.rstrip('/').rsplit('/', 1)[-1]}",
+            source_url=link, apply_url=_link(item.get("applyUrl"), link) or link,
+            employment_type=_plain(item.get("employmentType")), published_at=item.get("publishedAt"))
+        addresses = [address.get("postalAddress") or address]
+        addresses.extend((other.get("address") or {}).get("postalAddress") or other.get("address") for other in additional)
+        location_rows = [item, *additional]
+        _set_location_countries(job, [
+            (_plain(row.get("location")), value.get("addressCountry") if isinstance(value, dict) else None)
+            for row, value in zip(location_rows, addresses)
+        ])
+        jobs.append(job)
+    return jobs
 
 
 def fetch_lever(board: str, region: str = "global") -> list[dict]:
@@ -458,14 +595,31 @@ def fetch_job_url(url: str) -> list[dict]:
             location = _location(item.get("jobLocation"))
             if item.get("jobLocationType") == "TELECOMMUTE":
                 location = "Remote" + (f" ({location})" if location else "")
-            jobs.append(_job(
+            job = _job(
                 title=title, company=_name(item.get("hiringOrganization")), location=location,
                 description=_plain(item.get("description")), source="career_page",
                 source_id=f"{canonical}#{identifier}" if identifier else canonical,
                 source_url=canonical, apply_url=canonical,
                 employment_type=employment, published_at=item.get("datePosted"),
                 deadline=item.get("validThrough"),
-            ))
+            )
+            locations = item.get("jobLocation") or []
+            if not isinstance(locations, list):
+                locations = [locations]
+            rows = []
+            for value in locations:
+                address = value.get("address", value) if isinstance(value, dict) else {}
+                country = address.get("addressCountry") if isinstance(address, dict) else None
+                rows.append((_location(value), country))
+            if item.get("jobLocationType") == "TELECOMMUTE":
+                requirements = item.get("applicantLocationRequirements") or []
+                if not isinstance(requirements, list):
+                    requirements = [requirements]
+                for value in requirements:
+                    if isinstance(value, dict) and value.get("@type") == "Country":
+                        rows.append((_name(value), value))
+            _set_location_countries(job, rows)
+            jobs.append(job)
     if not jobs:
         raise SourceError("No JobPosting structured data was found. Paste the vacancy text for manual import.")
     return jobs

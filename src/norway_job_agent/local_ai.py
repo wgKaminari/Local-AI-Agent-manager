@@ -79,6 +79,12 @@ excluded. The verified structured candidate_facts.languages and
 candidate_facts.work_authorization fields are authoritative over conflicting raw
 CV text; an empty verified authorization field means unknown. Never use
 search_languages, related_roles or other search criteria as qualifications.
+candidate_facts.years_of_experience is the user's recorded TOTAL professional
+experience. Preserve its exact value (including fractions); never round up or
+assume every year was spent in a particular skill, industry or leadership role.
+An empty value is unknown, and employer requirements cannot supply that fact.
+This structured total overrides conflicting raw CV totals or dates; do not
+calculate a different total from employment history.
 Preserve actual language levels literally. If Norwegian is A1-A2, never
 claim B1, fluent or professional Norwegian. A willingness to consider a B1 vacancy
 does not establish B1 proficiency. Do not turn goals into completed achievements.
@@ -304,6 +310,9 @@ def generate_cover_letter(job: dict, profile: dict, model: str = DEFAULT_MODEL) 
              for key in ("name", "summary", "work_authorization", "cv_text")}
     facts["skills"] = _strings(profile.get("skills", []), "Profile skills")
     facts["evidence"] = _strings(profile.get("evidence", []), "Profile evidence")
+    from .experience_matching import experience_fact, validate_experience_years
+    facts["years_of_experience"] = validate_experience_years(profile.get("years_of_experience"))
+    facts["experience_summary"] = experience_fact(facts["years_of_experience"])
     languages = profile.get("languages", {})
     if not isinstance(languages, dict) or len(languages) > 20:
         raise ValueError("Profile languages must map language names to actual levels.")
@@ -321,7 +330,7 @@ def generate_cover_letter(job: dict, profile: dict, model: str = DEFAULT_MODEL) 
         evidence = _strings(result["used_evidence"], "Generated evidence", maximum=12)
     except ValueError:
         raise LocalAIError("The local model returned invalid draft fields. Retry; the draft was not accepted.") from None
-    source_texts = [facts["summary"], facts["cv_text"], facts["work_authorization"], *facts["evidence"], *facts["skills"]]
+    source_texts = [facts["summary"], facts["cv_text"], facts["work_authorization"], facts["experience_summary"], *facts["evidence"], *facts["skills"]]
     if not letter or not evidence or any(not _is_excerpt(item, source_texts) for item in evidence):
         raise LocalAIError("The draft did not cite supplied candidate evidence correctly. Retry and review every factual claim.")
     _check_language_claims(letter, facts["languages"])

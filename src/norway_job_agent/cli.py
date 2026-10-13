@@ -54,24 +54,30 @@ def validate_job(job: dict) -> dict:
 
 
 def collect_sources(config: dict, store: JobStore) -> dict:
-    from .sources import fetch_greenhouse, fetch_job_url, fetch_lever
+    from .sources import fetch_greenhouse, fetch_job_url, fetch_lever, fetch_ashby, geographic_rejection, source_location_terms
     from .company_sources import COMPANY_SOURCE_TYPES, fetch_company_source
 
     if not isinstance(config, dict) or not isinstance(config.get("sources"), list):
         raise ValueError("Source config must contain a 'sources' list.")
-    if len(config["sources"]) > 100:
-        raise ValueError("Use at most 100 sources per collection run.")
-    report = {"created": 0, "updated": 0, "sources": []}
+    if len(config["sources"]) > 250:
+        raise ValueError("Use at most 250 sources per collection run.")
+    report = {"created": 0, "updated": 0, "withdrawn": 0, "sources": []}
     for entry in config["sources"]:
         result = {"source": entry, "created": 0, "updated": 0}
         try:
             if not isinstance(entry, dict):
                 raise ValueError("Each source entry must be an object.")
+            source_location_terms(entry)
+            if "countries" in entry:
+                from .countries import validate_countries
+                validate_countries(entry["countries"])
             kind = entry.get("type")
             if kind == "greenhouse":
                 jobs = fetch_greenhouse(entry.get("board", ""))
             elif kind == "lever":
                 jobs = fetch_lever(entry.get("board", ""), region=entry.get("region", "global"))
+            elif kind == "ashby":
+                jobs = fetch_ashby(entry.get("board", ""), name=entry.get("name", ""))
             elif kind == "job_url":
                 jobs = fetch_job_url(entry.get("url", ""))
             elif kind in COMPANY_SOURCE_TYPES:
@@ -79,24 +85,49 @@ def collect_sources(config: dict, store: JobStore) -> dict:
                 jobs = batch["jobs"]
                 result["coverage"] = batch.get("coverage", "")
                 result["has_more"] = batch.get("has_more", False)
+                result.update({key: batch[key] for key in ("fetched", "scanned", "available", "filtered_location", "filtered_country", "unknown_country") if key in batch})
             else:
                 raise ValueError(f"Unsupported source type: {kind!r}. Choose a supported company source or job URL.")
-            location_terms = entry.get("locations", [])
-            if not isinstance(location_terms, list) or any(not isinstance(term, str) for term in location_terms):
-                raise ValueError("A source's locations filter must be a list of location names.")
-            if location_terms:
-                jobs = [job for job in jobs if any(term.casefold() in str(job.get("location", "")).casefold() for term in location_terms if term.strip())]
-            if entry.get("countries"):
-                from .countries import job_countries, validate_countries
-                requested = validate_countries(entry["countries"])
-                jobs = [job for job in jobs if set(job_countries(job)).intersection(requested)]
+            # These three adapters return complete boards or raise. Preserve
+            # the full feed identity set before geographic filters so a job
+            # outside this run's country scope is not mistaken for withdrawn.
+            snapshot = None
+            if kind in {"greenhouse", "lever", "ashby"} and all(job.get("source") == kind for job in jobs):
+                prefix = f"{entry.get('board', '')}:"
+                if kind == "lever":
+                    prefix = f"{entry.get('region', 'global')}:{prefix}"
+                snapshot = (prefix, [job.get("source_id") for job in jobs])
+            location_terms = source_location_terms(entry)
+            result.setdefault("fetched", len(jobs))
+            result.setdefault("scanned", result["fetched"])
+            result.setdefault("available", result["fetched"])
+            selected = []
+            for job in jobs:
+                reason = geographic_rejection(job, entry, location_terms=location_terms)
+                if reason:
+                    result[reason] = result.get(reason, 0) + 1
+                else:
+                    selected.append(job)
+            jobs = selected
+            result["matched"] = len(jobs)
+            for key in ("filtered_location", "filtered_country", "unknown_country"):
+                result.setdefault(key, 0)
+            result.setdefault("has_more", False)
+            result.setdefault("coverage", f"Read {result['fetched']} public postings; {len(jobs)} match this source's geographic scope.")
             # Validate a complete source batch before writing any of its jobs.
             normalized = [validate_job(job) for job in jobs]
-            for job in normalized:
-                _, created = store.upsert_job(job)
-                key = "created" if created else "updated"
-                result[key] += 1
-                report[key] += 1
+            counts = {"created": 0, "updated": 0, "withdrawn": 0}
+            with store.transaction():
+                for job in normalized:
+                    _, created = store.upsert_job(job)
+                    counts["created" if created else "updated"] += 1
+                if snapshot is not None:
+                    counts["withdrawn"] = store.reconcile_source_snapshot(kind, *snapshot)
+            # Identity conflicts and failed writes roll back the whole source;
+            # only committed vacancies belong in a successful collection count.
+            for key, count in counts.items():
+                result[key] = count
+                report[key] += count
             result["ok"] = True
         except (ValueError, OSError) as exc:
             result["ok"] = False
@@ -110,7 +141,8 @@ def parser() -> argparse.ArgumentParser:
     root.add_argument("--data-dir", type=Path, default=default_data_dir(), help="Personal data folder (defaults outside this OneDrive checkout).")
     commands = root.add_subparsers(dest="command", required=True)
     commands.add_parser("init", help="Create empty database, profile and source configuration.")
-    commands.add_parser("gui", help="Open the private Windows desktop app.")
+    gui = commands.add_parser("gui", help="Open the modern private desktop app.")
+    gui.add_argument("--classic", action="store_true", help="Use the previous Tkinter interface.")
     commands.add_parser("models", help="List verified local Ollama models.")
     generate = commands.add_parser("letter", help="Generate a draft cover letter with your local Ollama model.")
     generate.add_argument("id", type=int)
@@ -164,7 +196,10 @@ def main(argv: list[str] | None = None) -> int:
             print_json(result)
             return 0
         if args.command == "gui":
-            from .desktop import launch
+            if args.classic:
+                from .desktop import launch
+            else:
+                from .modern_desktop import launch
             launch(data_dir)
             return 0
         if args.command == "models":
@@ -244,7 +279,11 @@ def main(argv: list[str] | None = None) -> int:
                     print(content)
         return 0
     except (ValueError, KeyError, RuntimeError, OSError) as exc:
-        print(f"Error: {exc}", file=sys.stderr)
+        if args.command == "gui":
+            from .modern_desktop import report_startup_error
+            report_startup_error(str(exc))
+        elif sys.stderr is not None:
+            print(f"Error: {exc}", file=sys.stderr)
         return 1
 
 

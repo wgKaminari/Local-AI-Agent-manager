@@ -278,72 +278,46 @@
     "access_mode": "automatic",
     "source": {
       "type": "greenhouse",
-      "name": "Asana",
       "board": "asana",
+      "name": "Asana",
       "countries": [
         "US",
         "DE"
-      ],
-      "locations": [
-        "United States",
-        "United States of America",
-        "USA",
-        "U.S.A.",
-        "U.S.",
-        "New York",
-        "San Francisco",
-        "Seattle",
-        "Boston",
-        "Chicago",
-        "Austin",
-        "Los Angeles",
-        "San Diego",
-        "Washington, DC",
-        "Washington D.C.",
-        "Mountain View",
-        "Palo Alto",
-        "San Jose",
-        "Sunnyvale",
-        "Atlanta",
-        "Dallas",
-        "Houston",
-        "Denver",
-        "California",
-        "Massachusetts",
-        "Texas",
-        "Germany",
-        "Deutschland",
-        "Berlin",
-        "Munich",
-        "München",
-        "Hamburg",
-        "Frankfurt",
-        "Cologne",
-        "Köln",
-        "Düsseldorf",
-        "Dusseldorf",
-        "Stuttgart",
-        "Dresden",
-        "Leipzig",
-        "Bonn",
-        "Karlsruhe",
-        "Darmstadt",
-        "Walldorf",
-        "Erlangen",
-        "Nuremberg",
-        "Nürnberg"
       ]
     },
-    "note": "Public Greenhouse feed checked with the existing application collector. Collection is filtered to the selected country; generic remote locations may need manual review. Job counts change and do not establish work eligibility.",
-    "checked_at": "2026-10-03",
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
     "verification": {
       "status": "collector_checked",
       "evidence_urls": [
         "https://job-boards.greenhouse.io/asana",
-        "https://boards-api.greenhouse.io/v1/boards/asana",
         "https://boards-api.greenhouse.io/v1/boards/asana/jobs?content=true"
       ],
-      "detail": "{\"collector\": \"fetch_greenhouse\", \"total_jobs\": 97, \"country_location_matches\": {\"US\": 49, \"DE\": 2}}"
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 102 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 102,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 52,
+        "DE": 2,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Backend Software Engineer",
+          "location": "Reykjavík; Reykjavík, Reykjavík, Iceland",
+          "source_url": "https://www.asana.com/jobs/apply/7964297?gh_jid=7964297"
+        },
+        {
+          "title": "Data Engineer",
+          "location": "Warsaw; Warszawa, Masovian Voivodeship, Poland",
+          "source_url": "https://www.asana.com/jobs/apply/8131896?gh_jid=8131896"
+        },
+        {
+          "title": "Software Engineer, AI Teammates Experience",
+          "location": "San Francisco; San Francisco, California, United States",
+          "source_url": "https://www.asana.com/jobs/apply/8227390?gh_jid=8227390"
+        }
+      ]
     }
   },
   {
@@ -648,50 +622,28 @@
     "access_mode": "automatic",
     "source": {
       "type": "greenhouse",
-      "name": "Cockroach Labs",
       "board": "cockroachlabs",
+      "name": "Cockroach Labs",
       "countries": [
         "US"
-      ],
-      "locations": [
-        "United States",
-        "United States of America",
-        "USA",
-        "U.S.A.",
-        "U.S.",
-        "New York",
-        "San Francisco",
-        "Seattle",
-        "Boston",
-        "Chicago",
-        "Austin",
-        "Los Angeles",
-        "San Diego",
-        "Washington, DC",
-        "Washington D.C.",
-        "Mountain View",
-        "Palo Alto",
-        "San Jose",
-        "Sunnyvale",
-        "Atlanta",
-        "Dallas",
-        "Houston",
-        "Denver",
-        "California",
-        "Massachusetts",
-        "Texas"
       ]
     },
-    "note": "Public Greenhouse feed checked with the existing application collector. Collection is filtered to the selected country; generic remote locations may need manual review. Job counts change and do not establish work eligibility.",
-    "checked_at": "2026-10-03",
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
     "verification": {
       "status": "collector_checked",
       "evidence_urls": [
         "https://job-boards.greenhouse.io/cockroachlabs",
-        "https://boards-api.greenhouse.io/v1/boards/cockroachlabs",
         "https://boards-api.greenhouse.io/v1/boards/cockroachlabs/jobs?content=true"
       ],
-      "detail": "{\"collector\": \"fetch_greenhouse\", \"total_jobs\": 19, \"country_location_matches\": {\"US\": 13, \"DE\": 0}}"
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 18 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 18,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 14,
+        "DE": 0,
+        "UA": 0
+      }
     }
   },
   {
@@ -730,72 +682,29 @@
     "access_mode": "automatic",
     "source": {
       "type": "greenhouse",
-      "name": "commercetools",
       "board": "commercetools",
+      "name": "commercetools",
       "countries": [
         "US",
         "DE"
-      ],
-      "locations": [
-        "United States",
-        "United States of America",
-        "USA",
-        "U.S.A.",
-        "U.S.",
-        "New York",
-        "San Francisco",
-        "Seattle",
-        "Boston",
-        "Chicago",
-        "Austin",
-        "Los Angeles",
-        "San Diego",
-        "Washington, DC",
-        "Washington D.C.",
-        "Mountain View",
-        "Palo Alto",
-        "San Jose",
-        "Sunnyvale",
-        "Atlanta",
-        "Dallas",
-        "Houston",
-        "Denver",
-        "California",
-        "Massachusetts",
-        "Texas",
-        "Germany",
-        "Deutschland",
-        "Berlin",
-        "Munich",
-        "München",
-        "Hamburg",
-        "Frankfurt",
-        "Cologne",
-        "Köln",
-        "Düsseldorf",
-        "Dusseldorf",
-        "Stuttgart",
-        "Dresden",
-        "Leipzig",
-        "Bonn",
-        "Karlsruhe",
-        "Darmstadt",
-        "Walldorf",
-        "Erlangen",
-        "Nuremberg",
-        "Nürnberg"
       ]
     },
-    "note": "Public Greenhouse feed checked with the existing application collector. Collection is filtered to the selected country; generic remote locations may need manual review. Job counts change and do not establish work eligibility.",
-    "checked_at": "2026-10-03",
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
     "verification": {
       "status": "collector_checked",
       "evidence_urls": [
         "https://job-boards.greenhouse.io/commercetools",
-        "https://boards-api.greenhouse.io/v1/boards/commercetools",
         "https://boards-api.greenhouse.io/v1/boards/commercetools/jobs?content=true"
       ],
-      "detail": "{\"collector\": \"fetch_greenhouse\", \"total_jobs\": 37, \"country_location_matches\": {\"US\": 9, \"DE\": 16}}"
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 31 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 31,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 10,
+        "DE": 12,
+        "UA": 0
+      }
     }
   },
   {
@@ -812,72 +721,36 @@
     "access_mode": "automatic",
     "source": {
       "type": "greenhouse",
-      "name": "Commvault",
       "board": "commvault",
+      "name": "Commvault",
       "countries": [
         "US",
         "DE"
-      ],
-      "locations": [
-        "United States",
-        "United States of America",
-        "USA",
-        "U.S.A.",
-        "U.S.",
-        "New York",
-        "San Francisco",
-        "Seattle",
-        "Boston",
-        "Chicago",
-        "Austin",
-        "Los Angeles",
-        "San Diego",
-        "Washington, DC",
-        "Washington D.C.",
-        "Mountain View",
-        "Palo Alto",
-        "San Jose",
-        "Sunnyvale",
-        "Atlanta",
-        "Dallas",
-        "Houston",
-        "Denver",
-        "California",
-        "Massachusetts",
-        "Texas",
-        "Germany",
-        "Deutschland",
-        "Berlin",
-        "Munich",
-        "München",
-        "Hamburg",
-        "Frankfurt",
-        "Cologne",
-        "Köln",
-        "Düsseldorf",
-        "Dusseldorf",
-        "Stuttgart",
-        "Dresden",
-        "Leipzig",
-        "Bonn",
-        "Karlsruhe",
-        "Darmstadt",
-        "Walldorf",
-        "Erlangen",
-        "Nuremberg",
-        "Nürnberg"
       ]
     },
-    "note": "Public Greenhouse feed checked with the existing application collector. Collection is filtered to the selected country; generic remote locations may need manual review. Job counts change and do not establish work eligibility.",
-    "checked_at": "2026-10-03",
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
     "verification": {
       "status": "collector_checked",
       "evidence_urls": [
         "https://job-boards.greenhouse.io/commvault",
-        "https://boards-api.greenhouse.io/v1/boards/commvault",
         "https://boards-api.greenhouse.io/v1/boards/commvault/jobs?content=true"
       ],
-      "detail": "{\"collector\": \"fetch_greenhouse\", \"total_jobs\": 60, \"country_location_matches\": {\"US\": 20, \"DE\": 3}}"
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 58 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 58,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 20,
+        "DE": 3,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Software Engineer - Automation",
+          "location": "Seoul, South Korea; Korea",
+          "source_url": "https://job-boards.greenhouse.io/commvault/jobs/5349236008"
+        }
+      ]
     }
   },
   {
@@ -916,72 +789,29 @@
     "access_mode": "automatic",
     "source": {
       "type": "greenhouse",
-      "name": "Contentful",
       "board": "contentful",
+      "name": "Contentful",
       "countries": [
         "US",
         "DE"
-      ],
-      "locations": [
-        "United States",
-        "United States of America",
-        "USA",
-        "U.S.A.",
-        "U.S.",
-        "New York",
-        "San Francisco",
-        "Seattle",
-        "Boston",
-        "Chicago",
-        "Austin",
-        "Los Angeles",
-        "San Diego",
-        "Washington, DC",
-        "Washington D.C.",
-        "Mountain View",
-        "Palo Alto",
-        "San Jose",
-        "Sunnyvale",
-        "Atlanta",
-        "Dallas",
-        "Houston",
-        "Denver",
-        "California",
-        "Massachusetts",
-        "Texas",
-        "Germany",
-        "Deutschland",
-        "Berlin",
-        "Munich",
-        "München",
-        "Hamburg",
-        "Frankfurt",
-        "Cologne",
-        "Köln",
-        "Düsseldorf",
-        "Dusseldorf",
-        "Stuttgart",
-        "Dresden",
-        "Leipzig",
-        "Bonn",
-        "Karlsruhe",
-        "Darmstadt",
-        "Walldorf",
-        "Erlangen",
-        "Nuremberg",
-        "Nürnberg"
       ]
     },
-    "note": "Public Greenhouse feed checked with the existing application collector. Collection is filtered to the selected country; generic remote locations may need manual review. Job counts change and do not establish work eligibility.",
-    "checked_at": "2026-10-03",
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
     "verification": {
       "status": "collector_checked",
       "evidence_urls": [
         "https://job-boards.greenhouse.io/contentful",
-        "https://boards-api.greenhouse.io/v1/boards/contentful",
         "https://boards-api.greenhouse.io/v1/boards/contentful/jobs?content=true"
       ],
-      "detail": "{\"collector\": \"fetch_greenhouse\", \"total_jobs\": 20, \"country_location_matches\": {\"US\": 7, \"DE\": 1}}"
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 19 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 19,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 6,
+        "DE": 1,
+        "UA": 0
+      }
     }
   },
   {
@@ -1335,50 +1165,45 @@
     "access_mode": "automatic",
     "source": {
       "type": "greenhouse",
-      "name": "Discord",
       "board": "discord",
+      "name": "Discord",
       "countries": [
         "US"
-      ],
-      "locations": [
-        "United States",
-        "United States of America",
-        "USA",
-        "U.S.A.",
-        "U.S.",
-        "New York",
-        "San Francisco",
-        "Seattle",
-        "Boston",
-        "Chicago",
-        "Austin",
-        "Los Angeles",
-        "San Diego",
-        "Washington, DC",
-        "Washington D.C.",
-        "Mountain View",
-        "Palo Alto",
-        "San Jose",
-        "Sunnyvale",
-        "Atlanta",
-        "Dallas",
-        "Houston",
-        "Denver",
-        "California",
-        "Massachusetts",
-        "Texas"
       ]
     },
-    "note": "Public Greenhouse feed checked with the existing application collector. Collection is filtered to the selected country; generic remote locations may need manual review. Job counts change and do not establish work eligibility.",
-    "checked_at": "2026-10-03",
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
     "verification": {
       "status": "collector_checked",
       "evidence_urls": [
         "https://job-boards.greenhouse.io/discord",
-        "https://boards-api.greenhouse.io/v1/boards/discord",
         "https://boards-api.greenhouse.io/v1/boards/discord/jobs?content=true"
       ],
-      "detail": "{\"collector\": \"fetch_greenhouse\", \"total_jobs\": 51, \"country_location_matches\": {\"US\": 48, \"DE\": 0}}"
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 48 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 48,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 44,
+        "DE": 0,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Data Scientist - Client Platform",
+          "location": "San Francisco Bay Area; San Francisco, California, United States",
+          "source_url": "https://job-boards.greenhouse.io/discord/jobs/8840756002"
+        },
+        {
+          "title": "Software Engineer, Consumer Revenue",
+          "location": "San Francisco Bay Area; San Francisco, California, United States",
+          "source_url": "https://job-boards.greenhouse.io/discord/jobs/8846732002"
+        },
+        {
+          "title": "Software Engineer, Distributed Systems",
+          "location": "San Francisco Bay Area; San Francisco, California, United States",
+          "source_url": "https://job-boards.greenhouse.io/discord/jobs/8806163002"
+        }
+      ]
     }
   },
   {
@@ -1439,50 +1264,35 @@
     "access_mode": "automatic",
     "source": {
       "type": "greenhouse",
-      "name": "Duolingo",
       "board": "duolingo",
+      "name": "Duolingo",
       "countries": [
         "US"
-      ],
-      "locations": [
-        "United States",
-        "United States of America",
-        "USA",
-        "U.S.A.",
-        "U.S.",
-        "New York",
-        "San Francisco",
-        "Seattle",
-        "Boston",
-        "Chicago",
-        "Austin",
-        "Los Angeles",
-        "San Diego",
-        "Washington, DC",
-        "Washington D.C.",
-        "Mountain View",
-        "Palo Alto",
-        "San Jose",
-        "Sunnyvale",
-        "Atlanta",
-        "Dallas",
-        "Houston",
-        "Denver",
-        "California",
-        "Massachusetts",
-        "Texas"
       ]
     },
-    "note": "Public Greenhouse feed checked with the existing application collector. Collection is filtered to the selected country; generic remote locations may need manual review. Job counts change and do not establish work eligibility.",
-    "checked_at": "2026-10-03",
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
     "verification": {
       "status": "collector_checked",
       "evidence_urls": [
         "https://job-boards.greenhouse.io/duolingo",
-        "https://boards-api.greenhouse.io/v1/boards/duolingo",
         "https://boards-api.greenhouse.io/v1/boards/duolingo/jobs?content=true"
       ],
-      "detail": "{\"collector\": \"fetch_greenhouse\", \"total_jobs\": 61, \"country_location_matches\": {\"US\": 40, \"DE\": 0}}"
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 58 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 58,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 49,
+        "DE": 0,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Software Engineer II, iOS, Growth",
+          "location": "Beijing, China; Beijing Shi, China",
+          "source_url": "https://careers.duolingo.com/jobs/8612120002?gh_jid=8612120002"
+        }
+      ]
     }
   },
   {
@@ -1699,72 +1509,46 @@
     "access_mode": "automatic",
     "source": {
       "type": "greenhouse",
-      "name": "Figma",
       "board": "figma",
+      "name": "Figma",
       "countries": [
         "US",
         "DE"
-      ],
-      "locations": [
-        "United States",
-        "United States of America",
-        "USA",
-        "U.S.A.",
-        "U.S.",
-        "New York",
-        "San Francisco",
-        "Seattle",
-        "Boston",
-        "Chicago",
-        "Austin",
-        "Los Angeles",
-        "San Diego",
-        "Washington, DC",
-        "Washington D.C.",
-        "Mountain View",
-        "Palo Alto",
-        "San Jose",
-        "Sunnyvale",
-        "Atlanta",
-        "Dallas",
-        "Houston",
-        "Denver",
-        "California",
-        "Massachusetts",
-        "Texas",
-        "Germany",
-        "Deutschland",
-        "Berlin",
-        "Munich",
-        "München",
-        "Hamburg",
-        "Frankfurt",
-        "Cologne",
-        "Köln",
-        "Düsseldorf",
-        "Dusseldorf",
-        "Stuttgart",
-        "Dresden",
-        "Leipzig",
-        "Bonn",
-        "Karlsruhe",
-        "Darmstadt",
-        "Walldorf",
-        "Erlangen",
-        "Nuremberg",
-        "Nürnberg"
       ]
     },
-    "note": "Public Greenhouse feed checked with the existing application collector. Collection is filtered to the selected country; generic remote locations may need manual review. Job counts change and do not establish work eligibility.",
-    "checked_at": "2026-10-03",
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
     "verification": {
       "status": "collector_checked",
       "evidence_urls": [
         "https://job-boards.greenhouse.io/figma",
-        "https://boards-api.greenhouse.io/v1/boards/figma",
         "https://boards-api.greenhouse.io/v1/boards/figma/jobs?content=true"
       ],
-      "detail": "{\"collector\": \"fetch_greenhouse\", \"total_jobs\": 162, \"country_location_matches\": {\"US\": 107, \"DE\": 8}}"
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 152 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 152,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 103,
+        "DE": 8,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Data Scientist, Finance",
+          "location": "San Francisco, CA • New York, NY • United States",
+          "source_url": "https://boards.greenhouse.io/figma/jobs/6013304004?gh_jid=6013304004"
+        },
+        {
+          "title": "Product Designer, Design, Dev, & AI Tools",
+          "location": "San Francisco, CA • New York, NY • United States",
+          "source_url": "https://boards.greenhouse.io/figma/jobs/5711468004?gh_jid=5711468004"
+        },
+        {
+          "title": "Software Engineer - AI Platforms",
+          "location": "San Francisco, CA • New York, NY • United States",
+          "source_url": "https://boards.greenhouse.io/figma/jobs/5691886004?gh_jid=5691886004"
+        }
+      ]
     }
   },
   {
@@ -1892,72 +1676,29 @@
     "access_mode": "automatic",
     "source": {
       "type": "greenhouse",
-      "name": "GetYourGuide",
       "board": "getyourguide",
+      "name": "GetYourGuide",
       "countries": [
         "US",
         "DE"
-      ],
-      "locations": [
-        "United States",
-        "United States of America",
-        "USA",
-        "U.S.A.",
-        "U.S.",
-        "New York",
-        "San Francisco",
-        "Seattle",
-        "Boston",
-        "Chicago",
-        "Austin",
-        "Los Angeles",
-        "San Diego",
-        "Washington, DC",
-        "Washington D.C.",
-        "Mountain View",
-        "Palo Alto",
-        "San Jose",
-        "Sunnyvale",
-        "Atlanta",
-        "Dallas",
-        "Houston",
-        "Denver",
-        "California",
-        "Massachusetts",
-        "Texas",
-        "Germany",
-        "Deutschland",
-        "Berlin",
-        "Munich",
-        "München",
-        "Hamburg",
-        "Frankfurt",
-        "Cologne",
-        "Köln",
-        "Düsseldorf",
-        "Dusseldorf",
-        "Stuttgart",
-        "Dresden",
-        "Leipzig",
-        "Bonn",
-        "Karlsruhe",
-        "Darmstadt",
-        "Walldorf",
-        "Erlangen",
-        "Nuremberg",
-        "Nürnberg"
       ]
     },
-    "note": "Public Greenhouse feed checked with the existing application collector. Collection is filtered to the selected country; generic remote locations may need manual review. Job counts change and do not establish work eligibility.",
-    "checked_at": "2026-10-03",
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
     "verification": {
       "status": "collector_checked",
       "evidence_urls": [
         "https://job-boards.greenhouse.io/getyourguide",
-        "https://boards-api.greenhouse.io/v1/boards/getyourguide",
         "https://boards-api.greenhouse.io/v1/boards/getyourguide/jobs?content=true"
       ],
-      "detail": "{\"collector\": \"fetch_greenhouse\", \"total_jobs\": 56, \"country_location_matches\": {\"US\": 3, \"DE\": 40}}"
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 63 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 63,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 2,
+        "DE": 47,
+        "UA": 0
+      }
     }
   },
   {
@@ -2018,72 +1759,29 @@
     "access_mode": "automatic",
     "source": {
       "type": "greenhouse",
-      "name": "Grafana Labs",
       "board": "grafanalabs",
+      "name": "Grafana Labs",
       "countries": [
         "US",
         "DE"
-      ],
-      "locations": [
-        "United States",
-        "United States of America",
-        "USA",
-        "U.S.A.",
-        "U.S.",
-        "New York",
-        "San Francisco",
-        "Seattle",
-        "Boston",
-        "Chicago",
-        "Austin",
-        "Los Angeles",
-        "San Diego",
-        "Washington, DC",
-        "Washington D.C.",
-        "Mountain View",
-        "Palo Alto",
-        "San Jose",
-        "Sunnyvale",
-        "Atlanta",
-        "Dallas",
-        "Houston",
-        "Denver",
-        "California",
-        "Massachusetts",
-        "Texas",
-        "Germany",
-        "Deutschland",
-        "Berlin",
-        "Munich",
-        "München",
-        "Hamburg",
-        "Frankfurt",
-        "Cologne",
-        "Köln",
-        "Düsseldorf",
-        "Dusseldorf",
-        "Stuttgart",
-        "Dresden",
-        "Leipzig",
-        "Bonn",
-        "Karlsruhe",
-        "Darmstadt",
-        "Walldorf",
-        "Erlangen",
-        "Nuremberg",
-        "Nürnberg"
       ]
     },
-    "note": "Public Greenhouse feed checked with the existing application collector. Collection is filtered to the selected country; generic remote locations may need manual review. Job counts change and do not establish work eligibility.",
-    "checked_at": "2026-10-03",
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
     "verification": {
       "status": "collector_checked",
       "evidence_urls": [
         "https://job-boards.greenhouse.io/grafanalabs",
-        "https://boards-api.greenhouse.io/v1/boards/grafanalabs",
         "https://boards-api.greenhouse.io/v1/boards/grafanalabs/jobs?content=true"
       ],
-      "detail": "{\"collector\": \"fetch_greenhouse\", \"total_jobs\": 122, \"country_location_matches\": {\"US\": 39, \"DE\": 9}}"
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 106 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 106,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 41,
+        "DE": 7,
+        "UA": 0
+      }
     }
   },
   {
@@ -2344,50 +2042,45 @@
     "access_mode": "automatic",
     "source": {
       "type": "greenhouse",
-      "name": "Instacart",
       "board": "instacart",
+      "name": "Instacart",
       "countries": [
         "US"
-      ],
-      "locations": [
-        "United States",
-        "United States of America",
-        "USA",
-        "U.S.A.",
-        "U.S.",
-        "New York",
-        "San Francisco",
-        "Seattle",
-        "Boston",
-        "Chicago",
-        "Austin",
-        "Los Angeles",
-        "San Diego",
-        "Washington, DC",
-        "Washington D.C.",
-        "Mountain View",
-        "Palo Alto",
-        "San Jose",
-        "Sunnyvale",
-        "Atlanta",
-        "Dallas",
-        "Houston",
-        "Denver",
-        "California",
-        "Massachusetts",
-        "Texas"
       ]
     },
-    "note": "Public Greenhouse feed checked with the existing application collector. Collection is filtered to the selected country; generic remote locations may need manual review. Job counts change and do not establish work eligibility.",
-    "checked_at": "2026-10-03",
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
     "verification": {
       "status": "collector_checked",
       "evidence_urls": [
         "https://job-boards.greenhouse.io/instacart",
-        "https://boards-api.greenhouse.io/v1/boards/instacart",
         "https://boards-api.greenhouse.io/v1/boards/instacart/jobs?content=true"
       ],
-      "detail": "{\"collector\": \"fetch_greenhouse\", \"total_jobs\": 131, \"country_location_matches\": {\"US\": 70, \"DE\": 0}}"
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 118 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 118,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 67,
+        "DE": 0,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Analytics Engineer II",
+          "location": "Canada - Remote (ON, AB, BC, or NS Only)",
+          "source_url": "https://instacart.careers/job/?gh_jid=8167458"
+        },
+        {
+          "title": "Data Analyst, Platform Excellence Ops Analytics",
+          "location": "Canada - Remote (ON, AB, BC, or NS Only)",
+          "source_url": "https://instacart.careers/job/?gh_jid=8249896"
+        },
+        {
+          "title": "Data Analyst, Platform Excellence Ops Analytics",
+          "location": "United States - Remote",
+          "source_url": "https://instacart.careers/job/?gh_jid=8249894"
+        }
+      ]
     }
   },
   {
@@ -2939,45 +2632,40 @@
     "access_mode": "automatic",
     "source": {
       "type": "greenhouse",
-      "name": "N26",
       "board": "n26",
+      "name": "N26",
       "countries": [
         "DE"
-      ],
-      "locations": [
-        "Germany",
-        "Deutschland",
-        "Berlin",
-        "Munich",
-        "München",
-        "Hamburg",
-        "Frankfurt",
-        "Cologne",
-        "Köln",
-        "Düsseldorf",
-        "Dusseldorf",
-        "Stuttgart",
-        "Dresden",
-        "Leipzig",
-        "Bonn",
-        "Karlsruhe",
-        "Darmstadt",
-        "Walldorf",
-        "Erlangen",
-        "Nuremberg",
-        "Nürnberg"
       ]
     },
-    "note": "Public Greenhouse feed checked with the existing application collector. Collection is filtered to the selected country; generic remote locations may need manual review. Job counts change and do not establish work eligibility.",
-    "checked_at": "2026-10-03",
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
     "verification": {
       "status": "collector_checked",
       "evidence_urls": [
         "https://job-boards.greenhouse.io/n26",
-        "https://boards-api.greenhouse.io/v1/boards/n26",
         "https://boards-api.greenhouse.io/v1/boards/n26/jobs?content=true"
       ],
-      "detail": "{\"collector\": \"fetch_greenhouse\", \"total_jobs\": 52, \"country_location_matches\": {\"US\": 0, \"DE\": 34}}"
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 42 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 42,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 0,
+        "DE": 28,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Data Scientist",
+          "location": "Barcelona; Barcelona, Barcelona, Spain",
+          "source_url": "https://n26.com/en-eu/careers/positions/8261383?gh_jid=8261383"
+        },
+        {
+          "title": "Data Scientist",
+          "location": "Berlin; Barcelona, Barcelona, Spain",
+          "source_url": "https://n26.com/en-eu/careers/positions/8260904?gh_jid=8260904"
+        }
+      ]
     }
   },
   {
@@ -3149,72 +2837,36 @@
     "access_mode": "automatic",
     "source": {
       "type": "greenhouse",
-      "name": "Planet",
       "board": "planetlabs",
+      "name": "Planet",
       "countries": [
         "US",
         "DE"
-      ],
-      "locations": [
-        "United States",
-        "United States of America",
-        "USA",
-        "U.S.A.",
-        "U.S.",
-        "New York",
-        "San Francisco",
-        "Seattle",
-        "Boston",
-        "Chicago",
-        "Austin",
-        "Los Angeles",
-        "San Diego",
-        "Washington, DC",
-        "Washington D.C.",
-        "Mountain View",
-        "Palo Alto",
-        "San Jose",
-        "Sunnyvale",
-        "Atlanta",
-        "Dallas",
-        "Houston",
-        "Denver",
-        "California",
-        "Massachusetts",
-        "Texas",
-        "Germany",
-        "Deutschland",
-        "Berlin",
-        "Munich",
-        "München",
-        "Hamburg",
-        "Frankfurt",
-        "Cologne",
-        "Köln",
-        "Düsseldorf",
-        "Dusseldorf",
-        "Stuttgart",
-        "Dresden",
-        "Leipzig",
-        "Bonn",
-        "Karlsruhe",
-        "Darmstadt",
-        "Walldorf",
-        "Erlangen",
-        "Nuremberg",
-        "Nürnberg"
       ]
     },
-    "note": "Public Greenhouse feed checked with the existing application collector. Collection is filtered to the selected country; generic remote locations may need manual review. Job counts change and do not establish work eligibility.",
-    "checked_at": "2026-10-03",
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
     "verification": {
       "status": "collector_checked",
       "evidence_urls": [
         "https://job-boards.greenhouse.io/planetlabs",
-        "https://boards-api.greenhouse.io/v1/boards/planetlabs",
         "https://boards-api.greenhouse.io/v1/boards/planetlabs/jobs?content=true"
       ],
-      "detail": "{\"collector\": \"fetch_greenhouse\", \"total_jobs\": 121, \"country_location_matches\": {\"US\": 41, \"DE\": 24}}"
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 119 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 119,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 57,
+        "DE": 24,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Satellite Data Processing Engineer",
+          "location": "Berlin, Germany",
+          "source_url": "https://job-boards.greenhouse.io/planetlabs/jobs/8221300"
+        }
+      ]
     }
   },
   {
@@ -3299,72 +2951,46 @@
     "access_mode": "automatic",
     "source": {
       "type": "greenhouse",
-      "name": "Reddit",
       "board": "reddit",
+      "name": "Reddit",
       "countries": [
         "US",
         "DE"
-      ],
-      "locations": [
-        "United States",
-        "United States of America",
-        "USA",
-        "U.S.A.",
-        "U.S.",
-        "New York",
-        "San Francisco",
-        "Seattle",
-        "Boston",
-        "Chicago",
-        "Austin",
-        "Los Angeles",
-        "San Diego",
-        "Washington, DC",
-        "Washington D.C.",
-        "Mountain View",
-        "Palo Alto",
-        "San Jose",
-        "Sunnyvale",
-        "Atlanta",
-        "Dallas",
-        "Houston",
-        "Denver",
-        "California",
-        "Massachusetts",
-        "Texas",
-        "Germany",
-        "Deutschland",
-        "Berlin",
-        "Munich",
-        "München",
-        "Hamburg",
-        "Frankfurt",
-        "Cologne",
-        "Köln",
-        "Düsseldorf",
-        "Dusseldorf",
-        "Stuttgart",
-        "Dresden",
-        "Leipzig",
-        "Bonn",
-        "Karlsruhe",
-        "Darmstadt",
-        "Walldorf",
-        "Erlangen",
-        "Nuremberg",
-        "Nürnberg"
       ]
     },
-    "note": "Public Greenhouse feed checked with the existing application collector. Collection is filtered to the selected country; generic remote locations may need manual review. Job counts change and do not establish work eligibility.",
-    "checked_at": "2026-10-03",
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
     "verification": {
       "status": "collector_checked",
       "evidence_urls": [
         "https://job-boards.greenhouse.io/reddit",
-        "https://boards-api.greenhouse.io/v1/boards/reddit",
         "https://boards-api.greenhouse.io/v1/boards/reddit/jobs?content=true"
       ],
-      "detail": "{\"collector\": \"fetch_greenhouse\", \"total_jobs\": 152, \"country_location_matches\": {\"US\": 120, \"DE\": 1}}"
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 153 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 153,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 125,
+        "DE": 1,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Front End Software Engineer, Media Player",
+          "location": "Remote - United States",
+          "source_url": "https://job-boards.greenhouse.io/reddit/jobs/8198102"
+        },
+        {
+          "title": "Software Engineer, Ads",
+          "location": "Remote - United States",
+          "source_url": "https://job-boards.greenhouse.io/reddit/jobs/6469397"
+        },
+        {
+          "title": "Software Engineer, Ads",
+          "location": "Remote - Ontario, Canada",
+          "source_url": "https://job-boards.greenhouse.io/reddit/jobs/6512458"
+        }
+      ]
     }
   },
   {
@@ -3469,72 +3095,46 @@
     "access_mode": "automatic",
     "source": {
       "type": "greenhouse",
-      "name": "Rubrik",
       "board": "rubrik",
+      "name": "Rubrik",
       "countries": [
         "US",
         "DE"
-      ],
-      "locations": [
-        "United States",
-        "United States of America",
-        "USA",
-        "U.S.A.",
-        "U.S.",
-        "New York",
-        "San Francisco",
-        "Seattle",
-        "Boston",
-        "Chicago",
-        "Austin",
-        "Los Angeles",
-        "San Diego",
-        "Washington, DC",
-        "Washington D.C.",
-        "Mountain View",
-        "Palo Alto",
-        "San Jose",
-        "Sunnyvale",
-        "Atlanta",
-        "Dallas",
-        "Houston",
-        "Denver",
-        "California",
-        "Massachusetts",
-        "Texas",
-        "Germany",
-        "Deutschland",
-        "Berlin",
-        "Munich",
-        "München",
-        "Hamburg",
-        "Frankfurt",
-        "Cologne",
-        "Köln",
-        "Düsseldorf",
-        "Dusseldorf",
-        "Stuttgart",
-        "Dresden",
-        "Leipzig",
-        "Bonn",
-        "Karlsruhe",
-        "Darmstadt",
-        "Walldorf",
-        "Erlangen",
-        "Nuremberg",
-        "Nürnberg"
       ]
     },
-    "note": "Public Greenhouse feed checked with the existing application collector. Collection is filtered to the selected country; generic remote locations may need manual review. Job counts change and do not establish work eligibility.",
-    "checked_at": "2026-10-03",
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
     "verification": {
       "status": "collector_checked",
       "evidence_urls": [
         "https://job-boards.greenhouse.io/rubrik",
-        "https://boards-api.greenhouse.io/v1/boards/rubrik",
         "https://boards-api.greenhouse.io/v1/boards/rubrik/jobs?content=true"
       ],
-      "detail": "{\"collector\": \"fetch_greenhouse\", \"total_jobs\": 128, \"country_location_matches\": {\"US\": 49, \"DE\": 2}}"
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 132 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 132,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 56,
+        "DE": 3,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Software Engineer, Atlas Distributed Systems",
+          "location": "Palo Alto, CA; Palo Alto, CA, United States",
+          "source_url": "https://www.rubrik.com/company/careers/departments/job.8122613?gh_jid=8122613"
+        },
+        {
+          "title": "Software Engineer - Cloud: Azure",
+          "location": "Bangalore; Bangalore East, Bengaluru, Karnataka, India",
+          "source_url": "https://www.rubrik.com/company/careers/departments/job.8258200?gh_jid=8258200"
+        },
+        {
+          "title": "Software Engineer - Product Platform Security",
+          "location": "Palo Alto, CA; Palo Alto, CA, United States",
+          "source_url": "https://www.rubrik.com/company/careers/departments/job.8243737?gh_jid=8243737"
+        }
+      ]
     }
   },
   {
@@ -3930,72 +3530,36 @@
     "access_mode": "automatic",
     "source": {
       "type": "greenhouse",
-      "name": "think-cell",
       "board": "thinkcellsoftware",
+      "name": "think-cell",
       "countries": [
         "US",
         "DE"
-      ],
-      "locations": [
-        "United States",
-        "United States of America",
-        "USA",
-        "U.S.A.",
-        "U.S.",
-        "New York",
-        "San Francisco",
-        "Seattle",
-        "Boston",
-        "Chicago",
-        "Austin",
-        "Los Angeles",
-        "San Diego",
-        "Washington, DC",
-        "Washington D.C.",
-        "Mountain View",
-        "Palo Alto",
-        "San Jose",
-        "Sunnyvale",
-        "Atlanta",
-        "Dallas",
-        "Houston",
-        "Denver",
-        "California",
-        "Massachusetts",
-        "Texas",
-        "Germany",
-        "Deutschland",
-        "Berlin",
-        "Munich",
-        "München",
-        "Hamburg",
-        "Frankfurt",
-        "Cologne",
-        "Köln",
-        "Düsseldorf",
-        "Dusseldorf",
-        "Stuttgart",
-        "Dresden",
-        "Leipzig",
-        "Bonn",
-        "Karlsruhe",
-        "Darmstadt",
-        "Walldorf",
-        "Erlangen",
-        "Nuremberg",
-        "Nürnberg"
       ]
     },
-    "note": "Public Greenhouse feed checked with the existing application collector. Collection is filtered to the selected country; generic remote locations may need manual review. Job counts change and do not establish work eligibility.",
-    "checked_at": "2026-10-03",
+    "note": "Verified public employer feed. Collection reads roles across experience levels; the recommendation profile determines suitability. Country scope is based on observed locations; remote work, language, authorization and degree requirements must be reviewed per vacancy.",
+    "checked_at": "2026-10-09",
     "verification": {
       "status": "collector_checked",
       "evidence_urls": [
         "https://job-boards.greenhouse.io/thinkcellsoftware",
-        "https://boards-api.greenhouse.io/v1/boards/thinkcellsoftware",
         "https://boards-api.greenhouse.io/v1/boards/thinkcellsoftware/jobs?content=true"
       ],
-      "detail": "{\"collector\": \"fetch_greenhouse\", \"total_jobs\": 27, \"country_location_matches\": {\"US\": 12, \"DE\": 12}}"
+      "detail": "Actual greenhouse application collector completed on 2026-10-09. Read 27 public postings; country counts use structured addresses and location hints. Full public feed, not a role-specific search. Counts are observations, not candidate recommendations or eligibility checks. Generic remote locations are not assigned to a country. No applications sent.",
+      "jobs_observed": 27,
+      "country_matches_observed": {
+        "NO": 0,
+        "US": 12,
+        "DE": 14,
+        "UA": 0
+      },
+      "role_examples_observed": [
+        {
+          "title": "Data Scientist (f/m/d)",
+          "location": "Berlin (Germany); Berlin, Berlin, Germany",
+          "source_url": "https://job-boards.eu.greenhouse.io/thinkcellsoftware/jobs/4972158101"
+        }
+      ]
     }
   },
   {

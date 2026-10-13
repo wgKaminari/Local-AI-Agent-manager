@@ -17,6 +17,7 @@ from .storage import JobStore
 
 DEFAULT_PROFILE = {
     "name": "", "summary": "", "skills": [], "evidence": [], "cv_text": "",
+    "years_of_experience": None,
     "target_roles": ["Data Scientist", "Data Science", "AI Engineer", "Artificial Intelligence", "Machine Learning Engineer", "ML Engineer", "Mathematician", "maskinlæring", "kunstig intelligens", "matematiker"],
     "related_roles": ["Data Analyst", "Data Engineer", "Research Engineer", "Research Scientist", "Applied Scientist", "Statistician", "Quantitative Analyst", "Analytics Engineer", "Research Assistant", "PhD", "stipendiat", "dataanalytiker", "statistiker"],
     "preferred_locations": [], "excluded_keywords": [],
@@ -79,8 +80,8 @@ def read_settings(data_dir: Path) -> dict:
 def save_settings(data_dir: Path, settings: dict) -> None:
     if not isinstance(settings, dict) or not isinstance(settings.get("sources"), list):
         raise ValueError("Settings need a sources list.")
-    if len(settings["sources"]) > 100:
-        raise ValueError("Use at most 100 sources per run.")
+    if len(settings["sources"]) > 250:
+        raise ValueError("Use at most 250 configured sources.")
     from .local_ai import validate_model_name
     from .countries import COUNTRIES, validate_countries
     if settings.get("active_country", "") not in {"", *COUNTRIES}:
@@ -89,17 +90,93 @@ def save_settings(data_dir: Path, settings: dict) -> None:
     from .company_sources import COMPANY_SOURCE_TYPES, validate_company_source
     validate_model_name(settings.get("model", "qwen3:4b"))
     for source in settings["sources"]:
-        if not isinstance(source, dict) or source.get("type") not in {"nav", "greenhouse", "lever", "job_url", *COMPANY_SOURCE_TYPES}:
+        if not isinstance(source, dict) or source.get("type") not in {"nav", "greenhouse", "lever", "ashby", "job_url", *COMPANY_SOURCE_TYPES}:
             raise ValueError("Choose NAV, a supported company source or a job URL for each source.")
         if "countries" in source:
             validate_countries(source["countries"])
         if source["type"] in COMPANY_SOURCE_TYPES:
             validate_company_source(source)
-        if source["type"] in ("greenhouse", "lever") and not str(source.get("board", "")).strip():
+        if source["type"] in ("greenhouse", "lever", "ashby") and not str(source.get("board", "")).strip():
             raise ValueError("A company source needs its board ID.")
         if source["type"] == "job_url" and not str(source.get("url", "")).startswith(("https://", "http://")):
             raise ValueError("A job page needs its full HTTP(S) URL.")
     _write_json(Path(data_dir) / "sources.json", settings)
+
+
+def _merge_catalog_sources(settings: dict, entries: list[dict], countries: list[str]) -> None:
+    from .company_catalog import source_for_countries
+    configured = settings["sources"]
+
+    def identity(source):
+        # Different Workday searches or crawl limits are separate sources.
+        # Only country/location scopes and display names may be combined.
+        value = {key: item for key, item in source.items() if key not in {"name", "countries", "locations"}}
+        if value.get("type") == "lever":
+            value.setdefault("region", "global")
+        return json.dumps(value, sort_keys=True, ensure_ascii=False)
+
+    for entry in entries:
+        source = source_for_countries(entry, countries)
+        if source is None:
+            continue
+        existing = next((item for item in configured if identity(item) == identity(source)
+                         and (item.get("countries") or not item.get("locations")
+                              or item.get("locations") == source.get("locations"))), None)
+        if existing is None:
+            configured.append(source)
+            continue
+        # An unscoped existing source already covers the selected country;
+        # do not accidentally narrow a user's global board configuration.
+        if existing.get("countries"):
+            existing["countries"] = list(dict.fromkeys([*existing["countries"], *source["countries"]]))
+            if existing.get("locations") and source.get("locations"):
+                existing["locations"] = list(dict.fromkeys([*existing["locations"], *source["locations"]]))
+            else:
+                # A residual location filter could silently exclude every
+                # job in the newly selected country. Country filtering is
+                # still applied independently by the collector.
+                existing.pop("locations", None)
+    if len(configured) > 250:
+        raise ValueError(f"Adding these presets would use {len(configured)} sources; the limit is 250. Remove unused sources first. Your saved country and sources were not changed.")
+
+
+def select_country(data_dir: Path, country: str) -> dict:
+    """Save a country view and add its employer presets once, as one update.
+
+    Shared candidate facts are never rewritten. A source-cap failure leaves
+    both the prior selection and its presets intact, so the UI can explain it
+    without silently enabling only part of a country's directory.
+    """
+    from .countries import COUNTRIES
+    from .company_catalog import company_catalog
+
+    if not isinstance(country, str) or country not in {"", *COUNTRIES}:
+        raise ValueError("Choose NO, US, DE, UA or all countries.")
+    settings = read_settings(data_dir)
+    if country and country not in settings["country_presets_added"]:
+        _merge_catalog_sources(settings, company_catalog(country), [country])
+        settings["country_presets_added"].append(country)
+    settings["active_country"] = country
+    save_settings(data_dir, settings)
+    return settings
+
+
+def add_catalog_sources(data_dir: Path, ids: list[str], country: str = "") -> dict:
+    """Add explicitly selected employer collectors without partial saves."""
+    from .countries import COUNTRIES
+    from .company_catalog import company_catalog
+
+    if not isinstance(country, str) or country not in {"", *COUNTRIES}:
+        raise ValueError("Choose NO, US, DE, UA or all countries.")
+    if not isinstance(ids, list) or len(ids) > 500 or any(not isinstance(item, str) for item in ids):
+        raise ValueError("Choose a list of employer directory IDs.")
+    catalog = {entry["id"]: entry for entry in company_catalog(country)}
+    if any(item not in catalog or not catalog[item].get("source") for item in ids):
+        raise ValueError("Choose employers with an automatic collector in the selected country.")
+    settings = read_settings(data_dir)
+    _merge_catalog_sources(settings, [catalog[item] for item in dict.fromkeys(ids)], [country] if country else list(COUNTRIES))
+    save_settings(data_dir, settings)
+    return settings
 
 
 def collect(data_dir: Path, settings_override: dict | None = None, *, progress=None) -> dict:
@@ -119,7 +196,10 @@ def _collect(data_dir: Path, settings_override: dict | None = None, *, progress=
 
     settings = settings_override if settings_override is not None else read_settings(data_dir)
     profile = read_profile(data_dir)
-    report = {"created": 0, "updated": 0, "withdrawn": 0, "sources": []}
+    from datetime import datetime, timezone
+    report = {"created": 0, "updated": 0, "withdrawn": 0, "sources": [],
+              "country": settings.get("active_country", ""),
+              "started_at": datetime.now(timezone.utc).isoformat()}
     with JobStore(data_dir / "vacancies.db") as store:
         for index, source in enumerate(settings["sources"], 1):
             country = settings.get("active_country", "")
@@ -135,6 +215,7 @@ def _collect(data_dir: Path, settings_override: dict | None = None, *, progress=
                 item = collect_sources({"sources": [source]}, store)
                 report["created"] += item["created"]
                 report["updated"] += item["updated"]
+                report["withdrawn"] += item.get("withdrawn", 0)
                 report["sources"].extend(item["sources"])
                 continue
             result = {"source": source, "created": 0, "updated": 0, "withdrawn": 0}
@@ -148,15 +229,17 @@ def _collect(data_dir: Path, settings_override: dict | None = None, *, progress=
                 if state.get("keyword_hash") != fingerprint:
                     state = {}
                 batch = fetch_nav_batch(state, keywords, known_ids=store.source_ids("nav"))
-                for job in batch["jobs"]:
-                    _, created = store.upsert_job(job)
-                    key = "created" if created else "updated"
-                    result[key] += 1
-                    report[key] += 1
-                for source_id in batch["withdrawn_ids"]:
-                    if store.withdraw_source_job("nav", source_id):
-                        result["withdrawn"] += 1
-                        report["withdrawn"] += 1
+                counts = {"created": 0, "updated": 0, "withdrawn": 0}
+                with store.transaction():
+                    for job in batch["jobs"]:
+                        _, created = store.upsert_job(job)
+                        counts["created" if created else "updated"] += 1
+                    for source_id in batch["withdrawn_ids"]:
+                        if store.withdraw_source_job("nav", source_id):
+                            counts["withdrawn"] += 1
+                for key, count in counts.items():
+                    result[key] = count
+                    report[key] += count
                 # Failed writes never commit a cursor past unprocessed events.
                 _write_json(state_path, {**batch["state"], "keyword_hash": fingerprint})
                 result.update(ok=True, has_more=batch["has_more"], pages=batch["pages"], seen=batch["seen"], experimental_token=batch["experimental_token"])
@@ -164,32 +247,80 @@ def _collect(data_dir: Path, settings_override: dict | None = None, *, progress=
             except (ValueError, RuntimeError, OSError) as exc:
                 result.update(ok=False, error=str(exc))
             report["sources"].append(result)
+    report["completed_at"] = datetime.now(timezone.utc).isoformat()
     return report
 
 
-def vacancies(data_dir: Path, query: str = "", status: str = "", country: str = "") -> list[dict]:
+def vacancies(data_dir: Path, query: str = "", status: str = "", country: str = "", *, include_inactive: bool = False,
+              recommendations_only: bool = False, coverage: dict | None = None) -> list[dict]:
     from .countries import COUNTRIES, job_countries
     if country and country not in {*COUNTRIES, "unknown"}:
         raise ValueError("Choose a supported country or unknown.")
     profile = read_profile(data_dir)
     with JobStore(Path(data_dir) / "vacancies.db") as store:
-        jobs = store.list_jobs(status=status or None, query=query or None)
+        jobs = store.list_jobs(status=status or None, query=query or None, include_inactive=include_inactive)
     visible = []
+    in_scope, employers = 0, set()
     for job in jobs:
         job["countries"] = job_countries(job)
         if country == "unknown" and job["countries"]:
             continue
         if country and country != "unknown" and country not in job["countries"]:
             continue
-        job["match"] = match_job(job, profile)
+        if recommendations_only and not include_inactive and job.get("source") == "nav":
+            # Count precisely the same active NAV scope before the early role
+            # gate; a non-recommended advert need not parse its full description.
+            from datetime import date
+            try:
+                if date.fromisoformat(str(job.get("deadline") or "")[:10]) < date.today():
+                    continue
+            except ValueError:
+                pass
+        job["match"] = match_job(job, profile, recommendations_only=recommendations_only)
         # NAV requires inactive ads to leave results; an elapsed explicit
         # deadline also keeps the active search clear before the next refresh.
-        if job.get("source") == "nav" and job["match"]["expired"]:
+        if not include_inactive and job.get("source") == "nav" and job["match"] and job["match"]["expired"]:
+            continue
+        in_scope += 1
+        employers.add(job["company"])
+        if job["match"] is None:
             continue
         visible.append(job)
+    if coverage is not None:
+        coverage.update(in_scope=in_scope, employers=len(employers))
     rank = {"target": 2, "horizon": 1, "other": 0}
-    visible.sort(key=lambda job: (rank[job["match"]["track"]], job["match"]["score"] if job["match"]["score"] is not None else -1), reverse=True)
+    visible.sort(key=lambda job: (
+        job["match"].get("experience", {}).get("status") != "mismatch",
+        not bool(job["match"].get("excluded_terms") or job["match"].get("expired")),
+        rank[job["match"]["track"]],
+        job["match"]["score"] if job["match"]["score"] is not None else -1), reverse=True)
     return visible
+
+
+def discovery_coverage(data_dir: Path, country: str = "") -> dict:
+    """Report configured collection separately from a directory's research links."""
+    from .company_catalog import company_catalog, job_board_catalog
+    from .countries import COUNTRIES
+    if country and country not in COUNTRIES:
+        raise ValueError("Choose a supported country or all countries.")
+    settings = read_settings(data_dir)
+    sources = [source for source in settings["sources"] if not country or (
+        (source.get("type") != "nav" or country == "NO") and
+        (not source.get("countries") or country in source["countries"]))]
+    catalog = company_catalog(country)
+    report_path = Path(data_dir) / "last-collection.json"
+    report = _read_json(report_path) if report_path.exists() else None
+    # Old reports lack country metadata: don't present them as this market's run.
+    current_report = report if report and report.get("country") == country else None
+    checked = current_report.get("sources", []) if current_report else []
+    return {"country": country, "directory_employers": len(catalog),
+            "available_collectors": sum(bool(row.get("source")) for row in catalog),
+            "job_board_links": len(job_board_catalog(country)),
+            "configured_collectors": len(sources),
+            "last_run": current_report.get("started_at") if current_report else None,
+            "checked": len(checked), "failed": sum(not row.get("ok") for row in checked),
+            "limited": sum(bool(row.get("has_more")) for row in checked),
+            "legacy_report": bool(report and "country" not in report)}
 
 
 def get_vacancy(data_dir: Path, id: int) -> dict:
@@ -213,8 +344,9 @@ def import_vacancy(data_dir: Path, job: dict) -> tuple[int, bool]:
 
 def update_workflow(data_dir: Path, id: int, status: str, notes: str) -> None:
     with JobStore(Path(data_dir) / "vacancies.db") as store:
-        store.update_status(id, status)
-        store.update_notes(id, notes)
+        with store.transaction():
+            store.update_status(id, status)
+            store.update_notes(id, notes)
 
 
 def import_email_candidates(data_dir: Path, candidates: list[dict]) -> dict:
@@ -244,11 +376,12 @@ def import_email_candidates(data_dir: Path, candidates: list[dict]) -> dict:
         prepared.append((item, provenance, external_id))
     report = {"created": 0, "existing": 0, "ids": []}
     with JobStore(Path(data_dir) / "vacancies.db") as store:
-        for item, provenance, external_id in prepared:
-            job_id, created = store.upsert_job(item, fill_only=True)
-            store.record_provenance(job_id, "email", external_id, provenance)
-            report["created" if created else "existing"] += 1
-            report["ids"].append(job_id)
+        with store.transaction():
+            for item, provenance, external_id in prepared:
+                job_id, created = store.upsert_job(item, fill_only=True)
+                store.record_provenance(job_id, "email", external_id, provenance)
+                report["created" if created else "existing"] += 1
+                report["ids"].append(job_id)
     return report
 
 
@@ -296,7 +429,7 @@ def suggest_profile(data_dir: Path, cv_text: str) -> dict:
     return extract_profile(cv_text, model=read_settings(data_dir)["model"])
 
 
-def write_letter(data_dir: Path, id: int) -> dict:
+def write_letter(data_dir: Path, id: int, *, persist: bool = True) -> dict:
     from .local_ai import generate_cover_letter
     job = get_vacancy(data_dir, id)
     if not job.get("is_active", True):
@@ -305,9 +438,12 @@ def write_letter(data_dir: Path, id: int) -> dict:
     profile = profile_for_job(read_profile(data_dir), job)
     model = read_settings(data_dir)["model"]
     result = generate_cover_letter(job, profile, model=model)
-    with JobStore(Path(data_dir) / "vacancies.db") as store:
-        # A generation request never changes the application status.
-        result["id"] = store.save_draft(id, result["cover_letter"], model=model, profile_hash=profile_hash(profile))
+    if persist:
+        with JobStore(Path(data_dir) / "vacancies.db") as store:
+            # A generation request never changes the application status.
+            result["id"] = store.save_draft(id, result["cover_letter"], model=model, profile_hash=profile_hash(profile))
+    else:
+        result["draft_metadata"] = {"model": model, "profile_hash": profile_hash(profile)}
     return result
 
 
@@ -335,7 +471,7 @@ def discover_application(data_dir: Path, id: int, manual_text: str = "") -> dict
     return {"form": form, "answers": [], "review_notes": [], "job_id": id}
 
 
-def prepare_application(data_dir: Path, id: int, form: dict) -> dict:
+def prepare_application(data_dir: Path, id: int, form: dict, *, persist: bool = True) -> dict:
     from .application_answers import generate_application_answers
     from .countries import profile_for_job
     job = get_vacancy(data_dir, id)
@@ -351,7 +487,8 @@ def prepare_application(data_dir: Path, id: int, form: dict) -> dict:
             result["attachments"] = attachments
     result["job_id"] = id
     result["profile_hash"] = profile_hash(profile)
-    save_application(data_dir, id, result)
+    if persist:
+        save_application(data_dir, id, result)
     return result
 
 
