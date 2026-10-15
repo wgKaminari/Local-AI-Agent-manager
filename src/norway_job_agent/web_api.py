@@ -70,6 +70,14 @@ def _diverse_recommendations(jobs):
     return result
 
 
+def _list_match(match):
+    """The match summary a vacancy card renders; details come from /api/jobs/<id>."""
+    experience = match.get("experience") or {}
+    return {"score": match.get("score"), "track": match.get("track"), "expired": match.get("expired", False),
+            "excluded_terms": match.get("excluded_terms", []),
+            "experience": {key: experience.get(key) for key in ("status", "candidate_years", "minimum_years")}}
+
+
 def _appearance(data_dir):
     """Share the legacy desktop preference file without importing Tk widgets."""
     result = {"theme": "light", "sidebar_visible": True}
@@ -293,12 +301,11 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
 
     @app.get("/api/bootstrap")
     def bootstrap():
-        report = data_dir / "last-collection.json"
         from .cli import STATUSES
         return jsonify(profile=service.read_profile(data_dir), settings=service.read_settings(data_dir),
                        appearance=_appearance(data_dir),
                        countries=COUNTRIES, statuses=STATUSES, catalog=company_catalog(), boards=job_board_catalog(),
-                       gmail=gmail.connection_status(data_dir), collection=json.loads(report.read_text(encoding="utf-8")) if report.exists() else None)
+                       gmail=gmail.connection_status(data_dir), collection=service.read_collection_report(data_dir))
 
     @app.get("/api/jobs")
     def jobs():
@@ -306,17 +313,17 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
         if view not in {"discover", "saved", "applications", "for-you"}:
             raise ValueError("Choose a vacancy view.")
         summary = {}
-        jobs = service.vacancies(data_dir, query=request.args.get("query", ""), status=request.args.get("status", ""),
-                                 country=request.args.get("country", ""), include_inactive=view in {"saved", "applications"},
-                                 recommendations_only=view == "for-you", coverage=summary)
+        stages = None
         if view == "saved":
-            jobs = [job for job in jobs if job["status"] == "saved"]
+            stages = {"saved"}
         elif view == "applications":
             stages = {"preparing", "ready", "applied", "interview", "rejected"}
             if request.args.get("status") == "archived":
                 stages.add("archived")
-            jobs = [job for job in jobs if job["status"] in stages]
-        elif view == "for-you":
+        jobs = service.vacancies(data_dir, query=request.args.get("query", ""), status=request.args.get("status", ""),
+                                 country=request.args.get("country", ""), include_inactive=view in {"saved", "applications"},
+                                 recommendations_only=view == "for-you", coverage=summary, stages=stages)
+        if view == "for-you":
             jobs = [job for job in jobs if job["match"]["track"] in {"target", "horizon"} and not job["match"].get("excluded_terms") and not job["match"].get("expired")]
         summary["role_matches"] = len(jobs) if view == "for-you" else sum(job["match"]["track"] in {"target", "horizon"} for job in jobs)
         summary["experience_mismatches"] = sum(job["match"].get("experience", {}).get("status") == "mismatch" for job in jobs)
@@ -336,11 +343,13 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
             raise ValueError("Choose match, newest or company sorting.")
         elif view == "for-you":
             jobs = _diverse_recommendations(jobs)
-        # Descriptions and raw provider JSON are loaded only for the selected
-        # vacancy. Sending every full advert made larger searches needlessly heavy.
+        # Descriptions, raw provider JSON and full match evidence are loaded
+        # only for the selected vacancy. Cards need just these summary fields;
+        # sending everything made a large discovery list several megabytes.
         for job in jobs:
             job.pop("description", None)
             job.pop("raw_json", None)
+            job["match"] = _list_match(job["match"])
         return jsonify(jobs=jobs, summary=summary)
 
     @app.get("/api/discovery/coverage")
@@ -496,7 +505,8 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
             page_token = _text(value.get("page_token", ""), "Page token", 5000)
             callback = lambda progress: gmail.fetch_candidates(data_dir, service.read_profile(data_dir), query=query, page_token=page_token)
         elif action == "gmail-connect":
-            upload = state.uploads.get(value.get("upload_id")) if isinstance(value.get("upload_id"), str) else None
+            with state.lock:
+                upload = state.uploads.get(value.get("upload_id")) if isinstance(value.get("upload_id"), str) else None
             if not upload or upload["kind"] != "gmail":
                 raise ValueError("Choose the downloaded Gmail desktop credentials JSON file.")
             path = upload["path"]

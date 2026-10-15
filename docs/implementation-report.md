@@ -1,3 +1,23 @@
+# Version 0.4 performance and reliability
+
+Measured on 15 October 2026 by running the 0.3 and 0.4 code back to back against the same private copy of a real database of about 4,000 vacancies on the development machine. These timings describe that dataset and machine, not guaranteed response times.
+
+| Area | Before | After |
+| --- | --- | --- |
+| Discover list | 3.9 s, 5.9 MB response | 1.2 s, 2.8 MB |
+| Discover search ("data") | 3.2 s, 4.6 MB | 1.0 s, 2.1 MB |
+| For you | 0.70 s | 0.40 s |
+| Saved / Applications | 4.0 s | 0.2 s |
+| Germany collection, 23 live sources | 3 min 32 s (last recorded 0.3 run) | 46–56 s (two runs) |
+
+- **Matching.** Experience-requirement extraction depends only on the advert text, so it is memoized by a digest of that text. Matching no longer deep-copies the profile for every advert. Saved and Applications match only their own stages while reporting the same scope counts. List rows carry only the match fields a card renders; full evidence still loads with the selected vacancy.
+- **Storage.** SQLite uses WAL mode, so the interface can read while a collection writes. A database with a complete schema opens without rerunning migration DDL; incomplete or older databases are still migrated.
+- **Collection.** Up to six sources download at once. Each source is still validated completely and written as one transaction, in configured order, so duplicate handling remains deterministic. An ordinary page read that loses its connection is retried once; HTTP errors and POST searches are not retried. Lever jobs use the configured employer name instead of the board ID.
+- **Local AI.** Cover letters, profile suggestions and application-answer batches retry up to three attempts in total when the output fails validation, telling the model which check failed. Every safety check still applies to every attempt, and connection, setup and timeout errors are not retried. The context window now grows with the input instead of a fixed 12k tokens.
+- **Resilience.** A damaged `last-collection.json` no longer prevents the application from opening.
+
+The full suite with `RUN_BROWSER_TESTS=1` passed: **508 tests**, including the real-Chromium interface and delivery tests.
+
 # Version 0.3 implementation and verification
 
 Release checks recorded on 14 October 2026. This report describes the implemented changes and completed checks; the broader design targets remain in [UI/UX research](ui-ux-research.md).

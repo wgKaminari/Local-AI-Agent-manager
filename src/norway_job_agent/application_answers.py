@@ -113,7 +113,7 @@ def _direct_contact(field, profile):
 def _validated_answers(result, fields, facts, style):
     answers = result.get("answers")
     if not isinstance(answers, list) or len(answers) != len(fields):
-        raise local_ai.LocalAIError("The model omitted or added application questions. Retry; no partial answer set was accepted.")
+        raise local_ai._RejectedOutput("The model omitted or added application questions. Retry; no partial answer set was accepted.")
     expected = {f["id"]: f for f in fields}
     accepted = {}
     sources = [facts["name"], facts["summary"], facts["cv_text"], facts["work_authorization"], facts["experience_summary"], *facts["skills"], *facts["evidence"],
@@ -121,7 +121,7 @@ def _validated_answers(result, fields, facts, style):
     required = set(_SCHEMA["properties"]["answers"]["items"]["required"])
     for item in answers:
         if not isinstance(item, dict) or set(item) != required or not isinstance(item.get("field_id"), str) or item["field_id"] not in expected or item["field_id"] in accepted:
-            raise local_ai.LocalAIError("The model returned unknown or repeated question identifiers; its answers were not accepted.")
+            raise local_ai._RejectedOutput("The model returned unknown or repeated question identifiers; its answers were not accepted.")
         field = expected[item["field_id"]]
         try:
             answer = local_ai._text(item["answer"], "Answer", 6000)
@@ -129,27 +129,27 @@ def _validated_answers(result, fields, facts, style):
             evidence = local_ai._strings(item["used_evidence"], "Answer evidence", maximum=8)
             notes = local_ai._strings(item["review_notes"], "Answer review notes", maximum=8)
         except ValueError:
-            raise local_ai.LocalAIError("The model returned malformed application answers; retry with fewer questions.") from None
+            raise local_ai._RejectedOutput("The model returned malformed application answers; retry with fewer questions.") from None
         if item["status"] == "needs_input":
             if answer or choices or evidence:
-                raise local_ai.LocalAIError("The model supplied an answer while marking facts unknown; retry and review the question.")
+                raise local_ai._RejectedOutput("The model supplied an answer while marking facts unknown; retry and review the question.")
             accepted[field["id"]] = _missing(field, " ".join(notes) or "Supply the missing candidate facts before answering.")
             continue
         if item["status"] != "draft" or not answer or not evidence or any(not local_ai._is_excerpt(e, sources) for e in evidence):
-            raise local_ai.LocalAIError("An application answer lacks valid candidate evidence. Retry and review all claims.")
+            raise local_ai._RejectedOutput("An application answer lacks valid candidate evidence. Retry and review all claims.")
         allowed = {option["value"]: option["label"] for option in field.get("options", [])}
         if field["type"] in {"single_select", "multi_select"}:
             if not choices or len(set(choices)) != len(choices) or any(choice not in allowed for choice in choices) or (field["type"] == "single_select" and len(choices) != 1):
-                raise local_ai.LocalAIError("The model selected an option that the form does not offer; its answers were not accepted.")
+                raise local_ai._RejectedOutput("The model selected an option that the form does not offer; its answers were not accepted.")
             answer = "; ".join(allowed[value] for value in choices)
         elif choices:
-            raise local_ai.LocalAIError("The model returned choices for a text question; its answers were not accepted.")
+            raise local_ai._RejectedOutput("The model returned choices for a text question; its answers were not accepted.")
         if field.get("max_length") and len(answer) > field["max_length"]:
-            raise local_ai.LocalAIError("An answer exceeds the form's character limit. Shorten the requested style and retry.")
+            raise local_ai._RejectedOutput("An answer exceeds the form's character limit. Shorten the requested style and retry.")
         if field["type"] in {"text", "textarea"} and len(answer.split()) > style["max_words"]:
-            raise local_ai.LocalAIError("An answer exceeds your writing-style word limit. Retry with shorter answers.")
+            raise local_ai._RejectedOutput("An answer exceeds your writing-style word limit. Retry with shorter answers.")
         if any(phrase and phrase.casefold() in answer.casefold() for phrase in style["avoid_phrases"]):
-            raise local_ai.LocalAIError("An answer contains a phrase you asked to avoid. Retry or edit your style instructions.")
+            raise local_ai._RejectedOutput("An answer contains a phrase you asked to avoid. Retry or edit your style instructions.")
         local_ai._check_language_claims(answer, facts["languages"])
         accepted[field["id"]] = {**item, "label": field["label"], "answer": answer,
                                   "selected_options": choices, "used_evidence": evidence, "review_notes": notes}
@@ -189,9 +189,14 @@ def generate_application_answers(job: dict, profile: dict, form: dict, writing_s
         pending = []
     for start in range(0, len(pending), MAX_BATCH_FIELDS):
         fields = pending[start:start + MAX_BATCH_FIELDS]
-        result = local_ai._chat(model, _INSTRUCTIONS,
-                               {"candidate_facts": facts, "vacancy": vacancy, "writing_style": style, "questions": fields}, _SCHEMA)
-        accepted.update(_validated_answers(result, fields, facts, style))
+        data = {"candidate_facts": facts, "vacancy": vacancy, "writing_style": style, "questions": fields}
+
+        def attempt(feedback, number, fields=fields, data=data):
+            result = local_ai._chat(model, _INSTRUCTIONS, data, _SCHEMA, feedback=feedback, attempt=number)
+            return _validated_answers(result, fields, facts, style)
+
+        # A rejected batch is retried alone; accepted batches are kept.
+        accepted.update(local_ai._with_retries(attempt))
     return {"answers": [accepted[f["id"]] for f in form["fields"]], "writing_style": style,
             "form_fingerprint": form_fingerprint(form), "form": form,
             "review_notes": ["Prepared answers only. Verify every fact, selection and the current form before copying anything.",

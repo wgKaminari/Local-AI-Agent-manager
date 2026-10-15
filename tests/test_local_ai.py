@@ -41,6 +41,10 @@ class LocalAITests(unittest.TestCase):
     def replies(self, *bodies):
         self.connection.getresponse.side_effect = [response(body) for body in bodies]
 
+    def rejected(self, *bodies):
+        """The same unusable reply for every automatic attempt."""
+        self.replies(*(list(bodies) * local_ai.MAX_GENERATION_ATTEMPTS))
+
     def requests(self):
         return [(call.args[0], call.args[1], json.loads(call.kwargs["body"]) if call.kwargs["body"] else None) for call in self.connection.request.call_args_list]
 
@@ -121,19 +125,47 @@ class LocalAITests(unittest.TestCase):
         ]
         for invalid in invalid_outputs:
             with self.subTest(invalid=list(invalid)):
-                self.replies(LOCAL_DETAILS, chat_result(invalid))
+                self.rejected(LOCAL_DETAILS, chat_result(invalid))
                 with self.assertRaises(local_ai.LocalAIError):
                     local_ai.generate_cover_letter(self.job, self.profile)
 
     def test_language_upgrade_is_rejected(self):
-        self.replies(LOCAL_DETAILS, chat_result({**self.draft, "cover_letter": "I speak Norwegian at B1 level."}))
+        self.rejected(LOCAL_DETAILS, chat_result({**self.draft, "cover_letter": "I speak Norwegian at B1 level."}))
         with self.assertRaisesRegex(local_ai.LocalAIError, "overstate"):
             local_ai.generate_cover_letter(self.job, self.profile)
 
     def test_truncated_response_is_rejected(self):
-        self.replies(LOCAL_DETAILS, {**chat_result(self.draft), "done_reason": "length"})
+        self.rejected(LOCAL_DETAILS, {**chat_result(self.draft), "done_reason": "length"})
         with self.assertRaisesRegex(local_ai.LocalAIError, "did not finish"):
             local_ai.generate_cover_letter(self.job, self.profile)
+
+    def test_rejected_draft_is_retried_with_the_validation_reason(self):
+        invalid = {**self.draft, "used_evidence": ["Has a PhD and ten years of experience."]}
+        self.replies(LOCAL_DETAILS, chat_result(invalid), LOCAL_DETAILS, chat_result(self.draft))
+        result = local_ai.generate_cover_letter(self.job, self.profile)
+        self.assertEqual(result["cover_letter"], self.draft["cover_letter"])
+        chats = [row[2] for row in self.requests() if row[1] == "/api/chat"]
+        self.assertEqual(len(chats), 2)
+        self.assertNotIn("previous attempt", chats[0]["messages"][0]["content"])
+        self.assertIn("previous attempt was rejected by validation: The draft did not cite", chats[1]["messages"][0]["content"])
+        self.assertGreater(chats[1]["options"]["temperature"], chats[0]["options"]["temperature"])
+        # The candidate data itself is unchanged between attempts.
+        self.assertEqual(chats[0]["messages"][1], chats[1]["messages"][1])
+
+    def test_unusable_output_stops_after_the_attempt_limit(self):
+        self.rejected(LOCAL_DETAILS, chat_result({**self.draft, "extra": "not permitted"}))
+        with self.assertRaisesRegex(local_ai.LocalAIError, "unexpected fields"):
+            local_ai.generate_cover_letter(self.job, self.profile)
+        chats = [row for row in self.requests() if row[1] == "/api/chat"]
+        self.assertEqual(len(chats), local_ai.MAX_GENERATION_ATTEMPTS)
+
+    def test_context_window_grows_with_long_inputs(self):
+        short = local_ai._context_size("x" * 1000, "rules")
+        long = local_ai._context_size("x" * local_ai.MAX_INPUT_CHARS, "rules" * 400)
+        self.assertEqual(short, 8192)
+        self.assertGreater(long, short)
+        self.assertLessEqual(long, 24576)
+        self.assertEqual(long % 2048, 0)
 
     def empty_suggestion(self):
         return {**{key: [] for key in LIST_FIELDS}, **{key: "" for key in TEXT_FIELDS}, "languages": {}}
@@ -151,7 +183,7 @@ class LocalAITests(unittest.TestCase):
 
     def test_profile_extraction_rejects_invented_permission_or_language_level(self):
         for additions in ({"work_authorization": "Authorized to work in Norway"}, {"languages": {"Norwegian": "B1"}}):
-            self.replies(LOCAL_DETAILS, chat_result({**self.empty_suggestion(), **additions}))
+            self.rejected(LOCAL_DETAILS, chat_result({**self.empty_suggestion(), **additions}))
             with self.subTest(additions=additions), self.assertRaises(local_ai.LocalAIError):
                 local_ai.extract_profile("Nationality: Ukrainian. Norwegian: A1-A2.")
 

@@ -131,7 +131,7 @@ def match_job(job: dict, profile: dict, today: date | None = None, *, recommenda
     """
     from .countries import job_countries, profile_for_job
     original_profile = profile
-    profile = profile_for_job(profile, job)
+    profile = profile_for_job(profile, job, isolate=False)
     title = str(job.get("title", ""))
     normalized_title = _role_text(title)
     folded_title = _search_hint(normalized_title)

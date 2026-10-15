@@ -23,6 +23,10 @@ MAX_INPUT_CHARS = 30_000
 MAX_RESPONSE_BYTES = 1_000_000
 MAX_OUTPUT_CHARS = 16_000
 _GENERATION_TIMEOUT = 240
+# Small local models regularly produce one unusable draft (a paraphrased
+# citation, an overlong letter). Each rejected attempt is retried with the
+# reason; connection, setup and timeout failures are never retried.
+MAX_GENERATION_ATTEMPTS = 3
 _LOCAL_HOST = "127.0.0.1"
 _LOCAL_PORT = 11434
 _MODEL_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*(?:/[A-Za-z0-9][A-Za-z0-9._-]*)*(?::[A-Za-z0-9][A-Za-z0-9._-]*)?")
@@ -38,6 +42,21 @@ class _RemoteModelError(LocalAIError):
 
 class _UnsupportedModelError(LocalAIError):
     pass
+
+
+class _RejectedOutput(LocalAIError):
+    """The model answered, but its output failed validation; a retry may pass."""
+
+
+def _with_retries(attempt):
+    """Run attempt(feedback, number) until its output passes validation."""
+    feedback = None
+    for number in range(MAX_GENERATION_ATTEMPTS):
+        try:
+            return attempt(feedback, number)
+        except _RejectedOutput as exc:
+            feedback, last = str(exc), exc
+    raise last
 
 
 _COVER_SCHEMA = {
@@ -241,7 +260,18 @@ def _is_excerpt(text: str, sources: list[str]) -> bool:
     return bool(excerpt) and any(excerpt in _normalized(source) for source in sources)
 
 
-def _chat(model: str, instructions: str, data: dict, schema: dict) -> dict:
+def _context_size(encoded: str, instructions: str) -> int:
+    """A context window that fits this request plus the full reply.
+
+    Non-English text can take a token per two or three characters, so a fixed
+    12k window could reject a long CV and advert. Grow in 2k steps from 8k up
+    to 24k rather than reserving the maximum memory for every short request.
+    """
+    estimate = (len(encoded) + len(instructions) + 4000) // 2 + 2000
+    return min(24576, max(8192, -(-estimate // 2048) * 2048))
+
+
+def _chat(model: str, instructions: str, data: dict, schema: dict, *, feedback: str | None = None, attempt: int = 0) -> dict:
     _model_name(model)
     encoded = json.dumps(data, ensure_ascii=False)
     if len(encoded) > MAX_INPUT_CHARS:
@@ -249,6 +279,9 @@ def _chat(model: str, instructions: str, data: dict, schema: dict) -> dict:
     # Verify before sending any personal data. A local model can be an alias for
     # Ollama Cloud despite having an innocuous name, hence the separate /show.
     _verify_local_model(model)
+    if feedback:
+        # Our own fixed validation message, never model or user text.
+        instructions += f"\nA previous attempt was rejected by validation: {feedback} Correct this in the new answer."
     response = _request("/api/chat", {
         "model": model,
         "messages": [
@@ -257,23 +290,24 @@ def _chat(model: str, instructions: str, data: dict, schema: dict) -> dict:
         ],
         "format": schema, "stream": False, "think": False,
         "truncate": False, "shift": False,
-        "options": {"temperature": 0.2, "num_predict": 2000, "num_ctx": 12288},
+        "options": {"temperature": min(0.6, 0.2 + 0.2 * attempt), "num_predict": 2000,
+                    "num_ctx": _context_size(encoded, instructions)},
         "keep_alive": "5m",
     }, timeout=_GENERATION_TIMEOUT, model=model)
     if _has_remote_metadata(response):
         raise LocalAIError("Ollama reported remote execution despite local verification. Disable cloud access in Ollama before retrying.")
     if response.get("done") is not True or response.get("done_reason") == "length":
-        raise LocalAIError("The model did not finish its response. Shorten the input and retry; no partial draft was accepted.")
+        raise _RejectedOutput("The model did not finish its response. Shorten the input and retry; no partial draft was accepted.")
     message = response.get("message")
     content = message.get("content") if isinstance(message, dict) else None
     if not isinstance(content, str) or not content.strip() or len(content) > MAX_OUTPUT_CHARS:
-        raise LocalAIError("The local model returned empty or oversized output. Retry with shorter input.")
+        raise _RejectedOutput("The local model returned empty or oversized output. Retry with shorter input.")
     try:
         result = json.loads(content)
     except (ValueError, RecursionError):
-        raise LocalAIError("The local model did not return valid structured JSON. Retry or choose another local chat model.") from None
+        raise _RejectedOutput("The local model did not return valid structured JSON. Retry or choose another local chat model.") from None
     if not isinstance(result, dict) or set(result) != set(schema["required"]):
-        raise LocalAIError("The local model returned unexpected fields. Retry; the output was not accepted.")
+        raise _RejectedOutput("The local model returned unexpected fields. Retry; the output was not accepted.")
     return result
 
 
@@ -292,9 +326,9 @@ def _check_language_claims(letter: str, languages: dict) -> None:
                 continue
             levels = re.findall(r"\b[ABC][12]\b", sentence.upper())
             if any(ranks[level] > max(ranks[level] for level in stated) for level in levels):
-                raise LocalAIError("The draft may overstate a supplied language level. Retry and review language claims before use.")
+                raise _RejectedOutput("The draft may overstate a supplied language level. Retry and review language claims before use.")
             if max(ranks[level] for level in stated) < ranks["B2"] and re.search(r"\b(fluent(?:ly)?|fluency|native|bilingual|flytende|morsm[åa]l)\b", sentence, re.IGNORECASE):
-                raise LocalAIError("The draft may overstate a supplied language level. Retry and review language claims before use.")
+                raise _RejectedOutput("The draft may overstate a supplied language level. Retry and review language claims before use.")
 
 
 def generate_cover_letter(job: dict, profile: dict, model: str = DEFAULT_MODEL) -> dict:
@@ -323,23 +357,28 @@ def generate_cover_letter(job: dict, profile: dict, model: str = DEFAULT_MODEL) 
     from .application_answers import validate_writing_style
     style = validate_writing_style(profile.get("writing_style", {}))
     language = style.get("language") or language
-    result = _chat(model, _COVER_INSTRUCTIONS, {"candidate_facts": facts, "vacancy": vacancy, "requested_language": language, "writing_style": style}, _COVER_SCHEMA)
-    try:
-        letter = _text(result["cover_letter"], "Generated letter", 6000)
-        notes = _strings(result["review_notes"], "Generated review notes", maximum=12)
-        evidence = _strings(result["used_evidence"], "Generated evidence", maximum=12)
-    except ValueError:
-        raise LocalAIError("The local model returned invalid draft fields. Retry; the draft was not accepted.") from None
+    data = {"candidate_facts": facts, "vacancy": vacancy, "requested_language": language, "writing_style": style}
     source_texts = [facts["summary"], facts["cv_text"], facts["work_authorization"], facts["experience_summary"], *facts["evidence"], *facts["skills"]]
-    if not letter or not evidence or any(not _is_excerpt(item, source_texts) for item in evidence):
-        raise LocalAIError("The draft did not cite supplied candidate evidence correctly. Retry and review every factual claim.")
-    _check_language_claims(letter, facts["languages"])
-    if len(letter.split()) > style["max_words"]:
-        raise LocalAIError("The draft exceeds your writing-style word limit. Retry or increase the limit in Countries & writing.")
-    if any(phrase and phrase.casefold() in letter.casefold() for phrase in style["avoid_phrases"]):
-        raise LocalAIError("The draft contains a phrase you asked to avoid. Retry or adjust your writing preferences.")
-    notes.append("Draft only: check every factual claim and the vacancy requirements before you submit it yourself.")
-    return {"cover_letter": letter, "review_notes": notes, "used_evidence": evidence}
+
+    def attempt(feedback, number):
+        result = _chat(model, _COVER_INSTRUCTIONS, data, _COVER_SCHEMA, feedback=feedback, attempt=number)
+        try:
+            letter = _text(result["cover_letter"], "Generated letter", 6000)
+            notes = _strings(result["review_notes"], "Generated review notes", maximum=12)
+            evidence = _strings(result["used_evidence"], "Generated evidence", maximum=12)
+        except ValueError:
+            raise _RejectedOutput("The local model returned invalid draft fields. Retry; the draft was not accepted.") from None
+        if not letter or not evidence or any(not _is_excerpt(item, source_texts) for item in evidence):
+            raise _RejectedOutput("The draft did not cite supplied candidate evidence correctly. Retry and review every factual claim.")
+        _check_language_claims(letter, facts["languages"])
+        if len(letter.split()) > style["max_words"]:
+            raise _RejectedOutput("The draft exceeds your writing-style word limit. Retry or increase the limit in Countries & writing.")
+        if any(phrase and phrase.casefold() in letter.casefold() for phrase in style["avoid_phrases"]):
+            raise _RejectedOutput("The draft contains a phrase you asked to avoid. Retry or adjust your writing preferences.")
+        notes.append("Draft only: check every factual claim and the vacancy requirements before you submit it yourself.")
+        return {"cover_letter": letter, "review_notes": notes, "used_evidence": evidence}
+
+    return _with_retries(attempt)
 
 
 def extract_profile(cv_text: str, model: str = DEFAULT_MODEL) -> dict:
@@ -348,45 +387,49 @@ def extract_profile(cv_text: str, model: str = DEFAULT_MODEL) -> dict:
     original = _text(cv_text, "CV text", MAX_CV_CHARS)
     if not original:
         raise ValueError("Add readable CV text before asking for a profile suggestion.")
-    result = _chat(model, _EXTRACTION_INSTRUCTIONS, {"cv_text": original}, _PROFILE_SCHEMA)
-    try:
-        suggestion = {key: _text(result[key], "Suggested profile field", 3000) for key in TEXT_FIELDS}
-        suggestion.update({key: _strings(result[key], "Suggested profile list") for key in LIST_FIELDS})
-        languages = result["languages"]
-        if not isinstance(languages, dict) or len(languages) > 20:
-            raise ValueError("Invalid suggested languages")
-        suggestion["languages"] = {_text(key, "Suggested language", 80): _text(value, "Suggested language level", 120) for key, value in languages.items()}
-    except ValueError:
-        raise LocalAIError("The local model returned invalid profile fields. Retry; the suggestion was not accepted.") from None
-    if suggestion["cv_text"]:
-        raise LocalAIError("The local model rewrote the CV field. Retry; only the original CV text is retained.")
-    if suggestion["work_authorization"] and not _is_excerpt(suggestion["work_authorization"], [original]):
-        raise LocalAIError("The profile suggestion included work authorization not found in the CV. Review your actual permission manually.")
-    # Small local models sometimes paraphrase one field even when all other
-    # suggestions are exact. Omit only those unsupported suggestions, retaining
-    # the useful verified excerpts and explicitly reporting the omissions.
-    omitted = []
-    for key in TEXT_FIELDS:
-        if key not in {"cv_text", "work_authorization"} and suggestion[key] and not _is_excerpt(suggestion[key], [original]):
-            suggestion[key] = ""
-            omitted.append(key)
-    for key in LIST_FIELDS:
-        supported = [item for item in suggestion[key] if _is_excerpt(item, [original])]
-        if len(supported) != len(suggestion[key]):
-            omitted.append(key)
-            suggestion[key] = supported
-    normalized_cv = _normalized(original)
-    for name, level in suggestion["languages"].items():
-        if not name or not _is_excerpt(name, [original]) or (level and not _is_excerpt(level, [original])):
-            raise LocalAIError("The profile suggestion changed a language or level from the CV. Retry and enter the actual levels manually if needed.")
-        if level:
-            name_pattern, level_pattern = re.escape(_normalized(name)), re.escape(_normalized(level))
-            # Avoid assigning an English level to Norwegian merely because both
-            # occur somewhere in the same CV. Allow short table/line separators.
-            nearby = rf"(?:{name_pattern}.{{0,60}}?{level_pattern}|{level_pattern}.{{0,60}}?{name_pattern})"
-            if not re.search(nearby, normalized_cv):
-                raise LocalAIError("A suggested language level is not near that language in the CV. Review and enter the actual levels manually.")
-    suggestion["cv_text"] = cv_text
-    if omitted:
-        suggestion["_review_notes"] = ["Omitted suggestions that were not exact CV excerpts: " + ", ".join(omitted) + "."]
-    return suggestion
+
+    def attempt(feedback, number):
+        result = _chat(model, _EXTRACTION_INSTRUCTIONS, {"cv_text": original}, _PROFILE_SCHEMA, feedback=feedback, attempt=number)
+        try:
+            suggestion = {key: _text(result[key], "Suggested profile field", 3000) for key in TEXT_FIELDS}
+            suggestion.update({key: _strings(result[key], "Suggested profile list") for key in LIST_FIELDS})
+            languages = result["languages"]
+            if not isinstance(languages, dict) or len(languages) > 20:
+                raise ValueError("Invalid suggested languages")
+            suggestion["languages"] = {_text(key, "Suggested language", 80): _text(value, "Suggested language level", 120) for key, value in languages.items()}
+        except ValueError:
+            raise _RejectedOutput("The local model returned invalid profile fields. Retry; the suggestion was not accepted.") from None
+        if suggestion["cv_text"]:
+            raise _RejectedOutput("The local model rewrote the CV field. Retry; only the original CV text is retained.")
+        if suggestion["work_authorization"] and not _is_excerpt(suggestion["work_authorization"], [original]):
+            raise _RejectedOutput("The profile suggestion included work authorization not found in the CV. Review your actual permission manually.")
+        # Small local models sometimes paraphrase one field even when all other
+        # suggestions are exact. Omit only those unsupported suggestions, retaining
+        # the useful verified excerpts and explicitly reporting the omissions.
+        omitted = []
+        for key in TEXT_FIELDS:
+            if key not in {"cv_text", "work_authorization"} and suggestion[key] and not _is_excerpt(suggestion[key], [original]):
+                suggestion[key] = ""
+                omitted.append(key)
+        for key in LIST_FIELDS:
+            supported = [item for item in suggestion[key] if _is_excerpt(item, [original])]
+            if len(supported) != len(suggestion[key]):
+                omitted.append(key)
+                suggestion[key] = supported
+        normalized_cv = _normalized(original)
+        for name, level in suggestion["languages"].items():
+            if not name or not _is_excerpt(name, [original]) or (level and not _is_excerpt(level, [original])):
+                raise _RejectedOutput("The profile suggestion changed a language or level from the CV. Retry and enter the actual levels manually if needed.")
+            if level:
+                name_pattern, level_pattern = re.escape(_normalized(name)), re.escape(_normalized(level))
+                # Avoid assigning an English level to Norwegian merely because both
+                # occur somewhere in the same CV. Allow short table/line separators.
+                nearby = rf"(?:{name_pattern}.{{0,60}}?{level_pattern}|{level_pattern}.{{0,60}}?{name_pattern})"
+                if not re.search(nearby, normalized_cv):
+                    raise _RejectedOutput("A suggested language level is not near that language in the CV. Review and enter the actual levels manually.")
+        suggestion["cv_text"] = cv_text
+        if omitted:
+            suggestion["_review_notes"] = ["Omitted suggestions that were not exact CV excerpts: " + ", ".join(omitted) + "."]
+        return suggestion
+
+    return _with_retries(attempt)

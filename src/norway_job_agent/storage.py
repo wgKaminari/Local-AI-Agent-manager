@@ -27,6 +27,11 @@ _JOB_QUERY_KEYS = frozenset(
 _GENERIC_PATH_PARTS = frozenset(
     {"job", "jobs", "career", "careers", "vacancy", "vacancies", "positions", "open-positions", "opportunities", "search", "apply", "application", "applications", "openings", "recruitment", "recruiting", "index", "index.html", "default.aspx"}
 )
+_SCHEMA_OBJECTS = frozenset({
+    "jobs", "jobs_source_identity", "jobs_source_url", "jobs_status", "job_identities", "drafts",
+    "drafts_job", "job_provenance", "application_preparations", "application_preparations_job",
+    "application_deliveries",
+})
 _METADATA_FIELDS = (
     "source", "source_id", "source_url", "apply_url", "title", "company", "location",
     "description", "employment_type", "published_at", "deadline", "raw_json", "countries",
@@ -111,6 +116,14 @@ class JobStore:
         if version > 3:
             self.close()
             raise ValueError(f"Database schema version {version} is newer than supported version 3")
+        if version == 3 and self._schema_complete():
+            # Every request opens a store. Skipping redundant DDL keeps reads
+            # from taking a write lock and syncing the file each time.
+            return
+        if self.db_path != ":memory:":
+            # WAL lets the interface keep reading while a collection writes.
+            # The mode persists in the file, so this runs once per database.
+            self._connection.execute("PRAGMA journal_mode = WAL")
         self._connection.executescript(
             """
             CREATE TABLE IF NOT EXISTS jobs (
@@ -190,6 +203,14 @@ class JobStore:
         """)
         self._connection.execute("PRAGMA user_version = 3")
         self._connection.commit()
+
+    def _schema_complete(self) -> bool:
+        names = {row[0] for row in self._connection.execute("SELECT name FROM sqlite_master")}
+        if not _SCHEMA_OBJECTS <= names:
+            return False
+        columns = {row[1] for row in self._connection.execute("PRAGMA table_info(jobs)")}
+        mode = self._connection.execute("PRAGMA journal_mode").fetchone()[0]
+        return {"is_active", "countries"} <= columns and (mode == "wal" or self.db_path == ":memory:")
 
     def __enter__(self) -> JobStore:
         return self

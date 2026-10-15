@@ -1,6 +1,6 @@
 # Personal Job Agent
 
-A private **Python desktop application** for discovering vacancies in Norway, the USA, Germany and Ukraine, organizing opportunities, and preparing application answers and cover letters. Version 0.3 opens in its own desktop window with a modern, locally packaged interface. Your existing profile, SQLite database and draft histories stay in the same private folder.
+A private **Python desktop application** for discovering vacancies in Norway, the USA, Germany and Ukraine, organizing opportunities, and preparing application answers and cover letters. Version 0.4 opens in its own desktop window with a modern, locally packaged interface. Your existing profile, SQLite database and draft histories stay in the same private folder.
 
 ## Start
 
@@ -49,7 +49,7 @@ Read the [discovery rework and verified coverage](docs/discovery-rework.md), inc
 
 NAV begins with the last **90 days of feed updates**, reads at most five pages per regular collection and resumes from a saved checkpoint. A backlog notice means more pages remain. Changed search terms restart that window. This is not every active vacancy, and NAV excludes FINN-origin vacancies. The public token is experimental; for ongoing use, register with NAV for a private token and set `NAV_API_TOKEN`. See [NAV documentation](https://navikt.github.io/pam-stilling-feed/) and [usage terms](https://arbeidsplassen.nav.no/vilkar-api).
 
-Company scans are bounded by configured limits and report failures or partial coverage under **Settings & activity**. A successful check may return zero jobs. Unlike NAV, company scans restart at their listing window and do not maintain historical pagination. NAV withdrawals and complete successful Greenhouse, Lever and Ashby board snapshots retire vanished postings from active discovery. Failed or partial scans do not retire records. Saved/application records retain notes and drafts when a posting is withdrawn. Check the original vacancy before applying.
+Collection downloads up to six sources at a time, then saves each source in its configured order, so a full run takes a fraction of the earlier sequential time. A dropped connection is retried once for ordinary page reads; HTTP errors such as 429 or 503 are reported, not retried. Company scans are bounded by configured limits and report failures or partial coverage under **Settings & activity**. A successful check may return zero jobs. Unlike NAV, company scans restart at their listing window and do not maintain historical pagination. NAV withdrawals and complete successful Greenhouse, Lever and Ashby board snapshots retire vanished postings from active discovery. Failed or partial scans do not retire records. Saved/application records retain notes and drafts when a posting is withdrawn. Check the original vacancy before applying.
 
 The configuration limit is 250 sources. Country/source additions that exceed it are rejected without partially changing configuration. Country/city matching is a discovery hint, not proof of remote eligibility or work authorization. FINN, Indeed, Stepstone, Work.ua and LinkedIn remain browser/email/manual routes. Login requirements and blocked or unsupported pages require manual import or a dedicated connector. Robots restrictions are respected. The app does not collect while closed.
 
@@ -63,7 +63,7 @@ AI runs through **Ollama** at `127.0.0.1:11434` with a downloaded local text mod
 
 The optional `scripts/setup-local-ai.ps1` downloads the official installer, verifies its Authenticode publisher signature, installs Ollama and pulls the model. Collection and manual editing work while AI is unavailable. **Install PDF support** repairs PDF support in the exact Python environment running the app.
 
-Only saved profile facts are used in matching and drafting. Employment dates or years of experience absent from the evidence must not be invented. Search-language preferences never upgrade the proficiency stated in application materials.
+Small local models sometimes produce a draft that fails a safety check, such as a paraphrased evidence citation or a letter over your word limit. The app then retries up to three attempts in total, telling the model which check failed; no draft that fails a check is ever shown. Connection, setup and timeout problems are reported immediately. Only saved profile facts are used in matching and drafting. Employment dates or years of experience absent from the evidence must not be invented. Search-language preferences never upgrade the proficiency stated in application materials.
 
 ## Reviewed application delivery
 
@@ -146,4 +146,4 @@ Interface tests exercise the bundled UI against an isolated local Python service
 
 `python scripts/preview-ui.py` previews the **classic Tkinter** interface with fictional data. The default `gui` command opens the new desktop application against your selected private data folder.
 
-Existing databases migrate through the storage layer while retaining vacancies, notes, stages, letters and identities. Close the app before backing up the whole private folder. Avoid running both interfaces against it while editing shared profile/settings files. Personal data, credentials, model downloads and generated application materials are excluded from Git. See [requirements](docs/requirements.md) for the agreed scope.
+Existing databases migrate through the storage layer while retaining vacancies, notes, stages, letters and identities. Close the app before backing up the whole private folder. The database uses SQLite's WAL mode, so copy any `vacancies.db-wal` and `vacancies.db-shm` files together with `vacancies.db`. Avoid running both interfaces against it while editing shared profile/settings files. Personal data, credentials, model downloads and generated application materials are excluded from Git. See [requirements](docs/requirements.md) for the agreed scope.

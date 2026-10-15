@@ -5,10 +5,13 @@ skills and search preferences are never converted into years automatically.
 """
 from __future__ import annotations
 
+import hashlib
 import html
 import math
 import re
+import threading
 import unicodedata
+from collections import OrderedDict
 
 
 def validate_experience_years(value):
@@ -102,13 +105,39 @@ def _clauses(value):
     return parts
 
 
+_REQUIREMENT_CACHE: OrderedDict[bytes, tuple[dict, ...]] = OrderedDict()
+_REQUIREMENT_CACHE_LIMIT = 20000
+_requirement_cache_lock = threading.Lock()
+
+
 def experience_requirements(description):
     """Extract clear experience quantities with their original supporting clause.
 
     Desired quantities and educational alternatives remain review items, never
     hard rejection thresholds. Unrelated numbers (company age, salary, degree
     duration, project duration) do not become experience requirements.
+
+    Extraction depends only on the advert text, so results are memoized by a
+    digest of that text. Every listing request rematches all stored adverts;
+    without the cache this parse dominated each request. A changed advert has
+    a different digest, and callers always receive fresh copies.
     """
+    text = str(description or "")
+    key = hashlib.blake2b(text.encode("utf-8", "surrogatepass"), digest_size=16).digest()
+    with _requirement_cache_lock:
+        cached = _REQUIREMENT_CACHE.get(key)
+        if cached is not None:
+            _REQUIREMENT_CACHE.move_to_end(key)
+            return [dict(item) for item in cached]
+    result = _extract_experience_requirements(text)
+    with _requirement_cache_lock:
+        _REQUIREMENT_CACHE[key] = tuple(dict(item) for item in result)
+        while len(_REQUIREMENT_CACHE) > _REQUIREMENT_CACHE_LIMIT:
+            _REQUIREMENT_CACHE.popitem(last=False)
+    return result
+
+
+def _extract_experience_requirements(description):
     result = []
     experience_heading = False
     preferred_section = False

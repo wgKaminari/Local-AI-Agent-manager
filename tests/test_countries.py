@@ -156,12 +156,12 @@ class CountryServiceTests(unittest.TestCase):
         service.save_settings(self.folder, settings)
         settings_before = (self.folder / "sources.json").read_bytes()
         with patch("norway_job_agent.nav.fetch_nav_batch") as nav, patch(
-            "norway_job_agent.cli.collect_sources",
-            return_value={"created": 0, "updated": 0, "sources": []},
+            "norway_job_agent.cli.fetch_source",
+            side_effect=lambda source: {"result": {"source": source, "ok": True}, "jobs": None},
         ) as collect:
             service.collect(self.folder, settings_override=settings)
         nav.assert_not_called()
-        sources = [call.args[0]["sources"][0] for call in collect.call_args_list]
+        sources = [call.args[0] for call in collect.call_args_list]
         self.assertEqual([item["board"] for item in sources], ["german-fixture", "global-fixture"])
         self.assertTrue(all(item["countries"] == ["DE"] for item in sources))
         self.assertEqual(settings, baseline)

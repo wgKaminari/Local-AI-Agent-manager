@@ -204,7 +204,7 @@ class DraftTests(unittest.TestCase):
 
     def test_batches_are_bounded_and_preserve_original_question_order(self):
         form = forms.parse_manual_questions('\n'.join(f'Explain project {n}?' for n in range(19)))
-        def fake_chat(model, instructions, payload, schema):
+        def fake_chat(model, instructions, payload, schema, **options):
             self.assertLessEqual(len(payload['questions']), 8)
             return {'answers':[draft(field['id']) for field in reversed(payload['questions'])]}
         with patch.object(local_ai, '_chat', side_effect=fake_chat) as chat:

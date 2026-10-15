@@ -46,8 +46,9 @@ class ServiceTests(unittest.TestCase):
         with patch("norway_job_agent.nav.fetch_nav_batch", side_effect=ValueError("Temporary failure")):
             report = service.collect(self.folder, progress=updates.append)
         self.assertFalse(report["sources"][0]["ok"])
-        self.assertEqual(len(updates), 1)
-        self.assertIn("NAV (1 of 1)", updates[0])
+        self.assertEqual(len(updates), 2)
+        self.assertIn("Checking 1 source…", updates[0])
+        self.assertIn("NAV (1 of 1)", updates[1])
         self.assertEqual(json.loads(state_path.read_text()), {"url": "previous-page"})
 
     def test_new_search_preferences_revisit_history(self):

@@ -102,9 +102,14 @@ def job_countries(job):
                               for code in _location_countries(part)))
 
 
-def profile_for_job(profile, job):
-    """Apply one country's search/writing overrides without leaking permission."""
-    result = deepcopy(profile)
+def profile_for_job(profile, job, *, isolate=True):
+    """Apply one country's search/writing overrides without leaking permission.
+
+    isolate=False shares unchanged nested values with the input profile. Only
+    read-only callers such as matching may use it; copying a full profile for
+    every listed advert was a measurable share of each listing request.
+    """
+    result = deepcopy(profile) if isolate else dict(profile)
     codes = job_countries(job)
     preferences = profile.get("country_preferences", {})
     if len(codes) == 1:

@@ -27,6 +27,9 @@ DEFAULT_PROFILE = {
     "cover_letter_language": "English",
 }
 DEFAULT_SETTINGS = {"sources": [{"type": "nav"}], "model": "qwen3:4b"}
+# Parallel source downloads. Six keeps a full run quick without hammering the
+# few shared ATS APIs (Greenhouse, Lever, Ashby) that most employers use.
+COLLECTION_WORKERS = 6
 _collection_lock = threading.Lock()
 
 
@@ -44,6 +47,18 @@ def _write_json(path: Path, value: dict) -> None:
         os.replace(temporary, path)
     finally:
         Path(temporary).unlink(missing_ok=True)
+
+
+def read_collection_report(data_dir: Path) -> dict | None:
+    """The last collection summary, or None when missing or unreadable.
+
+    It is a convenience record; a damaged file must not stop the app opening.
+    """
+    try:
+        report = _read_json(Path(data_dir) / "last-collection.json")
+    except (OSError, ValueError):
+        return None
+    return report if isinstance(report, dict) else None
 
 
 def initialize(data_dir: Path) -> None:
@@ -190,69 +205,122 @@ def collect(data_dir: Path, settings_override: dict | None = None, *, progress=N
         _collection_lock.release()
 
 
-def _collect(data_dir: Path, settings_override: dict | None = None, *, progress=None) -> dict:
-    from .cli import collect_sources
+def _collection_scope(settings: dict) -> list[dict]:
+    """Sources this run will check, already scoped to the active country."""
+    country = settings.get("active_country", "")
+    selected = []
+    for source in settings["sources"]:
+        if country and ((source.get("type") == "nav" and country != "NO") or
+                        (source.get("countries") and country not in source["countries"])):
+            continue
+        if country and source.get("type") != "nav":
+            source = {**source, "countries": [country]}
+        selected.append(source)
+    return selected
+
+
+def _fetch_nav(data_dir: Path, profile: dict, known_ids: list[str]) -> dict:
+    """Read the next NAV feed batch; the checkpoint is saved only after its writes."""
     from .nav import fetch_nav_batch
+    try:
+        state_path = data_dir / "nav-state.json"
+        state = _read_json(state_path) if state_path.exists() else {}
+        keywords = profile.get("target_roles", []) + profile.get("related_roles", []) + profile.get("skills", [])
+        if not keywords:
+            raise ValueError("Add target roles or skills in your profile before collecting NAV vacancies.")
+        fingerprint = hashlib.sha256(json.dumps(sorted(set(word.casefold() for word in keywords))).encode()).hexdigest()
+        if state.get("keyword_hash") != fingerprint:
+            state = {}
+        return {"batch": fetch_nav_batch(state, keywords, known_ids=known_ids), "fingerprint": fingerprint}
+    except (ValueError, RuntimeError, OSError) as exc:
+        return {"error": str(exc)}
+
+
+def _store_nav(data_dir: Path, source: dict, fetched: dict, store: JobStore, report: dict) -> None:
+    result = {"source": source, "created": 0, "updated": 0, "withdrawn": 0}
+    try:
+        if "error" in fetched:
+            raise ValueError(fetched["error"])
+        batch = fetched["batch"]
+        counts = {"created": 0, "updated": 0, "withdrawn": 0}
+        with store.transaction():
+            for job in batch["jobs"]:
+                _, created = store.upsert_job(job)
+                counts["created" if created else "updated"] += 1
+            for source_id in batch["withdrawn_ids"]:
+                if store.withdraw_source_job("nav", source_id):
+                    counts["withdrawn"] += 1
+        for key, count in counts.items():
+            result[key] = count
+            report[key] += count
+        # Failed writes never commit a cursor past unprocessed events.
+        _write_json(data_dir / "nav-state.json", {**batch["state"], "keyword_hash": fetched["fingerprint"]})
+        result.update(ok=True, has_more=batch["has_more"], pages=batch["pages"], seen=batch["seen"], experimental_token=batch["experimental_token"])
+        result["coverage"] = "NAV begins with the last 90 days of updates; each run reads at most 5 pages. " + ("More pages remain; collect again to continue." if batch["has_more"] else "Reached the current end of this feed window.")
+    except (ValueError, RuntimeError, OSError) as exc:
+        result.update(ok=False, error=str(exc))
+    report["sources"].append(result)
+
+
+def _collect(data_dir: Path, settings_override: dict | None = None, *, progress=None) -> dict:
+    """Download sources concurrently; write each one in configured order.
+
+    Every source still commits as its own transaction on this thread, so
+    cross-source duplicate handling stays deterministic. Only network reads,
+    which dominated a run, overlap.
+    """
+    from concurrent.futures import ThreadPoolExecutor
+    from datetime import datetime, timezone
+    from . import cli
 
     settings = settings_override if settings_override is not None else read_settings(data_dir)
     profile = read_profile(data_dir)
-    from datetime import datetime, timezone
     report = {"created": 0, "updated": 0, "withdrawn": 0, "sources": [],
               "country": settings.get("active_country", ""),
               "started_at": datetime.now(timezone.utc).isoformat()}
+    selected = _collection_scope(settings)
+    if progress is not None and selected:
+        progress(f"Checking {len(selected)} source{'' if len(selected) == 1 else 's'}… You can keep browsing.")
     with JobStore(data_dir / "vacancies.db") as store:
-        for index, source in enumerate(settings["sources"], 1):
-            country = settings.get("active_country", "")
-            if country and ((source.get("type") == "nav" and country != "NO") or
-                            (source.get("countries") and country not in source["countries"])):
-                continue
-            if country and source.get("type") != "nav":
-                source = {**source, "countries": [country]}
-            if progress is not None:
-                label = source.get("name") or source.get("board") or source.get("url") or source.get("type", "source").upper()
-                progress(f"Checking {label} ({index} of {len(settings['sources'])})… You can keep browsing.")
-            if source.get("type") != "nav":
-                item = collect_sources({"sources": [source]}, store)
-                report["created"] += item["created"]
-                report["updated"] += item["updated"]
-                report["withdrawn"] += item.get("withdrawn", 0)
-                report["sources"].extend(item["sources"])
-                continue
-            result = {"source": source, "created": 0, "updated": 0, "withdrawn": 0}
-            try:
-                state_path = data_dir / "nav-state.json"
-                state = _read_json(state_path) if state_path.exists() else {}
-                keywords = profile.get("target_roles", []) + profile.get("related_roles", []) + profile.get("skills", [])
-                if not keywords:
-                    raise ValueError("Add target roles or skills in your profile before collecting NAV vacancies.")
-                fingerprint = hashlib.sha256(json.dumps(sorted(set(word.casefold() for word in keywords))).encode()).hexdigest()
-                if state.get("keyword_hash") != fingerprint:
-                    state = {}
-                batch = fetch_nav_batch(state, keywords, known_ids=store.source_ids("nav"))
-                counts = {"created": 0, "updated": 0, "withdrawn": 0}
-                with store.transaction():
-                    for job in batch["jobs"]:
-                        _, created = store.upsert_job(job)
-                        counts["created" if created else "updated"] += 1
-                    for source_id in batch["withdrawn_ids"]:
-                        if store.withdraw_source_job("nav", source_id):
-                            counts["withdrawn"] += 1
-                for key, count in counts.items():
-                    result[key] = count
-                    report[key] += count
-                # Failed writes never commit a cursor past unprocessed events.
-                _write_json(state_path, {**batch["state"], "keyword_hash": fingerprint})
-                result.update(ok=True, has_more=batch["has_more"], pages=batch["pages"], seen=batch["seen"], experimental_token=batch["experimental_token"])
-                result["coverage"] = "NAV begins with the last 90 days of updates; each run reads at most 5 pages. " + ("More pages remain; collect again to continue." if batch["has_more"] else "Reached the current end of this feed window.")
-            except (ValueError, RuntimeError, OSError) as exc:
-                result.update(ok=False, error=str(exc))
-            report["sources"].append(result)
+        pool = ThreadPoolExecutor(max_workers=COLLECTION_WORKERS, thread_name_prefix="collect")
+        try:
+            futures = [pool.submit(_fetch_nav, data_dir, profile, store.source_ids("nav"))
+                       if source.get("type") == "nav" else pool.submit(cli.fetch_source, source)
+                       for source in selected]
+            for index, (source, future) in enumerate(zip(selected, futures), 1):
+                fetched = future.result()
+                if source.get("type") == "nav":
+                    _store_nav(data_dir, source, fetched, store, report)
+                else:
+                    cli.store_fetched_source(fetched, store, report)
+                if progress is not None:
+                    label = source.get("name") or source.get("board") or source.get("url") or source.get("type", "source").upper()
+                    progress(f"Checked {label} ({index} of {len(selected)})… You can keep browsing.")
+        finally:
+            # After an unexpected failure, stop queued downloads; running ones
+            # never touch the store and finish on their own.
+            pool.shutdown(wait=False, cancel_futures=True)
     report["completed_at"] = datetime.now(timezone.utc).isoformat()
     return report
 
 
+def _deadline_passed(job: dict) -> bool:
+    from datetime import date
+    try:
+        return date.fromisoformat(str(job.get("deadline") or "")[:10]) < date.today()
+    except ValueError:
+        return False
+
+
 def vacancies(data_dir: Path, query: str = "", status: str = "", country: str = "", *, include_inactive: bool = False,
-              recommendations_only: bool = False, coverage: dict | None = None) -> list[dict]:
+              recommendations_only: bool = False, coverage: dict | None = None,
+              stages: set[str] | frozenset[str] | None = None) -> list[dict]:
+    """Return matched vacancies, best first.
+
+    stages limits which workflow stages are matched and returned. Jobs in
+    other stages still count toward coverage, so Saved and Applications report
+    the same search scope as before without matching every stored advert.
+    """
     from .countries import COUNTRIES, job_countries
     if country and country not in {*COUNTRIES, "unknown"}:
         raise ValueError("Choose a supported country or unknown.")
@@ -267,15 +335,18 @@ def vacancies(data_dir: Path, query: str = "", status: str = "", country: str = 
             continue
         if country and country != "unknown" and country not in job["countries"]:
             continue
+        if stages is not None and job["status"] not in stages:
+            # Count scope exactly as matching would: only active views drop
+            # NAV adverts whose deadline has passed.
+            if include_inactive or job.get("source") != "nav" or not _deadline_passed(job):
+                in_scope += 1
+                employers.add(job["company"])
+            continue
         if recommendations_only and not include_inactive and job.get("source") == "nav":
             # Count precisely the same active NAV scope before the early role
             # gate; a non-recommended advert need not parse its full description.
-            from datetime import date
-            try:
-                if date.fromisoformat(str(job.get("deadline") or "")[:10]) < date.today():
-                    continue
-            except ValueError:
-                pass
+            if _deadline_passed(job):
+                continue
         job["match"] = match_job(job, profile, recommendations_only=recommendations_only)
         # NAV requires inactive ads to leave results; an elapsed explicit
         # deadline also keeps the active search clear before the next refresh.
@@ -308,8 +379,7 @@ def discovery_coverage(data_dir: Path, country: str = "") -> dict:
         (source.get("type") != "nav" or country == "NO") and
         (not source.get("countries") or country in source["countries"]))]
     catalog = company_catalog(country)
-    report_path = Path(data_dir) / "last-collection.json"
-    report = _read_json(report_path) if report_path.exists() else None
+    report = read_collection_report(data_dir)
     # Old reports lack country metadata: don't present them as this market's run.
     current_report = report if report and report.get("country") == country else None
     checked = current_report.get("sources", []) if current_report else []

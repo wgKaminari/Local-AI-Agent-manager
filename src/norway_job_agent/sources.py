@@ -1,7 +1,6 @@
 """Read-only public job sources. No browser automation or application submission.
 
-NAV is deliberately excluded until incremental updates and withdrawals have a
-durable checkpoint implementation. FINN and LinkedIn require manual text import.
+NAV's incremental feed lives in nav.py. FINN and LinkedIn require manual import.
 """
 
 from __future__ import annotations
@@ -26,13 +25,18 @@ MAX_RESPONSE_BYTES = 2 * 1024 * 1024
 MAX_ATS_RESPONSE_BYTES = 20 * 1024 * 1024
 TIMEOUT_SECONDS = 15
 MAX_REDIRECTS = 5
-USER_AGENT = "NorwayJobAgent/0.1"
+RETRY_PAUSE_SECONDS = 1.0
+USER_AGENT = "NorwayJobAgent/0.4"
 _BOARD = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,99}\Z")
 _BLOCKED_HOSTS = ("linkedin.com", "finn.no")
 
 
 class SourceError(ValueError):
     """A source could not be read; safe to show this message to the user."""
+
+
+class _TransientSourceError(SourceError):
+    """A connection-level failure (reset, timeout); an idempotent GET may retry."""
 
 
 def _url_parts(url: str):
@@ -137,7 +141,7 @@ def _request_once(url: str, *, method: str = "GET", body: bytes | None = None,
         while True:
             remaining = deadline - time.monotonic()
             if remaining <= 0:
-                raise SourceError("The source request timed out; try again later.")
+                raise _TransientSourceError("The source request timed out; try again later.")
             if connection.sock is not None:
                 connection.sock.settimeout(remaining)
             chunk = response.read1(min(65536, max_response_bytes + 1 - total))
@@ -150,7 +154,9 @@ def _request_once(url: str, *, method: str = "GET", body: bytes | None = None,
         return response.status, headers, b"".join(chunks)
     except SourceError:
         raise
-    except (OSError, http.client.HTTPException, ValueError) as exc:
+    except (OSError, http.client.HTTPException) as exc:
+        raise _TransientSourceError(f"Could not download from {host}; check connectivity or try again later.") from exc
+    except ValueError as exc:
         raise SourceError(f"Could not download from {host}; check connectivity or try again later.") from exc
     finally:
         connection.close()
@@ -182,6 +188,26 @@ def _check_robots(url: str, cache: dict[str, RobotFileParser | None]) -> None:
         raise SourceError("This page is disallowed by robots.txt. Paste the vacancy text instead.")
 
 
+def _request_retrying(url: str, method: str, body: bytes | None, max_response_bytes: int):
+    """One request; a GET that failed at the connection level is retried once.
+
+    A single dropped connection previously failed a whole multi-page career
+    scan. HTTP status responses, including 429 and 5xx, are never retried, and
+    neither are POST listing searches.
+    """
+    for attempt in range(2):
+        try:
+            if max_response_bytes != MAX_RESPONSE_BYTES:
+                return _request_once(url, method=method, body=body, max_response_bytes=max_response_bytes)
+            if method == "GET" and body is None:
+                return _request_once(url)
+            return _request_once(url, method=method, body=body)
+        except _TransientSourceError:
+            if attempt or method != "GET":
+                raise
+            time.sleep(RETRY_PAUSE_SECONDS)
+
+
 def _fetch(url: str, *, respect_robots: bool = False, allow_missing: bool = False,
            method: str = "GET", body: bytes | None = None, max_response_bytes: int = MAX_RESPONSE_BYTES):
     current = url
@@ -190,13 +216,7 @@ def _fetch(url: str, *, respect_robots: bool = False, allow_missing: bool = Fals
         _url_parts(current)
         if respect_robots:
             _check_robots(current, robots_cache)
-        if max_response_bytes != MAX_RESPONSE_BYTES:
-            status, headers, response_body = _request_once(current, method=method, body=body,
-                                                           max_response_bytes=max_response_bytes)
-        elif method == "GET" and body is None:
-            status, headers, response_body = _request_once(current)
-        else:
-            status, headers, response_body = _request_once(current, method=method, body=body)
+        status, headers, response_body = _request_retrying(current, method, body, max_response_bytes)
         if status in {301, 302, 303, 307, 308}:
             location = headers.get("location")
             if not location:
@@ -455,8 +475,12 @@ def fetch_ashby(board: str, name: str = "") -> list[dict]:
     return jobs
 
 
-def fetch_lever(board: str, region: str = "global") -> list[dict]:
-    """Fetch one employer's published jobs; company uses the Lever site ID."""
+def fetch_lever(board: str, region: str = "global", name: str = "") -> list[dict]:
+    """Fetch one employer's published jobs.
+
+    Lever postings do not include the employer name; use the configured name
+    and fall back to the Lever site ID.
+    """
     board = _board(board)
     if region not in {"global", "eu"}:
         raise SourceError("Lever region must be 'global' or 'eu'.")
@@ -488,7 +512,7 @@ def fetch_lever(board: str, region: str = "global") -> list[dict]:
                     sections.extend([section.get("text") or "", section.get("content") or ""])
             sections.append(item.get("additionalPlain") or item.get("additional") or "")
             jobs.append(_job(
-                title=_plain(item.get("text")), company=board,
+                title=_plain(item.get("text")), company=_plain(name) or board,
                 location=_plain(categories.get("location")),
                 description="\n\n".join(filter(None, (_plain(section) for section in sections))),
                 source="lever", source_id=f"{region}:{board}:{item['id']}",
