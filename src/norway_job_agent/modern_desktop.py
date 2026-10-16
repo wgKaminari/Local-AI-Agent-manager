@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import contextlib
+import logging
 import secrets
 import sys
 import threading
@@ -152,6 +153,17 @@ def launch(data_dir: Path, *, preview: bool = False):
         windows.set_app_id()
         if not windows.claim_single_instance(data_dir):
             return  # The open window was brought to the front instead.
+        from .maintenance import automatic_backup, configure_logging
+        configure_logging(data_dir)
+
+        def backup():
+            try:
+                automatic_backup(data_dir)
+            except Exception:
+                logging.getLogger(__name__).exception("Automatic backup failed")
+
+        # A missing backup must never delay or block opening the window.
+        threading.Thread(target=backup, name="automatic-backup", daemon=True).start()
     workspace = LocalWorkspace(data_dir)
     try:
         workspace.start()

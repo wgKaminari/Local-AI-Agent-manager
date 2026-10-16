@@ -1,5 +1,4 @@
 import io
-import json
 import sys
 import tempfile
 import unittest
@@ -86,6 +85,50 @@ class EmailPersistenceTests(unittest.TestCase):
             service.import_email_candidates(data, [alert])
             self.assertEqual(service.get_vacancy(data, job_id)["is_active"], 0)
 
+
+
+class LocalAIStartupTests(unittest.TestCase):
+    def test_installed_but_stopped_ollama_is_started_before_drafting(self):
+        updates = []
+        with patch.object(runtime_setup, "_running", return_value=False),                 patch.object(runtime_setup, "ollama_executable", return_value="ollama.exe"),                 patch.object(runtime_setup, "start_ollama") as start:
+            runtime_setup.ensure_ollama(updates.append)
+        start.assert_called_once_with()
+        self.assertEqual(updates, ["Starting Ollama on this computer…"])
+
+    def test_running_or_missing_ollama_is_left_alone(self):
+        for running, executable in ((True, "ollama.exe"), (False, None)):
+            with self.subTest(running=running), patch.object(runtime_setup, "_running", return_value=running),                     patch.object(runtime_setup, "ollama_executable", return_value=executable),                     patch.object(runtime_setup, "start_ollama") as start:
+                runtime_setup.ensure_ollama()
+            start.assert_not_called()
+
+    def test_slow_start_is_awaited_for_up_to_a_minute(self):
+        clock = iter(range(0, 200, 5))
+        checks = iter([False] + [False] * 8 + [True])
+        with patch.object(runtime_setup, "_running", side_effect=lambda: next(checks)),                 patch.object(runtime_setup, "ollama_executable", return_value="ollama.exe"),                 patch.object(runtime_setup.subprocess, "Popen"), patch.object(runtime_setup.time, "sleep"),                 patch.object(runtime_setup.time, "monotonic", side_effect=lambda: next(clock)):
+            self.assertIn("running", runtime_setup.start_ollama())
+
+    def test_speed_advice_names_low_memory(self):
+        self.assertIsNone(runtime_setup.speed_advice(None))
+        self.assertIsNone(runtime_setup.speed_advice(12.0, 0.5))
+        self.assertIn("swapping", runtime_setup.speed_advice(1.4, 0.3))
+        self.assertIn("qwen3:1.7b", runtime_setup.speed_advice(2.0, 8.0))
+
+    def test_drafting_starts_ollama_and_reports_slow_generation(self):
+        from norway_job_agent import service
+        with tempfile.TemporaryDirectory() as folder:
+            data = Path(folder)
+            service.initialize(data)
+            profile = service.read_profile(data)
+            profile.update(summary="Built Python services.", evidence=["Built Python services."])
+            service.save_profile(data, profile)
+            job_id, _ = service.import_vacancy(data, {"title": "Developer", "company": "Fixture", "source": "manual",
+                                                      "source_url": "https://jobs.example.test/1", "description": "Python work."})
+            order = []
+            with patch.object(runtime_setup, "ensure_ollama", side_effect=lambda progress=None: order.append("start")),                     patch.object(runtime_setup, "memory_available_gb", return_value=0.4),                     patch("norway_job_agent.local_ai.generate_cover_letter",
+                          side_effect=lambda *a, **k: order.append("draft") or {"cover_letter": "Draft", "review_notes": [], "used_evidence": []}),                     patch("norway_job_agent.local_ai.last_tokens_per_second", return_value=1.4):
+                result = service.write_letter(data, job_id, persist=False)
+        self.assertEqual(order, ["start", "draft"])
+        self.assertIn("1.4 tokens per second", result["performance_note"])
 
 if __name__ == "__main__":
     unittest.main()

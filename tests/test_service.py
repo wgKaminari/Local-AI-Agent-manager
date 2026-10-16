@@ -9,8 +9,15 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from norway_job_agent import service
-from norway_job_agent.storage import JobStore
 
+
+
+def setUpModule():
+    # Drafting starts an installed Ollama; tests use mocked generation and
+    # must never launch the real local AI server.
+    patcher = patch("norway_job_agent.runtime_setup.ensure_ollama")
+    patcher.start()
+    unittest.addModuleCleanup(patcher.stop)
 
 class ServiceTests(unittest.TestCase):
     def setUp(self):

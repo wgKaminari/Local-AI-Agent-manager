@@ -15,9 +15,9 @@ from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 
-STATUSES = frozenset(
-    {"new", "saved", "preparing", "ready", "applied", "interview", "rejected", "archived"}
-)
+# The single definition of workflow stages, in display order.
+STATUS_ORDER = ("new", "saved", "preparing", "ready", "applied", "interview", "rejected", "archived")
+STATUSES = frozenset(STATUS_ORDER)
 _TRACKING_PARAMETERS = frozenset(
     {"fbclid", "gclid", "dclid", "msclkid", "mc_cid", "mc_eid", "_ga", "_gl", "trk", "trackingid", "referrer"}
 )

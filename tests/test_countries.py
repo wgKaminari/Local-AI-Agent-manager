@@ -24,6 +24,14 @@ from norway_job_agent.profile import match_job, validate_profile
 from norway_job_agent.storage import JobStore
 
 
+
+def setUpModule():
+    # Drafting starts an installed Ollama; tests use mocked generation and
+    # must never launch the real local AI server.
+    patcher = patch("norway_job_agent.runtime_setup.ensure_ollama")
+    patcher.start()
+    unittest.addModuleCleanup(patcher.stop)
+
 class CountryProfileTests(unittest.TestCase):
     def setUp(self):
         self.profile = validate_profile({
@@ -156,7 +164,7 @@ class CountryServiceTests(unittest.TestCase):
         service.save_settings(self.folder, settings)
         settings_before = (self.folder / "sources.json").read_bytes()
         with patch("norway_job_agent.nav.fetch_nav_batch") as nav, patch(
-            "norway_job_agent.cli.fetch_source",
+            "norway_job_agent.collection.fetch_source",
             side_effect=lambda source: {"result": {"source": source, "ok": True}, "jobs": None},
         ) as collect:
             service.collect(self.folder, settings_override=settings)

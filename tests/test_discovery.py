@@ -1,5 +1,4 @@
 """Recommendation regressions based on the reported 2.5-year search failure."""
-import json
 import sys
 import tempfile
 import unittest

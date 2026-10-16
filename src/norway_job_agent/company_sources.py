@@ -10,7 +10,7 @@ import re
 import time
 import xml.etree.ElementTree as ET
 from html.parser import HTMLParser
-from urllib.parse import quote, urlencode, urljoin, urlsplit, urlunsplit
+from urllib.parse import quote, urlencode, urlsplit, urlunsplit
 
 from .sources import SourceError, _board, _fetch, _job, _link, _plain, _url_parts, _set_location_countries, fetch_job_url, geographic_rejection, source_location_terms
 

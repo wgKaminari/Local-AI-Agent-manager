@@ -161,8 +161,8 @@ class ParallelCollectionTests(unittest.TestCase):
             return [{"title": "Data Scientist", "company": board, "source": "greenhouse",
                      "source_id": f"{board}:1", "source_url": f"https://jobs.example.test/{board}/1"}]
 
-        from norway_job_agent import cli
-        original_store = cli.store_fetched_source
+        from norway_job_agent import collection
+        original_store = collection.store_fetched_source
 
         def recording_store(batch, store, report):
             writes.append(batch["result"]["source"]["board"])
@@ -170,7 +170,7 @@ class ParallelCollectionTests(unittest.TestCase):
 
         settings = {"sources": [{"type": "greenhouse", "board": board} for board in boards], "model": "qwen3:4b"}
         with patch("norway_job_agent.sources.fetch_greenhouse", side_effect=fetch), \
-                patch.object(cli, "store_fetched_source", side_effect=recording_store):
+                patch.object(collection, "store_fetched_source", side_effect=recording_store):
             started = time.monotonic()
             report = service.collect(self.folder, settings)
             elapsed = time.monotonic() - started

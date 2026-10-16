@@ -72,8 +72,24 @@ def initialize(data_dir: Path) -> None:
         _write_json(data_dir / "sources.json", DEFAULT_SETTINGS)
 
 
+class SettingsFileError(ValueError):
+    """profile.json or sources.json cannot be read; the app offers a restore."""
+
+    def __init__(self, name: str, path: Path, detail: str):
+        self.file = name
+        label = "profile" if name == "profile.json" else "source settings"
+        super().__init__(f"Your {label} file is damaged and cannot be read ({detail}). "
+                         f"Restore the last automatic backup, or fix the file at {path}.")
+
+
 def read_profile(data_dir: Path) -> dict:
-    return load_profile(Path(data_dir) / "profile.json")
+    path = Path(data_dir) / "profile.json"
+    try:
+        return load_profile(path)
+    except UnicodeError as exc:
+        raise SettingsFileError("profile.json", path, "not UTF-8 text") from exc
+    except ValueError as exc:
+        raise SettingsFileError("profile.json", path, str(exc)) from exc
 
 
 def save_profile(data_dir: Path, profile: dict) -> None:
@@ -83,9 +99,13 @@ def save_profile(data_dir: Path, profile: dict) -> None:
 
 
 def read_settings(data_dir: Path) -> dict:
-    result = _read_json(Path(data_dir) / "sources.json")
+    path = Path(data_dir) / "sources.json"
+    try:
+        result = _read_json(path)
+    except (UnicodeError, ValueError) as exc:
+        raise SettingsFileError("sources.json", path, "not valid JSON") from exc
     if not isinstance(result, dict) or not isinstance(result.get("sources"), list):
-        raise ValueError("sources.json must contain a sources list.")
+        raise SettingsFileError("sources.json", path, "it must contain a sources list")
     result.setdefault("model", "qwen3:4b")
     result.setdefault("active_country", "")
     result.setdefault("country_presets_added", [])
@@ -271,7 +291,7 @@ def _collect(data_dir: Path, settings_override: dict | None = None, *, progress=
     """
     from concurrent.futures import ThreadPoolExecutor
     from datetime import datetime, timezone
-    from . import cli
+    from . import collection
 
     settings = settings_override if settings_override is not None else read_settings(data_dir)
     profile = read_profile(data_dir)
@@ -285,14 +305,14 @@ def _collect(data_dir: Path, settings_override: dict | None = None, *, progress=
         pool = ThreadPoolExecutor(max_workers=COLLECTION_WORKERS, thread_name_prefix="collect")
         try:
             futures = [pool.submit(_fetch_nav, data_dir, profile, store.source_ids("nav"))
-                       if source.get("type") == "nav" else pool.submit(cli.fetch_source, source)
+                       if source.get("type") == "nav" else pool.submit(collection.fetch_source, source)
                        for source in selected]
             for index, (source, future) in enumerate(zip(selected, futures), 1):
                 fetched = future.result()
                 if source.get("type") == "nav":
                     _store_nav(data_dir, source, fetched, store, report)
                 else:
-                    cli.store_fetched_source(fetched, store, report)
+                    collection.store_fetched_source(fetched, store, report)
                 if progress is not None:
                     label = source.get("name") or source.get("board") or source.get("url") or source.get("type", "source").upper()
                     progress(f"Checked {label} ({index} of {len(selected)})… You can keep browsing.")
@@ -407,7 +427,7 @@ def get_vacancy(data_dir: Path, id: int) -> dict:
 
 
 def import_vacancy(data_dir: Path, job: dict) -> tuple[int, bool]:
-    from .cli import validate_job
+    from .collection import validate_job
     with JobStore(Path(data_dir) / "vacancies.db") as store:
         return store.upsert_job(validate_job(job))
 
@@ -421,7 +441,7 @@ def update_workflow(data_dir: Path, id: int, status: str, notes: str) -> None:
 
 def import_email_candidates(data_dir: Path, candidates: list[dict]) -> dict:
     """Persist only the email opportunities explicitly selected in the review UI."""
-    from .cli import validate_job
+    from .collection import validate_job
     if not isinstance(candidates, list) or len(candidates) > 500:
         raise ValueError("Review and import at most 500 opportunities at once.")
     normalized = [validate_job(item) for item in candidates]
@@ -494,12 +514,30 @@ def import_cv_text(path: str | Path) -> str:
     return result.strip()
 
 
-def suggest_profile(data_dir: Path, cv_text: str) -> dict:
+def _prepare_local_ai(progress=None) -> None:
+    from .runtime_setup import ensure_ollama, memory_available_gb
+    ensure_ollama(progress)
+    free = memory_available_gb()
+    if progress is not None and free is not None and free < 2:
+        progress(f"Only {free:.1f} GB of memory is free, so this may take several minutes. Closing other programs speeds it up.")
+
+
+def _with_speed_advice(result: dict) -> dict:
+    from .local_ai import last_tokens_per_second
+    from .runtime_setup import memory_available_gb, speed_advice
+    advice = speed_advice(last_tokens_per_second(), memory_available_gb())
+    if advice:
+        result["performance_note"] = advice
+    return result
+
+
+def suggest_profile(data_dir: Path, cv_text: str, *, progress=None) -> dict:
     from .local_ai import extract_profile
-    return extract_profile(cv_text, model=read_settings(data_dir)["model"])
+    _prepare_local_ai(progress)
+    return _with_speed_advice(extract_profile(cv_text, model=read_settings(data_dir)["model"], progress=progress))
 
 
-def write_letter(data_dir: Path, id: int, *, persist: bool = True) -> dict:
+def write_letter(data_dir: Path, id: int, *, persist: bool = True, progress=None) -> dict:
     from .local_ai import generate_cover_letter
     job = get_vacancy(data_dir, id)
     if not job.get("is_active", True):
@@ -507,7 +545,8 @@ def write_letter(data_dir: Path, id: int, *, persist: bool = True) -> dict:
     from .countries import profile_for_job
     profile = profile_for_job(read_profile(data_dir), job)
     model = read_settings(data_dir)["model"]
-    result = generate_cover_letter(job, profile, model=model)
+    _prepare_local_ai(progress)
+    result = _with_speed_advice(generate_cover_letter(job, profile, model=model, progress=progress))
     if persist:
         with JobStore(Path(data_dir) / "vacancies.db") as store:
             # A generation request never changes the application status.
@@ -529,6 +568,7 @@ def draft_history(data_dir: Path, id: int) -> list[dict]:
 
 def available_models() -> list[str]:
     from .local_ai import list_local_models
+    _prepare_local_ai()
     return list_local_models()
 
 
@@ -541,14 +581,16 @@ def discover_application(data_dir: Path, id: int, manual_text: str = "") -> dict
     return {"form": form, "answers": [], "review_notes": [], "job_id": id}
 
 
-def prepare_application(data_dir: Path, id: int, form: dict, *, persist: bool = True) -> dict:
+def prepare_application(data_dir: Path, id: int, form: dict, *, persist: bool = True, progress=None) -> dict:
     from .application_answers import generate_application_answers
     from .countries import profile_for_job
     job = get_vacancy(data_dir, id)
     if not job.get("is_active", True):
         raise ValueError("This vacancy has been withdrawn.")
     profile = profile_for_job(read_profile(data_dir), job)
-    result = generate_application_answers(job, profile, form, writing_style=profile.get("writing_style"), model=read_settings(data_dir)["model"])
+    _prepare_local_ai(progress)
+    result = _with_speed_advice(generate_application_answers(job, profile, form, writing_style=profile.get("writing_style"),
+                                                             model=read_settings(data_dir)["model"], progress=progress))
     from .application_forms import form_fingerprint
     history = application_history(data_dir, id)
     if history and form_fingerprint(history[0]["payload"]["form"]) == form_fingerprint(form):
