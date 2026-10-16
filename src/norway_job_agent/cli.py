@@ -166,6 +166,8 @@ def parser() -> argparse.ArgumentParser:
     commands.add_parser("init", help="Create empty database, profile and source configuration.")
     gui = commands.add_parser("gui", help="Open the modern private desktop app.")
     gui.add_argument("--classic", action="store_true", help="Use the previous Tkinter interface.")
+    shortcuts = commands.add_parser("shortcuts", help="Add Start menu and desktop shortcuts that open the app without a console (Windows).")
+    shortcuts.add_argument("--remove", action="store_true", help="Remove the shortcuts instead.")
     commands.add_parser("models", help="List verified local Ollama models.")
     generate = commands.add_parser("letter", help="Generate a draft cover letter with your local Ollama model.")
     generate.add_argument("id", type=int)
@@ -224,6 +226,15 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 from .modern_desktop import launch
             launch(data_dir)
+            return 0
+        if args.command == "shortcuts":
+            from .windows_integration import create_shortcuts, remove_shortcuts
+            if args.remove:
+                remove_shortcuts()
+                print("Shortcuts removed.")
+            else:
+                for path in create_shortcuts():
+                    print(f"Shortcut: {path}")
             return 0
         if args.command == "models":
             from .service import available_models

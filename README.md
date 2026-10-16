@@ -11,7 +11,13 @@ python -m pip install -r requirements.txt
 python run.py gui
 ```
 
-You can also double-click **Start-Personal-Job-Agent.cmd**. The existing **Start-Norway-Job-Agent.cmd** launcher remains compatible. Windows needs the Microsoft Edge WebView2 Runtime for the desktop window.
+To open it like any other Windows program, add shortcuts once:
+
+```powershell
+python run.py shortcuts
+```
+
+This creates **Personal Job Agent** in the Start menu and on the desktop. They open the app without a console window, with its own icon and taskbar entry, so you can pin it from the Start menu. Starting it again brings the open window to the front instead of opening a second copy. Run the command again after moving the project folder; `python run.py shortcuts --remove` removes them. The same option is under **Settings & activity → Desktop app**. You can also double-click **Start-Personal-Job-Agent.cmd**; the older **Start-Norway-Job-Agent.cmd** launcher remains compatible. Windows needs the Microsoft Edge WebView2 Runtime for the desktop window.
 
 The interface uses bundled HTML, CSS and JavaScript inside pywebview; Python runs the application logic. The workspace opens as a desktop application, with no hosted website to configure. Opening an employer link or completing Google sign-in uses your normal browser. The earlier Tkinter interface remains available with:
 

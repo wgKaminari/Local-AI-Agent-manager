@@ -408,6 +408,12 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
                     raise ValueError("Choose a light or dark theme.")
                 values["theme"] = theme
                 service._write_json(data_dir / "appearance.json", values)
+                hook = app.config.get("THEME_CHANGED")
+                if hook is not None:
+                    try:
+                        hook(theme)  # Native title bar colour; cosmetic only.
+                    except Exception:
+                        app.logger.exception("Could not update the window theme")
             return jsonify(values)
 
     @app.post("/api/country")
@@ -528,6 +534,11 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
                                 state.gmail_connect_cancel = None
         elif action == "gmail-disconnect":
             callback = lambda progress: gmail.disconnect(data_dir)
+        elif action == "shortcuts":
+            def callback(progress):
+                from .windows_integration import create_shortcuts
+                created = create_shortcuts()
+                return {"message": f"Added {len(created)} shortcuts: Start menu and desktop. Pin the app from the Start menu if you like."}
         else:
             raise ValueError("Choose a supported background action.")
         key = ("application", identifier) if action in {"questions", "answers"} else (action, identifier if action == "letter" else None)

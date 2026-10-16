@@ -44,6 +44,9 @@ class NativeDesktopTests(unittest.TestCase):
         self.workspace = self.workspace_type.return_value
         self.workspace.url = "http://127.0.0.1:54321"
         self.workspace.app.config = {"LOCAL_TOKEN": "fictional-desktop-session"}
+        from norway_job_agent import windows_integration
+        self.app_id = patch.object(windows_integration, "set_app_id").start()
+        self.single = patch.object(windows_integration, "claim_single_instance", return_value=True).start()
 
     def test_native_window_uses_loopback_and_explicit_windows_renderer(self):
         with patch.object(modern_desktop.sys, "platform", "win32"):
@@ -55,8 +58,26 @@ class NativeDesktopTests(unittest.TestCase):
         self.assertEqual(options["min_size"], (900, 640))
         self.assertTrue(options["zoomable"])
         self.assertFalse(self.webview.settings["ALLOW_FILE_URLS"])
-        self.webview.start.assert_called_once_with(gui="edgechromium", debug=False, private_mode=True)
+        self.webview.start.assert_called_once()
+        self.assertEqual({key: value for key, value in self.webview.start.call_args.kwargs.items() if key != "icon"},
+                         {"gui": "edgechromium", "debug": False, "private_mode": True})
+        self.assertTrue(Path(self.webview.start.call_args.kwargs["icon"]).is_file())
+        self.app_id.assert_called_once_with()
+        self.single.assert_called_once_with(self.data)
         self.workspace.close.assert_called_once_with()
+
+    def test_second_launch_focuses_the_open_window_instead_of_starting(self):
+        self.single.return_value = False
+        modern_desktop.launch(self.data)
+        self.workspace_type.assert_not_called()
+        self.webview.create_window.assert_not_called()
+        self.webview.start.assert_not_called()
+
+    def test_design_preview_does_not_claim_the_real_app_identity(self):
+        modern_desktop.launch(self.data, preview=True)
+        self.app_id.assert_not_called()
+        self.single.assert_not_called()
+        self.webview.start.assert_called_once()
 
     def test_preview_is_visibly_labelled(self):
         modern_desktop.launch(self.data, preview=True)
