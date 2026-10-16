@@ -32,7 +32,7 @@ Your profile, CV text, database, notes and drafts remain in `%USERPROFILE%\.norw
 
 Editing buffers stay with you between pages and vacancies. Save versions before closing; the native window warns about unsaved work or tasks still running. Collection and AI generation run in the background, and the status area describes actual activity. Failed operations keep previously saved records available.
 
-Use **Ctrl K** for Quick actions, **Ctrl F** for opportunity search, **Ctrl S** to save the current editor, and **Ctrl Shift L** to switch light/dark appearance. The Help control lists these shortcuts. The redesign includes both themes, semantic form controls, keyboard navigation and responsive reading/editor layouts. Read the [UI/UX research](docs/ui-ux-research.md) for design references and validation targets.
+Use **J** and **K** to move through opportunities, **/** or **Ctrl F** to search, **Ctrl K** for Quick actions, **Ctrl S** to save the current editor, and **Ctrl Shift L** to switch light/dark appearance. The interface uses the bundled Geist typeface (SIL Open Font License, in `web/fonts`). The Help control lists these shortcuts. The redesign includes both themes, semantic form controls, keyboard navigation and responsive reading/editor layouts. Read the [UI/UX research](docs/ui-ux-research.md) for design references and validation targets.
 
 ## Features and coverage
 
