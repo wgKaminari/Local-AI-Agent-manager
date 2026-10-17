@@ -10,11 +10,17 @@ from pathlib import Path
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from norway_job_agent import service
 from norway_job_agent.experience_matching import experience_requirements
 from norway_job_agent.storage import JobStore
 from norway_job_agent.web_api import close_resources, create_app
+from support import nav_fetch, offline_collection
+
+
+def setUpModule():
+    offline_collection()
 
 
 class ListingTests(unittest.TestCase):

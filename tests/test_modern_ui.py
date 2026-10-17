@@ -46,6 +46,8 @@ class ModernInterfaceTests(unittest.TestCase):
         service.save_profile(self.data, profile)
         settings = service.read_settings(self.data)
         settings.update(active_country="", sources=[])
+        # The interface never reaches job sites in tests; the switches still render.
+        settings["market"]["enabled"] = {name: False for name in settings["market"]["enabled"]}
         service.save_settings(self.data, settings)
         self.ids = {}
         for country, location, company in (("NO", "Oslo, Norway", "Nordic Fixture"),
@@ -103,6 +105,29 @@ class ModernInterfaceTests(unittest.TestCase):
 
     def saved(self):
         self.expect(self.page.locator("#notifications")).to_contain_text("Saved to your private workspace.")
+
+    def test_search_offers_whole_market_search_and_saving_the_search(self):
+        self.page.locator("#job-search").fill("Linux DevOps")
+        bar = self.page.locator(".market-bar")
+        self.expect(bar).to_contain_text("Search the whole market for “Linux DevOps”")
+        self.expect(bar.get_by_role("button", name="Search job sites")).to_be_visible()
+        bar.get_by_role("button", name="Save search").click()
+        self.expect(self.page.locator("#notifications")).to_contain_text("Every refresh now also searches job sites")
+        self.expect(bar).to_contain_text("Saved search")
+        self.assertEqual(service.read_settings(self.data)["market"]["searches"], ["Linux DevOps"])
+
+    def test_linkedin_needs_its_terms_notice_before_it_can_be_enabled(self):
+        self.nav("Settings & activity")
+        linkedin = self.page.locator('input[data-site="linkedin"]')
+        linkedin.click()  # Refuses to tick until the notice is accepted.
+        self.expect(self.page.locator("#modal")).to_contain_text("LinkedIn’s user agreement nevertheless forbids automated access")
+        self.expect(linkedin).not_to_be_checked()
+        self.page.get_by_role("button", name="I understand, enable it").click()
+        self.expect(self.page.locator('input[data-site="linkedin"]')).to_be_checked()
+        self.page.get_by_role("button", name="Save settings", exact=True).click()
+        self.expect(self.page.locator("#notifications")).to_contain_text("Settings saved.")
+        market = service.read_settings(self.data)["market"]
+        self.assertTrue(market["enabled"]["linkedin"] and market["linkedin_terms_accepted"])
 
     def test_every_main_workspace_loads_without_script_or_console_errors(self):
         for name in ("For you", "Saved", "Applications", "Profile & writing", "Source library", "Job alerts", "Settings & activity", "Discover"):

@@ -1862,3 +1862,93 @@ dialog::backdrop {
     transition: none !important
   }
 }
+
+/* Whole-market search: the bar under the search box and job-site settings. */
+.market-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--line);
+  background: var(--accent-tint);
+  color: var(--ink);
+  font-size: 12.5px
+}
+
+.market-bar > svg {
+  flex: none;
+  color: var(--accent-text)
+}
+
+.market-bar .market-text {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis
+}
+
+.market-bar .market-actions {
+  display: flex;
+  flex: none;
+  gap: 6px;
+  align-items: center
+}
+
+.job-card .also-on {
+  color: var(--faint)
+}
+
+.site-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 8px;
+  margin-bottom: 14px
+}
+
+.site-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  cursor: pointer
+}
+
+.site-row:hover {
+  border-color: var(--line-strong)
+}
+
+.site-row input {
+  margin-top: 3px;
+  accent-color: var(--accent)
+}
+
+.site-row small {
+  color: var(--muted)
+}
+
+.site-row .site-note {
+  display: block;
+  margin-top: 3px;
+  line-height: 1.4
+}
+
+.check-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 4px 0 12px;
+  font-size: 13px
+}
+
+.check-row input {
+  accent-color: var(--accent)
+}
+
+@media (max-width:640px) {
+  .market-bar {
+    flex-wrap: wrap
+  }
+}

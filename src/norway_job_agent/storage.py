@@ -91,6 +91,27 @@ def _job_specific_apply_url(url: str) -> str:
     return ""
 
 
+def search_terms(query: str | None) -> list[str]:
+    """Split a search into words, keeping "quoted phrases" together."""
+    if not query:
+        return []
+    terms = []
+    for phrase, word in re.findall(r'"([^"]*)"|(\S+)', str(query)[:500]):
+        value = " ".join((phrase or word).split()).strip(",;")
+        if value and value.casefold() not in {term.casefold() for term in terms}:
+            terms.append(value)
+    return terms[:12]
+
+
+def _short_term(term: str) -> bool:
+    return len(term) <= 3 and term.isalnum()
+
+
+def _has_word(job: dict, term: str) -> bool:
+    text = "\n".join(str(job.get(key) or "") for key in ("title", "company", "location", "description"))
+    return re.search(r"(?<![\w])" + re.escape(term) + r"(?![\w])", text, re.IGNORECASE) is not None
+
+
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="microseconds")
 
@@ -361,22 +382,62 @@ class JobStore:
         rows = self._connection.execute("SELECT kind, external_id, payload_json FROM job_provenance WHERE job_id = ? ORDER BY id", (job_id,)).fetchall()
         return [{"kind": row[0], "external_id": row[1], **json.loads(row[2])} for row in rows]
 
-    def list_jobs(self, status: str | None = None, query: str | None = None, include_inactive: bool = False) -> list[dict]:
+    def list_jobs(self, status: str | None = None, query: str | None = None, include_inactive: bool = False,
+                  alternatives: list[str] | tuple[str, ...] = (), title_only_sources: tuple[str, ...] = (),
+                  title_terms: list[str] | tuple[str, ...] = ()) -> list[dict]:
+        """List vacancies; a query matches word by word, like a web search.
+
+        Every word must appear somewhere in the title, employer, location or
+        advert, in any order; "quoted phrases" stay together. Words of up to
+        three characters (AI, ML, Go) must be whole words. Alternatives are
+        other spellings of the same search, such as role aliases.
+
+        Some job sites list adverts without their text until opened. Those
+        (title_only_sources, still without a description) also match when a
+        title contains one of title_terms, or when the site returned the
+        advert for exactly this search.
+        """
         filters = [] if include_inactive else ["is_active = 1"]
         parameters = []
         if status is not None:
             _validate_status(status)
             filters.append("status = ?")
             parameters.append(status)
-        if query:
-            escaped = query.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
-            filters.append("(title LIKE ? ESCAPE '\\' OR company LIKE ? ESCAPE '\\' OR location LIKE ? ESCAPE '\\' OR description LIKE ? ESCAPE '\\')")
-            parameters.extend([f"%{escaped}%"] * 4)
+        groups = [terms for value in ([query] if query else []) + [item for item in alternatives if item]
+                  if (terms := search_terms(value))]
+        if groups:
+            clauses = []
+            for terms in groups:
+                parts = []
+                for term in terms:
+                    escaped = term.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+                    parts.append("(title LIKE ? ESCAPE '\\' OR company LIKE ? ESCAPE '\\' OR location LIKE ? ESCAPE '\\' OR description LIKE ? ESCAPE '\\')")
+                    parameters.extend([f"%{escaped}%"] * 4)
+                clauses.append("(" + " AND ".join(parts) + ")")
+            lazy = [term for term in title_terms if term] if title_only_sources else []
+            if lazy:
+                marks = ", ".join("?" for _ in title_only_sources)
+                escaped = [term.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") for term in [*lazy, query or ""]]
+                clauses.append(f"(description = '' AND source IN ({marks}) AND ("
+                               + " OR ".join("title LIKE ? ESCAPE '\\'" for _ in lazy) + " OR raw_json LIKE ? ESCAPE '\\'))")
+                parameters.extend([*title_only_sources, *(f"%{term}%" for term in escaped[:-1]), f'%"{escaped[-1]}"%'])
+            filters.append("(" + " OR ".join(clauses) + ")")
         where = " WHERE " + " AND ".join(filters) if filters else ""
         rows = self._connection.execute(
             "SELECT * FROM jobs" + where + " ORDER BY discovered_at DESC, id DESC", parameters
         ).fetchall()
-        return [self._job_dict(row) for row in rows]
+        jobs = [self._job_dict(row) for row in rows]
+        if groups:
+            def matches(job):
+                if title_terms and job.get("source") in title_only_sources and not job.get("description"):
+                    if any(_has_word({"title": job.get("title")}, term) if _short_term(term) else term.casefold() in str(job.get("title", "")).casefold()
+                           for term in title_terms) or f'"{(query or "").casefold()}"' in str(job.get("raw_json", "")).casefold():
+                        return True
+                return any(all(_has_word(job, term) for term in terms if _short_term(term))
+                           and all(term.casefold() in "\n".join(str(job.get(key) or "") for key in ("title", "company", "location", "description")).casefold()
+                                   for term in terms) for terms in groups)
+            jobs = [job for job in jobs if matches(job)]
+        return jobs
 
     def source_ids(self, source: str) -> list[str]:
         """Include aliases retained after an employer-board cross-source merge."""

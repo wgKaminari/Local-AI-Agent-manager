@@ -9,9 +9,15 @@ from pathlib import Path
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from norway_job_agent import service
 from norway_job_agent.storage import JobStore
+from support import nav_fetch, offline_collection
+
+
+def setUpModule():
+    offline_collection()
 
 
 class CoreFixture(unittest.TestCase):
@@ -29,31 +35,24 @@ class CoreFixture(unittest.TestCase):
 
 
 class CoreIntegrityTests(CoreFixture):
-    def nav_batch(self, jobs, withdrawn=None):
-        return {"jobs": jobs, "withdrawn_ids": withdrawn or [],
-                "state": {"version": 1, "url": "next-fixture-page"}, "has_more": False,
-                "pages": 1, "seen": len(jobs), "experimental_token": False}
-
-    def test_nav_identity_conflict_rolls_back_whole_batch_and_keeps_cursor(self):
+    def test_nav_identity_conflict_skips_only_that_advert_and_keeps_notes(self):
         first = service.import_vacancy(self.folder, self.job("first", source="nav"))[0]
         service.import_vacancy(self.folder, self.job("second", source="nav"))
         service.update_workflow(self.folder, first, "saved", "Reviewed notes")
-        state_path = self.folder / "nav-state.json"
-        state_path.write_text('{"url":"previous-fixture-page"}', encoding="utf-8")
-        before = state_path.read_bytes()
-        jobs = [self.job("first", source="nav", title="Uncommitted update"),
-                self.job("discard", source="nav"),
+        jobs = [self.job("first", source="nav", title="Refreshed title"),
+                self.job("new", source="nav", title="Machine Learning Engineer"),
                 self.job("first", source="nav", source_url=self.job("second")["source_url"])]
         settings = {"sources": [{"type": "nav"}, {"type": "greenhouse", "board": "fixture"}]}
-        with patch("norway_job_agent.nav.fetch_nav_batch", return_value=self.nav_batch(jobs)), \
-                patch("norway_job_agent.sources.fetch_greenhouse", return_value=[self.job("successful")]):
+        with patch("norway_job_agent.service._fetch_nav", return_value=nav_fetch(jobs)), \
+                patch("norway_job_agent.sources.fetch_greenhouse", return_value=[self.job("successful", title="Statistician")]):
             report = service.collect(self.folder, settings)
-        self.assertFalse(report["sources"][0]["ok"])
-        self.assertEqual((report["sources"][0]["created"], report["sources"][0]["updated"]), (0, 0))
-        self.assertEqual((report["created"], report["updated"], report["withdrawn"]), (1, 0, 0))
-        self.assertEqual(state_path.read_bytes(), before)
-        self.assertEqual({row["source_id"] for row in service.vacancies(self.folder)}, {"first", "second", "successful"})
-        self.assertEqual(service.get_vacancy(self.folder, first)["title"], "Data Scientist")
+        nav = report["sources"][0]
+        self.assertTrue(nav["ok"])
+        self.assertEqual((nav["created"], nav["updated"]), (1, 1))
+        self.assertIn("1 adverts conflicted", nav["coverage"])
+        self.assertEqual((report["created"], report["updated"], report["withdrawn"]), (2, 1, 0))
+        self.assertEqual({row["source_id"] for row in service.vacancies(self.folder)}, {"first", "second", "new", "successful"})
+        self.assertEqual(service.get_vacancy(self.folder, first)["title"], "Refreshed title")
         self.assertEqual(service.get_vacancy(self.folder, first)["notes"], "Reviewed notes")
 
     def test_nav_withdrawal_failure_rolls_back_new_jobs_and_prior_withdrawals(self):
@@ -66,13 +65,17 @@ class CoreIntegrityTests(CoreFixture):
                 raise ValueError("Fixture withdrawal failed")
             return original_withdraw(store, source, identifier)
 
-        batch = self.nav_batch([self.job("discard", source="nav")], ["first", "second"])
-        with patch("norway_job_agent.nav.fetch_nav_batch", return_value=batch), \
-                patch.object(JobStore, "withdraw_source_job", withdraw):
+        fetched = nav_fetch([self.job("discard", source="nav")], ["first", "second"], marks=[("v1", "[]", "discard")])
+        with patch("norway_job_agent.service._fetch_nav", return_value=fetched), \
+                patch.object(JobStore, "withdraw_source_job", withdraw), \
+                patch("norway_job_agent.nav_index.mark_hydrated") as marked, \
+                patch("norway_job_agent.nav_index.mark_withdrawals_applied") as applied:
             report = service.collect(self.folder)
         self.assertFalse(report["sources"][0]["ok"])
         self.assertEqual((report["created"], report["updated"], report["withdrawn"]), (0, 0, 0))
-        self.assertFalse((self.folder / "nav-state.json").exists())
+        # Nothing is recorded as checked, so the next refresh retries it all.
+        marked.assert_not_called()
+        applied.assert_not_called()
         self.assertEqual({row["source_id"] for row in service.vacancies(self.folder)}, {"first", "second"})
         self.assertTrue(service.get_vacancy(self.folder, first)["is_active"])
         self.assertEqual(service.get_vacancy(self.folder, first)["description"], "Python tools")

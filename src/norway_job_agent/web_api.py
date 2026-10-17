@@ -315,8 +315,9 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
     @app.get("/api/bootstrap")
     def bootstrap():
         from .storage import STATUS_ORDER as STATUSES
+        from .market import provider_catalog
         return jsonify(profile=service.read_profile(data_dir), settings=service.read_settings(data_dir),
-                       appearance=_appearance(data_dir),
+                       appearance=_appearance(data_dir), job_sites=provider_catalog(),
                        countries=COUNTRIES, statuses=STATUSES, catalog=company_catalog(), boards=job_board_catalog(),
                        gmail=gmail.connection_status(data_dir), collection=service.read_collection_report(data_dir))
 
@@ -466,6 +467,17 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
             service.get_vacancy(data_dir, identifier)
         if action == "collect":
             callback = lambda progress: service.collect(data_dir, progress=progress)
+        elif action == "market-search":
+            query = _text(value.get("query"), "Search", 120)
+            market_country = _text(value.get("country", ""), "Country", 2)
+            callback = lambda progress: service.market_search(data_dir, query, market_country, progress=progress)
+        elif action == "load-details":
+            identifier = _job_id(value.get("job_id"))
+            def callback(progress):
+                job = service.load_details(data_dir, identifier)
+                with state.lock:
+                    state.changed(identifier)
+                return {"id": identifier, "has_description": bool(job.get("description"))}
         elif action == "letter":
             revision = state.edit_revision("letter", identifier)
             def callback(progress):
@@ -556,7 +568,9 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
                 return {"message": f"Added {len(created)} shortcuts: Start menu and desktop. Pin the app from the Start menu if you like."}
         else:
             raise ValueError("Choose a supported background action.")
-        key = ("application", identifier) if action in {"questions", "answers"} else (action, identifier if action == "letter" else None)
+        key = ("application", identifier) if action in {"questions", "answers"} else (action, identifier if action in {"letter", "load-details"} else None)
+        if action == "market-search":
+            key = ("collect", None)  # One network-wide search at a time.
         if action in {"gmail-connect", "gmail-disconnect", "gmail-fetch"}:
             key = ("gmail-account", None)
         if action == "gmail-connect":

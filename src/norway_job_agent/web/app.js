@@ -64,6 +64,8 @@ const S = {
   details: new Map(),
   buffers: new Map(),
   tasks: new Map(),
+  loadingDetails: new Set(),
+  detailFailures: new Map(),
   profile: null,
   profileDirty: false,
   profileRaw: {},
@@ -314,11 +316,16 @@ function coverageNotice() {
   const filtered = S.view === 'for-you' && s ? `${s.role_matches} role matches · ${s.experience_mismatches} above your experience. ` : '';
   const run = c.last_run ? `${c.checked} sources checked in the last run${c.failed?`, ${c.failed} failed`:''}${c.limited?`, ${c.limited} reached a scan limit`:''}.` : 'Run a fresh collection to check coverage for this country.';
   // One quiet line; the full explanation stays one click away.
+  const sites = (c.job_sites || []).filter(x => x.enabled).map(x => x.name);
+  if (c.nav_index) sites.unshift('NAV');
   const line = [isDiscovery() && s ? `${s.in_scope.toLocaleString()} vacancies · ${s.employers} employers` : `${c.configured_collectors} of ${c.available_collectors} collectors configured`,
     S.view === 'for-you' && s ? `${s.experience_mismatches} above your experience` : '',
+    `${sites.length} job site${sites.length===1?'':'s'} + ${c.configured_collectors} employer boards`,
     c.last_run ? `${c.checked} sources checked${c.failed?`, ${c.failed} failed`:''}` : 'not collected yet'
   ].filter(Boolean).join(' · ');
-  return `<details class="coverage-notice" ${S.coverageOpen?'open':''}><summary><span class="dot ${c.failed||!c.last_run?'amber':''}"></span><span class="line">${esc(line)}</span><span class="more">Details</span></summary><div class="coverage-body"><strong>${c.configured_collectors} configured collectors · ${c.available_collectors} available employer collectors</strong><p>${esc(search)} ${esc(filtered)}${esc(experience)} ${esc(run)}</p>${button('Manage sources','go-sources','quiet')}</div></details>`;
+  const market = sites.length ? `Whole-market job sites: ${sites.join(', ')}; ${c.searches} searches per refresh from your saved searches and roles.` : 'No whole-market job sites are on; turn them on in Settings & activity.';
+  const nav = c.nav_index ? ` NAV index: ${c.nav_index.active.toLocaleString()} active Norwegian vacancies.` : '';
+  return `<details class="coverage-notice" ${S.coverageOpen?'open':''}><summary><span class="dot ${c.failed||!c.last_run?'amber':''}"></span><span class="line">${esc(line)}</span><span class="more">Details</span></summary><div class="coverage-body"><strong>${esc(market)}${esc(nav)}</strong><p>${c.configured_collectors} configured collectors · ${c.available_collectors} available employer collectors. ${esc(search)} ${esc(filtered)}${esc(experience)} ${esc(run)}</p>${button('Manage sources','go-sources','quiet')}</div></details>`;
 }
 document.addEventListener('toggle', e => {
   if (e.target.matches?.('.coverage-notice')) S.coverageOpen = e.target.open;
@@ -355,15 +362,30 @@ function jobTags(j) {
   return tags.join('');
 }
 
+// Display names for where a vacancy was found.
+const SITE_LABELS = {nav: 'NAV', arbeitsagentur: 'Arbeitsagentur', arbeitnow: 'Arbeitnow', djinni: 'Djinni', dou: 'DOU',
+  remotive: 'Remotive', remoteok: 'Remote OK', himalayas: 'Himalayas', linkedin: 'LinkedIn', gmail: 'job-alert email'};
+const siteLabel = source => SITE_LABELS[source] || 'employer site';
+
+function marketBar() {
+  const q = S.query.trim();
+  if (!['discover', 'for-you'].includes(S.view) || q.length < 2) return '';
+  const saved = (S.boot.settings.market?.searches || []).some(x => x.toLowerCase() === q.toLowerCase());
+  const busy = S.tasks.has('market-search:');
+  const text = busy ? `Searching job sites for “${esc(q)}”… results appear here as they are saved.` :
+    `These are adverts already collected. Search the whole market for “${esc(q)}” too.`;
+  return `<div class="market-bar">${icon('search')}<span class="market-text">${text}</span><span class="market-actions">${button(busy?'Searching…':'Search job sites','market-search','primary',busy?'disabled':'title="Search every enabled job site for this now"')}${saved?pill('Saved search','green'):button('Save search','save-search','quiet','title="Include this search in every refresh"')}</span></div>`;
+}
+
 function renderCards() {
   const root = $('#job-results');
   if (!root) return;
-  root.innerHTML = S.jobs.length ? S.jobs.slice(0, S.limit).map(j => {
+  root.innerHTML = marketBar() + (S.jobs.length ? S.jobs.slice(0, S.limit).map(j => {
     const score = j.match?.score,
       tier = score == null ? '' : score >= 70 ? 'high' : score >= 45 ? 'mid' : '';
     const selected = S.selected === j.id;
-    return `<button type="button" class="job-card ${selected?'selected':''}" data-job="${j.id}" aria-pressed="${selected}"><span class="score ${tier}" title="Keyword overlap with your profile">${score??'–'}</span><span class="title-line"><span class="sr-only">${score==null?'No match score. ':score+'% keyword match. '}</span>${esc(j.title)}</span><span class="age" title="${esc(j.published_at||j.discovered_at||'')}">${ago(j.published_at||j.discovered_at)}</span><span class="job-sub">${esc(j.company||'Employer not listed')} · ${esc(j.location||'Location to confirm')}</span><span class="job-tags">${jobTags(j)}</span></button>`;
-  }).join('') + (S.jobs.length > S.limit ? `<div class="empty">${button(`Show ${Math.min(80,S.jobs.length-S.limit)} more`, 'more-jobs', 'quiet')}</div>` : '') : `<div class="empty"><div class="empty-icon">${icon('discover')}</div><h2>${S.query||S.status?'Nothing matches these filters':'No opportunities yet'}</h2><p>${S.query||S.status?'Try another search or reset the filters. Your saved work is unaffected.':'Choose a country and find opportunities, or add a vacancy you found yourself.'}</p>${button(S.query||S.status?'Reset filters':'Find opportunities',S.query||S.status?'reset-filters':'collect','primary')}</div>`;
+    return `<button type="button" class="job-card ${selected?'selected':''}" data-job="${j.id}" aria-pressed="${selected}"><span class="score ${tier}" title="Keyword overlap with your profile">${score??'–'}</span><span class="title-line"><span class="sr-only">${score==null?'No match score. ':score+'% keyword match. '}</span>${esc(j.title)}</span><span class="age" title="${esc(j.published_at||j.discovered_at||'')}">${ago(j.published_at||j.discovered_at)}</span><span class="job-sub">${esc(j.company||'Employer not listed')} · ${esc(j.location||'Location to confirm')}${j.also_on?.length?`<span class="also-on" title="${esc('Also on '+[...new Set(j.also_on.map(o=>siteLabel(o.source)))].join(', '))}"> · +${j.also_on.length} site${j.also_on.length>1?'s':''}</span>`:''}</span><span class="job-tags">${jobTags(j)}</span></button>`;
+  }).join('') + (S.jobs.length > S.limit ? `<div class="empty">${button(`Show ${Math.min(80,S.jobs.length-S.limit)} more`, 'more-jobs', 'quiet')}</div>` : '') : `<div class="empty"><div class="empty-icon">${icon('discover')}</div><h2>${S.query||S.status?'Nothing matches these filters':'No opportunities yet'}</h2><p>${S.query?'Nothing collected matches yet. Search job sites above, try other words, or reset the filters.':S.status?'Try another stage or reset the filters. Your saved work is unaffected.':'Choose a country and find opportunities, or add a vacancy you found yourself.'}</p>${button(S.query||S.status?'Reset filters':'Find opportunities',S.query||S.status?'reset-filters':'collect',S.query?'':'primary')}</div>`);
 }
 async function loadJobs() {
   const version = ++S.generation;
@@ -466,7 +488,7 @@ function renderDetail() {
     return;
   }
   const j = data.job;
-  root.innerHTML = `<div class="detail-head">${button(icon('back')+' All opportunities','back-list','quiet back-list button-icon')}<div class="detail-company"><span class="company-mark">${esc((j.company||'Co').slice(0,2).toUpperCase())}</span>${esc(j.company||'Employer')}</div><h2>${esc(j.title)}</h2><div class="detail-meta"><span>${esc(j.location||'Location to confirm')}</span>${j.employment_type?`<span>${esc(j.employment_type)}</span>`:''}${j.deadline?`<span>Closes ${esc(j.deadline.slice(0,10))}</span>`:''}</div><div class="detail-actions">${S.tab!=='letter'&&j.is_active?button(icon('spark')+' Write cover letter','','primary button-icon','data-tab="letter"'):''}${button(icon('saved')+' '+(b.status==='saved'?'Saved':['new','saved'].includes(b.status)?'Save':cap(b.status)),'bookmark','button-icon',['new','saved'].includes(b.status)?'':'disabled title="Change stage in Notes & stage"')}${link('Original posting',j.source_url)}${link('Apply on site',j.apply_url||j.source_url)}</div><div class="tabs" role="tablist" aria-label="Opportunity workspace">${[['overview','Overview'],['notes','Notes & stage'],['letter','Cover letter'],['answers','Application']].map(([id,label])=>`<button role="tab" aria-label="${label}" id="tab-${id}" aria-selected="${S.tab===id}" aria-controls="detail-content" class="tab ${S.tab===id?'active':''}" data-tab="${id}">${label}${b.dirty.has(id==='answers'?'app':id)?' •':''}</button>`).join('')}</div></div><div id="detail-content" class="detail-body" role="tabpanel" aria-labelledby="tab-${S.tab}"></div>`;
+  root.innerHTML = `<div class="detail-head">${button(icon('back')+' All opportunities','back-list','quiet back-list button-icon')}<div class="detail-company"><span class="company-mark">${esc((j.company||'Co').slice(0,2).toUpperCase())}</span>${esc(j.company||'Employer')}</div><h2>${esc(j.title)}</h2><div class="detail-meta"><span>${esc(j.location||'Location to confirm')}</span>${j.employment_type?`<span>${esc(j.employment_type)}</span>`:''}${j.deadline?`<span>Closes ${esc(j.deadline.slice(0,10))}</span>`:''}</div><div class="detail-actions">${S.tab!=='letter'&&j.is_active?button(icon('spark')+' Write cover letter','','primary button-icon','data-tab="letter"'):''}${button(icon('saved')+' '+(b.status==='saved'?'Saved':['new','saved'].includes(b.status)?'Save':cap(b.status)),'bookmark','button-icon',['new','saved'].includes(b.status)?'':'disabled title="Change stage in Notes & stage"')}${link(BOARD_SOURCES.includes(j.source)?'On '+siteLabel(j.source):'Original posting',j.source_url)}${rawOf(j).external_apply_url?link('Apply on employer site',rawOf(j).external_apply_url):BOARD_SOURCES.includes(j.source)?'':link('Apply on site',j.apply_url||j.source_url)}${(S.jobs.find(x=>x.id===j.id)?.also_on||[]).slice(0,4).map(o=>link('On '+siteLabel(o.source),o.url)).join('')}</div><div class="tabs" role="tablist" aria-label="Opportunity workspace">${[['overview','Overview'],['notes','Notes & stage'],['letter','Cover letter'],['answers','Application']].map(([id,label])=>`<button role="tab" aria-label="${label}" id="tab-${id}" aria-selected="${S.tab===id}" aria-controls="detail-content" class="tab ${S.tab===id?'active':''}" data-tab="${id}">${label}${b.dirty.has(id==='answers'?'app':id)?' •':''}</button>`).join('')}</div></div><div id="detail-content" class="detail-body" role="tabpanel" aria-labelledby="tab-${S.tab}"></div>`;
   const body = $('#detail-content');
   if (!j.is_active || j.match?.expired) body.innerHTML = '<div class="notice warning">This posting is withdrawn or past its deadline. Your notes and drafts are still available.</div>';
   if (!S.jobs.some(item => item.id === j.id)) body.insertAdjacentHTML('beforeend', '<div class="notice">This opportunity is outside the current filters. Your editor stays open so you can finish your work.</div>');
@@ -474,6 +496,36 @@ function renderDetail() {
   else if (S.tab === 'notes') body.insertAdjacentHTML('beforeend', notes(b));
   else if (S.tab === 'letter') body.insertAdjacentHTML('beforeend', letter(b));
   else body.insertAdjacentHTML('beforeend', answers(b, data));
+  if (needsDetails(j) && !S.loadingDetails.has(j.id) && !S.detailFailures.has(j.id)) loadDetails(j.id);
+}
+
+// Job sites whose lists omit the advert text (Djinni: the employer).
+const BOARD_SOURCES = ['arbeitsagentur', 'arbeitnow', 'djinni', 'dou', 'remotive', 'remoteok', 'himalayas', 'linkedin'];
+const needsDetails = j => Boolean(j.is_active) && ((['arbeitsagentur', 'linkedin'].includes(j.source) && !String(j.description || '').trim()) ||
+  (j.source === 'djinni' && j.company === 'Company on Djinni'));
+
+function rawOf(j) {
+  try {
+    const raw = typeof j.raw_json === 'string' ? JSON.parse(j.raw_json || '{}') : j.raw_json;
+    return raw && typeof raw === 'object' ? raw : {};
+  } catch {
+    return {};
+  }
+}
+
+async function loadDetails(id) {
+  S.loadingDetails.add(id);
+  try {
+    await task('load-details', {job_id: id}, async () => {
+      S.details.delete(id);
+      if (S.selected === id) await selectJob(id, false);
+    });
+  } catch (err) {
+    S.detailFailures.set(id, err.message);
+  } finally {
+    S.loadingDetails.delete(id);
+    if (S.selected === id) renderDetail();
+  }
 }
 
 function fitTiles(j) {
@@ -499,7 +551,10 @@ function overview(j) {
   const m = j.match || {},
     e = m.experience;
   const experience = e ? `<details class="evidence"><summary>How experience was screened</summary>${e.reasons.map(reason=>`<p>${esc(reason)}</p>`).join('')}${(e.requirements||[]).map(r=>`<p>${esc(cap(r.kind))}: ${esc(r.evidence)}</p>`).join('')}</details>` : '';
-  return `${fitTiles(j)}<div class="prose">${esc(j.description||'No full description was imported. Read the original posting for details.')}</div>${experience}<details class="evidence"><summary>Things to check before applying</summary>${(m.warnings||[]).map(w=>`<p>${esc(w)}</p>`).join('')}<p>${m.score==null?'No keyword score.':`${m.score}% keyword overlap.`} This measures text overlap, not eligibility or hiring probability.</p></details>`;
+  const failure = S.detailFailures.get(j.id);
+  const missing = needsDetails(j) ? (failure ? `${siteLabel(j.source)} could not show the full advert: ${failure} Open it on the site instead.` :
+    `Loading the full advert from ${siteLabel(j.source)}…`) : 'No full description was imported. Read the original posting for details.';
+  return `${fitTiles(j)}<div class="prose">${esc(String(j.description||'').trim()?j.description:missing)}</div>${experience}<details class="evidence"><summary>Things to check before applying</summary>${(m.warnings||[]).map(w=>`<p>${esc(w)}</p>`).join('')}<p>${m.score==null?'No keyword score.':`${m.score}% keyword overlap.`} This measures text overlap, not eligibility or hiring probability.</p></details>`;
 }
 
 function notes(b) {
@@ -655,10 +710,22 @@ function renderCatalogCards() {
   $('#catalog-grid').innerHTML = entries.length ? entries.map(e => `<article class="catalog-card"><div class="row"><span class="company-mark">${esc(e.name.slice(0,2).toUpperCase())}</span><h3>${esc(e.name)}</h3></div><div class="tags">${pill(e.source?'Automatic collector':'Career link',e.source?'green':'')}${pill(e.countries.map(c=>S.boot.countries[c]).join(' · '))}</div><p>${esc(e.note||e.sectors?.join(' · ')||'Explore this source on its official website.')}</p><small>Checked ${esc(e.checked_at||'date not recorded')} · ${esc(cap(e.verification?.status||'Research directory'))}</small><footer>${link('Open site',e.careers_url)}${e.source?button(sourceAdded(e)?'Added':'Add source','add-source',sourceAdded(e)?'quiet':'',`data-source-id="${esc(e.id)}" ${sourceAdded(e)?'disabled':''}`):''}</footer></article>`).join('') : '<div class="empty"><h2>No sources match</h2><p>Try a different search or access filter.</p></div>';
 }
 
+function jobSitesPanel(settings) {
+  const m = settings.market || {enabled: {}, searches: []};
+  const on = Object.values(m.enabled || {}).filter(Boolean).length;
+  const rows = (S.boot.job_sites || []).map(s => `<label class="site-row"><input type="checkbox" data-site="${esc(s.id)}" ${m.enabled?.[s.id]?'checked':''}><span><strong>${esc(s.name)}</strong> <small>${esc(s.countries.map(c=>S.boot.countries[c]).join(' · '))}</small> ${s.opt_in?pill('Opt-in','amber'):''}<small class="site-note">${esc(s.note)}</small></span></label>`).join('');
+  return `<section class="panel"><div class="panel-title"><div><h2>Job sites</h2><p>Whole-market search: every employer on these sites, for your saved searches and target roles. NAV covers Norway and is listed under connected sources.</p></div>${pill(on+' on',on?'green':'')}</div><div class="site-list">${rows}</div><label class="field"><span>Saved searches</span><textarea id="market-searches" rows="3" placeholder="One search per line, for example: Linux DevOps" aria-label="Saved searches">${esc((m.searches||[]).join('\n'))}</textarea><small>Every refresh searches these first, then your target roles${m.include_related_roles?' and related roles':''}. Use the search box on Discover to search all sites once.</small></label><label class="check-row"><input type="checkbox" id="market-related" ${m.include_related_roles?'checked':''}> Also search my related roles</label><p class="evidence">Changes apply after Save settings, below.</p></section>`;
+}
+
+function linkedinNotice() {
+  modal('LinkedIn public search', `<div class="notice warning"><strong>Read before enabling</strong><p>LinkedIn shows job listings to visitors without an account, and this search uses only that public view. LinkedIn’s user agreement nevertheless forbids automated access.</p></div><p>How the app keeps this respectful and safe for you:</p><ul class="prose"><li>No login, no cookies: your LinkedIn account is never used or affected.</li><li>It identifies itself honestly and pauses between requests, with a small limit per refresh.</li><li>If LinkedIn asks it to slow down, it stops at once and waits an hour. The worst case is a temporary block of your internet address on LinkedIn.</li></ul><p class="evidence">The fully permitted alternative is LinkedIn job-alert emails, which Job alerts imports from Gmail.</p>`,
+    button('Cancel', 'close-modal') + button('I understand, enable it', 'accept-linkedin', 'primary'));
+}
+
 function renderSettings() {
   const settings = S.settingsDraft || S.boot.settings;
   $('#main').insertAdjacentHTML('beforeend', `<div class="content-width"><section class="panel"><div class="panel-title"><div><h2>Local AI</h2><p>Ollama runs your model on this computer. No cloud AI key is needed.</p></div>${pill('On-device','green')}</div><div class="form-grid">${field('Model name','model',settings.model,{group:'settings',hint:'Save a model name before downloading or generating.'})}<div><label class="field"><span>Available models</span><select id="model-picker"><option value="">Check setup to list installed models</option></select></label></div></div><div class="section-actions">${button('Check setup','check-setup')}${button('Start Ollama','start-ollama')}${button('Download saved model','download-model')}${button('Install PDF support','install-pdf')}${link('Install Ollama','https://ollama.com/download/windows')}</div><div id="setup-result" class="evidence"></div></section>
-  <section class="panel"><div class="panel-title"><div><h2>Connected job sources</h2><p>${S.boot.settings.sources.length} configured. The country switch limits each collection to that market.</p></div>${button('Browse library','go-sources')}</div><div class="table-wrap"><table><thead><tr><th>Source</th><th>Countries</th><th>Action</th></tr></thead><tbody>${settings.sources.map((s,i)=>`<tr><td>${esc(s.name||s.board||cap(s.type))}<span class="sub">${esc(s.type)}</span></td><td>${esc(s.countries?.join(', ')||(s.type==='nav'?'NO':'Any'))}</td><td>${button('Remove','remove-source','quiet',`data-source-index="${i}"`)}</td></tr>`).join('')}</tbody></table></div><details class="evidence"><summary>Advanced source configuration</summary><p>Edit the source array for custom boards, locations or limits. Invalid changes are rejected when you save.</p><textarea id="sources-json" rows="10" aria-label="Advanced sources JSON">${esc(S.sourcesText??JSON.stringify(settings.sources,null,2))}</textarea></details><div class="savebar"><small>${S.settingsDirty?'Unsaved settings':'Changes apply after saving.'}</small>${button('Save settings','save-settings','primary')}</div></section>
+  ${jobSitesPanel(settings)}<section class="panel"><div class="panel-title"><div><h2>Connected job sources</h2><p>${S.boot.settings.sources.length} configured. The country switch limits each collection to that market.</p></div>${button('Browse library','go-sources')}</div><div class="table-wrap"><table><thead><tr><th>Source</th><th>Countries</th><th>Action</th></tr></thead><tbody>${settings.sources.map((s,i)=>`<tr><td>${esc(s.name||s.board||cap(s.type))}<span class="sub">${esc(s.type)}</span></td><td>${esc(s.countries?.join(', ')||(s.type==='nav'?'NO':'Any'))}</td><td>${button('Remove','remove-source','quiet',`data-source-index="${i}"`)}</td></tr>`).join('')}</tbody></table></div><details class="evidence"><summary>Advanced source configuration</summary><p>Edit the source array for custom boards, locations or limits. Invalid changes are rejected when you save.</p><textarea id="sources-json" rows="10" aria-label="Advanced sources JSON">${esc(S.sourcesText??JSON.stringify(settings.sources,null,2))}</textarea></details><div class="savebar"><small>${S.settingsDirty?'Unsaved settings':'Changes apply after saving.'}</small>${button('Save settings','save-settings','primary')}</div></section>
   <section class="panel"><div class="panel-title"><div><h2>Collection activity</h2><p>See what was collected and which sources need attention.</p></div>${button('Find opportunities','collect')}</div>${collectionReport()}</section><section class="panel"><div class="panel-title"><div><h2>Desktop app</h2><p>Open Job Agent from the Start menu or desktop like any other program: its own icon, no console window, and only one window at a time.</p></div></div><p class="evidence">The app runs entirely on this computer. Your profile, database, notes and drafts stay in your private data folder.</p><div class="section-actions">${button('Add Start menu & desktop shortcuts','create-shortcuts','primary')}${button('Switch theme','theme')}${button('Keyboard shortcuts','help')}</div></section></div>`);
 }
 
@@ -781,6 +848,11 @@ document.addEventListener('input', e => {
     S.sourcesText = el.value;
     S.settingsDirty = true;
     updateStatus();
+  } else if (el.id === 'market-searches') {
+    S.settingsDraft ??= clone(S.boot.settings);
+    S.settingsDraft.market.searches = [...new Set(el.value.split('\n').map(x => x.trim()).filter(Boolean))];
+    S.settingsDirty = true;
+    updateStatus();
   } else if (el.id === 'email-query') S.emailQuery = el.value;
 });
 document.addEventListener('change', async e => {
@@ -806,6 +878,21 @@ document.addEventListener('change', async e => {
     } else if (['status-filter', 'sort', 'experience-filter'].includes(el.id)) {
       S[el.id === 'sort' ? 'sort' : el.id === 'experience-filter' ? 'experience' : 'status'] = el.value;
       await loadJobs();
+    } else if (el.dataset.site) {
+      S.settingsDraft ??= clone(S.boot.settings);
+      if (el.dataset.site === 'linkedin' && el.checked && !S.settingsDraft.market.linkedin_terms_accepted) {
+        el.checked = false;
+        linkedinNotice();
+        return;
+      }
+      S.settingsDraft.market.enabled[el.dataset.site] = el.checked;
+      S.settingsDirty = true;
+      updateStatus();
+    } else if (el.id === 'market-related') {
+      S.settingsDraft ??= clone(S.boot.settings);
+      S.settingsDraft.market.include_related_roles = el.checked;
+      S.settingsDirty = true;
+      updateStatus();
     } else if (el.id === 'catalog-mode') {
       S.catalogMode = el.value;
       renderCatalogCards();
@@ -1046,6 +1133,43 @@ async function action(name, el) {
     S.sort = 'match';
     S.experience = 'relevant';
     await loadJobs();
+    return;
+  }
+  if (name === 'market-search') {
+    const query = S.query.trim();
+    if (query.length < 2) throw Error('Type a role or skill to search job sites.');
+    const running = task('market-search', {query, country: S.country}, async r => {
+      await refreshCoverage();
+      await loadJobs();
+      const failed = (r.sources || []).filter(s => !s.ok).length;
+      toast(`Searched ${r.sources.length} job site${r.sources.length===1?'':'s'} for “${query}”: ${r.found} relevant adverts, ${r.created} new.${failed?` ${failed} need attention; see Settings & activity.`:''}`);
+    });
+    renderCards();
+    try {
+      await running;
+    } finally {
+      renderCards();
+    }
+    return;
+  }
+  if (name === 'save-search') {
+    if (S.settingsDirty) throw Error('Save your settings edits first.');
+    const draft = clone(S.boot.settings);
+    draft.market.searches = [...new Set([...(draft.market.searches || []), S.query.trim()])];
+    S.boot.settings = await changeSettings('/settings', 'PUT', draft);
+    renderCards();
+    toast('Saved. Every refresh now also searches job sites for this.');
+    return;
+  }
+  if (name === 'accept-linkedin') {
+    S.settingsDraft ??= clone(S.boot.settings);
+    S.settingsDraft.market.linkedin_terms_accepted = true;
+    S.settingsDraft.market.enabled.linkedin = true;
+    S.settingsDirty = true;
+    closeModal();
+    renderPage();
+    updateStatus();
+    toast('LinkedIn public search turns on when you save settings.');
     return;
   }
   if (name === 'collect') {

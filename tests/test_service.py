@@ -7,12 +7,15 @@ from pathlib import Path
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from norway_job_agent import service
+from support import nav_fetch, offline_collection
 
 
 
 def setUpModule():
+    offline_collection()
     # Drafting starts an installed Ollama; tests use mocked generation and
     # must never launch the real local AI server.
     patcher = patch("norway_job_agent.runtime_setup.ensure_ollama")
@@ -27,15 +30,12 @@ class ServiceTests(unittest.TestCase):
         service.initialize(self.folder)
         self.job = {"source": "nav", "source_id": "12345678-1234-4234-8234-123456789012", "title": "Data Scientist", "company": "Fixture AS", "source_url": "https://example.com/jobs/12345", "description": "Python and statistics", "location": "Oslo, Norway"}
 
-    def batch(self, jobs=None, withdrawn=None, state=None):
-        return {"jobs": jobs or [], "withdrawn_ids": withdrawn or [], "state": state or {"version": 1, "url": "https://pam-stilling-feed.nav.no/api/v1/feed/page"}, "has_more": False, "pages": 1, "seen": 1, "experimental_token": True}
-
     def test_nav_withdrawal_hides_ad_preserves_personal_workflow(self):
-        with patch("norway_job_agent.nav.fetch_nav_batch", return_value=self.batch(jobs=[self.job])):
+        with patch("norway_job_agent.service._fetch_nav", return_value=nav_fetch(jobs=[self.job])):
             self.assertEqual(service.collect(self.folder)["created"], 1)
         service.update_workflow(self.folder, 1, "saved", "My own note")
         service.save_edited_letter(self.folder, 1, "My reviewed letter")
-        with patch("norway_job_agent.nav.fetch_nav_batch", return_value=self.batch(withdrawn=[self.job["source_id"]])):
+        with patch("norway_job_agent.service._fetch_nav", return_value=nav_fetch(withdrawn=[self.job["source_id"]])):
             self.assertEqual(service.collect(self.folder)["withdrawn"], 1)
         self.assertEqual(service.vacancies(self.folder), [])
         archived = service.get_vacancy(self.folder, 1)
@@ -46,29 +46,25 @@ class ServiceTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "withdrawn"):
             service.write_letter(self.folder, 1)
 
-    def test_failed_collection_preserves_checkpoint(self):
-        state_path = self.folder / "nav-state.json"
-        state_path.write_text('{"url": "previous-page"}', encoding="utf-8")
+    def test_failed_collection_preserves_feed_position(self):
+        from norway_job_agent import nav_index
+        from norway_job_agent.sources import SourceError
+        from support import REAL_SYNC
+        previous = {"url": "https://pam-stilling-feed.nav.no/api/v1/feed/previous", "etag": "", "last_modified": "",
+                    "initial_since": "Mon, 01 Jun 2026 00:00:00 GMT"}
+        with nav_index.NavIndex(self.folder) as index:
+            index.save_page([], previous)
         updates = []
-        with patch("norway_job_agent.nav.fetch_nav_batch", side_effect=ValueError("Temporary failure")):
+        with patch("norway_job_agent.nav_index.sync", REAL_SYNC), \
+                patch("norway_job_agent.nav._get_token", return_value=("fixture-token", True)), \
+                patch("norway_job_agent.nav._fetch_nav", side_effect=SourceError("Temporary failure")):
             report = service.collect(self.folder, progress=updates.append)
         self.assertFalse(report["sources"][0]["ok"])
-        self.assertEqual(len(updates), 2)
-        self.assertIn("Checking 1 source…", updates[0])
-        self.assertIn("NAV (1 of 1)", updates[1])
-        self.assertEqual(json.loads(state_path.read_text()), {"url": "previous-page"})
-
-    def test_new_search_preferences_revisit_history(self):
-        with patch("norway_job_agent.nav.fetch_nav_batch", return_value=self.batch()) as fetch:
-            service.collect(self.folder)
-            self.assertEqual(fetch.call_args.args[0], {})
-            service.collect(self.folder)
-            self.assertIn("url", fetch.call_args.args[0])
-            profile = service.read_profile(self.folder)
-            profile["target_roles"].append("Biostatistician")
-            service.save_profile(self.folder, profile)
-            service.collect(self.folder)
-            self.assertEqual(fetch.call_args.args[0], {})
+        self.assertIn("Temporary failure", report["sources"][0]["error"])
+        self.assertIn("Checking 1 source, including 1 whole-market job site", updates[0])
+        self.assertIn("NAV (1 of 1)", updates[-1])
+        with nav_index.NavIndex(self.folder) as index:
+            self.assertEqual(index.cursor(), previous)
 
     def test_target_and_horizon_are_explained_separately(self):
         service.import_vacancy(self.folder, self.job)

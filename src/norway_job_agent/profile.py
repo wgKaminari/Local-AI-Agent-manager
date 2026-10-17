@@ -15,15 +15,43 @@ TEXT_FIELDS = ("name", "summary", "work_authorization", "cv_text", "cover_letter
 # Equivalent job-title spellings, not an inference that the candidate has these
 # qualifications. Unrelated disciplines must still be explicitly configured.
 _ROLE_ALIASES = (
-    ("data scientist", "dataviter"),
-    ("ai engineer", "artificial intelligence engineer", "engineer ai", "engineer artificial intelligence", "ki ingeniør", "ki utvikler", "ai/ml engineer", "ai / ml engineer", "ai and ml engineer", "ai & ml engineer"),
-    ("machine learning engineer", "ml engineer", "engineer machine learning", "machine learning software engineer", "maskinlæringsingeniør", "maskinlærings ingeniør", "ai/ml engineer", "ai / ml engineer", "ai and ml engineer", "ai & ml engineer"),
+    ("data scientist", "dataviter", "datenwissenschaftler", "datenwissenschaftlerin", "data scientist in"),
+    ("ai engineer", "artificial intelligence engineer", "engineer ai", "engineer artificial intelligence", "ki ingeniør", "ki utvikler",
+     "ki entwickler", "ki ingenieur", "ki engineer", "ai developer", "ai software engineer", "ai інженер",
+     "ai/ml engineer", "ai / ml engineer", "ai and ml engineer", "ai & ml engineer"),
+    ("machine learning engineer", "ml engineer", "engineer machine learning", "machine learning software engineer", "maskinlæringsingeniør",
+     "maskinlærings ingeniør", "machine learning ingenieur", "ml ingenieur", "machine learning developer", "ml developer",
+     "ml інженер", "інженер з машинного навчання", "ai/ml engineer", "ai / ml engineer", "ai and ml engineer", "ai & ml engineer"),
     ("applied scientist", "applied ai scientist", "applied machine learning scientist"),
-    ("data engineer", "dataingeniør", "data ingeniør"),
-    ("data analyst", "dataanalytiker", "data analytiker"),
-    ("mathematician", "matematiker"),
-    ("statistician", "statistiker"),
+    ("data engineer", "dataingeniør", "data ingeniør", "dateningenieur", "інженер даних"),
+    ("data analyst", "dataanalytiker", "data analytiker", "datenanalyst", "datenanalystin", "аналітик даних"),
+    ("mathematician", "matematiker", "mathematiker", "mathematikerin", "математик"),
+    ("statistician", "statistiker", "statistikerin", "статистик"),
 )
+# Titles close to a target field: recommended as related roles, never claimed
+# as the target itself. Each group applies only when the profile targets one
+# of its fields, so an unrelated discipline is still never inferred.
+_ROLE_NEIGHBOURS = (
+    (("machine learning engineer", "ml engineer", "ai engineer", "artificial intelligence", "maskinlæring", "kunstig intelligens"),
+     ("mlops engineer", "ml ops engineer", "deep learning engineer", "nlp engineer", "llm engineer", "computer vision engineer",
+      "machine learning scientist", "machine learning researcher", "ml scientist", "ml researcher", "ai researcher",
+      "ai research scientist", "research scientist machine learning", "genai engineer", "generative ai engineer",
+      "ai specialist", "machine learning specialist", "ml platform engineer", "ai architect", "prompt engineer",
+      "ki spezialist", "ki berater", "machine learning consultant", "ai consultant"),
+     "Machine learning (close role)"),
+    (("data scientist", "data science", "dataviter"),
+     ("decision scientist", "analytics scientist", "product scientist", "research data scientist", "data science manager",
+      "data science lead", "head of data science", "data science consultant", "data science specialist", "data science intern",
+      "quantitative researcher", "machine learning scientist"),
+     "Data science (close role)"),
+    (("mathematician", "matematiker", "statistician"),
+     ("quantitative analyst", "quantitative researcher", "quant researcher", "quant analyst", "actuary", "aktuar", "aktuarin",
+      "biostatistician", "operations research", "optimization engineer"),
+     "Mathematics (close role)"),
+)
+# A skill score counts at most this many skills, so a long skill list does not
+# make every advert look like a weak fit.
+_SKILL_SCORE_CAP = 5
 
 
 _ROLE_SEPARATORS = re.compile(r"[-‐‑‒–—_,:]+")
@@ -123,6 +151,18 @@ def contains_phrase(text: str, phrase: str, *, folded_text: str | None = None) -
     return False
 
 
+@lru_cache(maxsize=256)
+def _active_neighbours(targets: tuple[str, ...]) -> tuple[tuple[tuple[str, ...], str], ...]:
+    folded = {term for role in targets for term in _role_terms(role)}
+    return tuple((titles, label) for fields, titles, label in _ROLE_NEIGHBOURS if folded.intersection(fields))
+
+
+def _neighbour_labels(normalized_title: str, folded_title: str, profile: dict) -> list[str]:
+    groups = _active_neighbours(tuple(profile.get("target_roles", [])))
+    return [label for titles, label in groups
+            if any(contains_phrase(normalized_title, title, folded_text=folded_title) for title in titles)]
+
+
 def match_job(job: dict, profile: dict, today: date | None = None, *, recommendations_only: bool = False) -> dict | None:
     """Return matching evidence, or skip an unrelated title when requested.
 
@@ -140,7 +180,8 @@ def match_job(job: dict, profile: dict, today: date | None = None, *, recommenda
     configured = []
     matched_roles = [x for x in profile.get("target_roles", []) if _role_matches_normalized(normalized_title, x, folded_title=folded_title)]
     broad_topics = {"artificial intelligence", "data science", "maskinlæring", "kunstig intelligens"}
-    technical_title = re.search(r"engineer|ingeniør|scientist|forsker|research|utvikler|developer|matemati|mathemati", title, re.IGNORECASE)
+    technical_title = re.search(r"engineer|ingeniør|ingenieur|scientist|forsker|research|utvikler|developer|entwickler|"
+                                r"matemati|mathemati|specialist|spesialist|spezialist|architect|arkitekt|analyst|analytiker", title, re.IGNORECASE)
     matched_roles = [role for role in matched_roles if role.casefold() not in broad_topics or technical_title]
     related_roles = [x for x in profile.get("related_roles", []) if _role_matches_normalized(normalized_title, x, folded_title=folded_title)]
     research_labels = {"phd", "stipendiat", "research assistant", "research scientist", "research engineer"}
@@ -154,6 +195,8 @@ def match_job(job: dict, profile: dict, today: date | None = None, *, recommenda
     if academic_title and research_overlap:
         related_roles = list(dict.fromkeys([*related_roles, "Research in a related field"]))
         matched_roles = []
+    if not matched_roles:
+        related_roles = list(dict.fromkeys([*related_roles, *_neighbour_labels(normalized_title, folded_title, profile)]))
     if recommendations_only and not (matched_roles or related_roles):
         return None
     search_body = _search_hint(body)
@@ -163,7 +206,7 @@ def match_job(job: dict, profile: dict, today: date | None = None, *, recommenda
     if profile.get("target_roles"):
         configured.append((50, 1.0 if matched_roles else 0.0))
     if profile.get("skills"):
-        configured.append((35, len(matched_skills) / len(profile["skills"])))
+        configured.append((35, min(1.0, len(matched_skills) / min(len(profile["skills"]), _SKILL_SCORE_CAP))))
     if profile.get("preferred_locations"):
         configured.append((15, 1.0 if matched_locations else 0.0))
     score = round(100 * sum(weight * ratio for weight, ratio in configured) / sum(weight for weight, _ in configured)) if configured else None
