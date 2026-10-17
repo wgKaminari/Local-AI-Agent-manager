@@ -19,7 +19,7 @@ from norway_job_agent import service
 from norway_job_agent.application_forms import parse_html_form, parse_manual_questions
 from norway_job_agent.storage import JobStore
 from norway_job_agent.web_api import create_app, close_resources
-from support import nav_fetch, offline_collection
+from support import offline_collection
 
 
 FORM_URL = "https://careers.example.com/apply/1"

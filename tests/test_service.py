@@ -1,4 +1,3 @@
-import json
 import sys
 import tempfile
 import unittest
@@ -62,7 +61,7 @@ class ServiceTests(unittest.TestCase):
         self.assertFalse(report["sources"][0]["ok"])
         self.assertIn("Temporary failure", report["sources"][0]["error"])
         self.assertIn("Checking 1 source, including 1 whole-market job site", updates[0])
-        self.assertIn("NAV (1 of 1)", updates[-1])
+        self.assertTrue(any("NAV (1 of 1)" in update for update in updates), updates)
         with nav_index.NavIndex(self.folder) as index:
             self.assertEqual(index.cursor(), previous)
 

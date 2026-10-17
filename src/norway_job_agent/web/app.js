@@ -157,8 +157,12 @@ function toast(message, error = false) {
   toastTimer = setTimeout(() => $('#notifications').replaceChildren(), error ? 16000 : 6000);
 }
 
+// Background work that is safe to interrupt: it simply completes next time.
+const RESUMABLE_TASKS = ['rematch:', 'load-details:'];
+
 function dirty() {
-  return S.profileDirty || S.settingsDirty || [...S.buffers.values()].some(b => b.dirty.size) || S.tasks.size > 0;
+  return S.profileDirty || S.settingsDirty || [...S.buffers.values()].some(b => b.dirty.size) ||
+    [...S.tasks.keys()].some(key => !RESUMABLE_TASKS.some(prefix => key.startsWith(prefix)));
 }
 window.hasUnsavedChanges = dirty;
 // A new renderer starts beyond the previous renderer's sequence after reload.
@@ -340,7 +344,7 @@ function renderDiscovery() {
 }
 
 function listCount() {
-  const n = S.jobs.length;
+  const n = S.summary?.shown ?? S.jobs.length;
   const where = S.country ? ' in ' + esc(S.boot.countries[S.country]) : '';
   return S.view === 'for-you' ? `${n} fit you${where} · ${S.summary?.shown_employers||0} employers` : `${n.toLocaleString()} shown${where}`;
 }
@@ -380,34 +384,57 @@ function marketBar() {
 function renderCards() {
   const root = $('#job-results');
   if (!root) return;
-  root.innerHTML = marketBar() + (S.jobs.length ? S.jobs.slice(0, S.limit).map(j => {
+  root.innerHTML = marketBar() + (S.jobs.length ? S.jobs.map(j => {
     const score = j.match?.score,
       tier = score == null ? '' : score >= 70 ? 'high' : score >= 45 ? 'mid' : '';
     const selected = S.selected === j.id;
     return `<button type="button" class="job-card ${selected?'selected':''}" data-job="${j.id}" aria-pressed="${selected}"><span class="score ${tier}" title="Keyword overlap with your profile">${score??'–'}</span><span class="title-line"><span class="sr-only">${score==null?'No match score. ':score+'% keyword match. '}</span>${esc(j.title)}</span><span class="age" title="${esc(j.published_at||j.discovered_at||'')}">${ago(j.published_at||j.discovered_at)}</span><span class="job-sub">${esc(j.company||'Employer not listed')} · ${esc(j.location||'Location to confirm')}${j.also_on?.length?`<span class="also-on" title="${esc('Also on '+[...new Set(j.also_on.map(o=>siteLabel(o.source)))].join(', '))}"> · +${j.also_on.length} site${j.also_on.length>1?'s':''}</span>`:''}</span><span class="job-tags">${jobTags(j)}</span></button>`;
-  }).join('') + (S.jobs.length > S.limit ? `<div class="empty">${button(`Show ${Math.min(80,S.jobs.length-S.limit)} more`, 'more-jobs', 'quiet')}</div>` : '') : `<div class="empty"><div class="empty-icon">${icon('discover')}</div><h2>${S.query||S.status?'Nothing matches these filters':'No opportunities yet'}</h2><p>${S.query?'Nothing collected matches yet. Search job sites above, try other words, or reset the filters.':S.status?'Try another stage or reset the filters. Your saved work is unaffected.':'Choose a country and find opportunities, or add a vacancy you found yourself.'}</p>${button(S.query||S.status?'Reset filters':'Find opportunities',S.query||S.status?'reset-filters':'collect',S.query?'':'primary')}</div>`);
+  }).join('') + (S.summary?.has_more ? `<div class="empty">${button(`Show ${Math.min(PAGE_SIZE,(S.summary.shown||0)-S.jobs.length)} more of ${(S.summary.shown||0).toLocaleString()}`, 'more-jobs', 'quiet')}</div>` : '') : `<div class="empty"><div class="empty-icon">${icon('discover')}</div><h2>${S.query||S.status?'Nothing matches these filters':'No opportunities yet'}</h2><p>${S.query?'Nothing collected matches yet. Search job sites above, try other words, or reset the filters.':S.status?'Try another stage or reset the filters. Your saved work is unaffected.':'Choose a country and find opportunities, or add a vacancy you found yourself.'}</p>${button(S.query||S.status?'Reset filters':'Find opportunities',S.query||S.status?'reset-filters':'collect',S.query?'':'primary')}</div>`);
 }
-async function loadJobs() {
-  // A delayed search reload or a finished job-site search may arrive after
-  // the user has moved to a page without a vacancy list.
-  if (!['discover', 'for-you', 'saved', 'applications'].includes(S.view)) return;
-  const version = ++S.generation;
-  const params = new URLSearchParams({
+// The server pages lists; the database may hold tens of thousands of vacancies.
+const PAGE_SIZE = 80;
+
+function listParams(offset) {
+  return new URLSearchParams({
     country: S.country,
     query: S.query,
     status: S.status,
     sort: S.sort,
     experience: ['discover', 'for-you'].includes(S.view) ? S.experience : 'all',
-    view: S.view
+    view: S.view,
+    offset,
+    limit: PAGE_SIZE
   });
+}
+
+async function loadMore() {
+  if (!S.summary?.has_more || S.loadingMore) return;
+  const version = S.generation;
+  S.loadingMore = true;
+  try {
+    const {jobs, summary} = await api('/jobs?' + listParams(S.jobs.length));
+    if (version !== S.generation) return;
+    const known = new Set(S.jobs.map(j => j.id));
+    S.jobs = S.jobs.concat(jobs.filter(j => !known.has(j.id)));
+    S.summary = summary;
+  } finally {
+    S.loadingMore = false;
+  }
+  renderCards();
+}
+
+async function loadJobs() {
+  // A delayed search reload or a finished job-site search may arrive after
+  // the user has moved to a page without a vacancy list.
+  if (!['discover', 'for-you', 'saved', 'applications'].includes(S.view)) return;
+  const version = ++S.generation;
   const {
     jobs,
     summary
-  } = await api('/jobs?' + params);
+  } = await api('/jobs?' + listParams(0));
   if (version !== S.generation) return;
   S.jobs = jobs;
   S.summary = summary;
-  S.limit = 80;
   if (!S.selected && jobs.length) await selectJob(jobs[0].id, false);
   else if (S.selected && !S.details.has(S.selected)) await selectJob(S.selected, false);
   if (version !== S.generation) return;
@@ -460,8 +487,9 @@ async function selectJob(id, render = true) {
 
 async function moveSelection(step) {
   const index = S.jobs.findIndex(j => j.id === S.selected);
+  // Moving past the loaded page fetches the next one first.
+  if (index + step >= S.jobs.length - 1 && S.summary?.has_more) await loadMore();
   const next = Math.min(S.jobs.length - 1, Math.max(0, index < 0 ? 0 : index + step));
-  if (next >= S.limit) S.limit += 80;
   await selectJob(S.jobs[next].id);
   const row = $(`[data-job="${S.jobs[next].id}"]`);
   row?.scrollIntoView({block: 'nearest'});
@@ -717,7 +745,7 @@ function jobSitesPanel(settings) {
   const m = settings.market || {enabled: {}, searches: []};
   const on = Object.values(m.enabled || {}).filter(Boolean).length;
   const rows = (S.boot.job_sites || []).map(s => `<label class="site-row"><input type="checkbox" data-site="${esc(s.id)}" ${m.enabled?.[s.id]?'checked':''}><span><strong>${esc(s.name)}</strong> <small>${esc(s.countries.map(c=>S.boot.countries[c]).join(' · '))}</small> ${s.opt_in?pill('Opt-in','amber'):''}<small class="site-note">${esc(s.note)}</small></span></label>`).join('');
-  return `<section class="panel"><div class="panel-title"><div><h2>Job sites</h2><p>Whole-market search: every employer on these sites, for your saved searches and target roles. NAV covers Norway and is listed under connected sources.</p></div>${pill(on+' on',on?'green':'')}</div><div class="site-list">${rows}</div><label class="field"><span>Saved searches</span><textarea id="market-searches" rows="3" placeholder="One search per line, for example: Linux DevOps" aria-label="Saved searches">${esc((m.searches||[]).join('\n'))}</textarea><small>Every refresh searches these first, then your target roles${m.include_related_roles?' and related roles':''}. Use the search box on Discover to search all sites once.</small></label><label class="check-row"><input type="checkbox" id="market-related" ${m.include_related_roles?'checked':''}> Also search my related roles</label><p class="evidence">Changes apply after Save settings, below.</p></section>`;
+  return `<section class="panel"><div class="panel-title"><div><h2>Job sites</h2><p>Whole-market search: every employer on these sites, for your saved searches and target roles. NAV covers Norway and is listed under connected sources.</p></div>${pill(on+' on',on?'green':'')}</div><div class="site-list">${rows}</div><label class="field"><span>Saved searches</span><textarea id="market-searches" rows="3" placeholder="One search per line, for example: Linux DevOps" aria-label="Saved searches">${esc((m.searches||[]).join('\n'))}</textarea><small>Every refresh searches these first, then your target roles${m.include_related_roles?' and related roles':''}. Use the search box on Discover to search all sites once.</small></label><label class="check-row"><input type="checkbox" id="market-related" ${m.include_related_roles?'checked':''}> Also search my related roles</label><label class="check-row"><input type="checkbox" id="market-everything" ${m.collect_everything!==false?'checked':''}> Collect everything in my fields</label><p class="evidence">On: each refresh also browses whole fields (IT, data, engineering, science…) and NAV's entire Norwegian market, and keeps every vacancy in your countries; matching happens in your database. The first refresh per country can take 10–20 minutes. Vacancies closed or unseen for 30 days are removed, except ones you saved, noted or applied to. Changes apply after Save settings, below.</p></section>`;
 }
 
 function linkedinNotice() {
@@ -891,9 +919,9 @@ document.addEventListener('change', async e => {
       S.settingsDraft.market.enabled[el.dataset.site] = el.checked;
       S.settingsDirty = true;
       updateStatus();
-    } else if (el.id === 'market-related') {
+    } else if (el.id === 'market-related' || el.id === 'market-everything') {
       S.settingsDraft ??= clone(S.boot.settings);
-      S.settingsDraft.market.include_related_roles = el.checked;
+      S.settingsDraft.market[el.id === 'market-related' ? 'include_related_roles' : 'collect_everything'] = el.checked;
       S.settingsDirty = true;
       updateStatus();
     } else if (el.id === 'catalog-mode') {
@@ -1126,8 +1154,7 @@ async function action(name, el) {
     return;
   }
   if (name === 'more-jobs') {
-    S.limit += 80;
-    renderCards();
+    await loadMore();
     return;
   }
   if (name === 'reset-filters') {
@@ -1184,7 +1211,7 @@ async function action(name, el) {
       await refreshCoverage();
       if (['discover', 'for-you', 'saved', 'applications'].includes(S.view)) await loadJobs();
       else if (S.view === 'settings') renderPage();
-      toast(`${result.created||0} new opportunities. ${result.sources?.filter(x=>!x.ok).length||0} sources need attention; see Settings & activity.`);
+      toast(`${result.created||0} new opportunities. ${result.sources?.filter(x=>!x.ok).length||0} sources need attention; see Settings & activity.${result.removed?` ${result.removed.toLocaleString()} long-closed vacancies cleaned up.`:''}`);
     });
     return;
   }
@@ -1368,8 +1395,13 @@ async function action(name, el) {
     }
     S.boot.profile = result;
     S.details.clear();
-    toast('Profile saved. New drafts will use these facts and preferences.');
+    toast('Profile saved. Updating matches for every collected vacancy in the background…');
     updateStatus();
+    // Stored matches follow the profile; recompute them now, not on the next list.
+    task('rematch', {}, async r => {
+      if (['discover', 'for-you', 'saved', 'applications'].includes(S.view)) await loadJobs();
+      toast(`Profile saved. ${(r.matched||0).toLocaleString()} vacancies re-matched; new drafts use these facts and preferences.`);
+    }).catch(err => toast(err.message, true));
     return;
   }
   if (name === 'import-cv') {

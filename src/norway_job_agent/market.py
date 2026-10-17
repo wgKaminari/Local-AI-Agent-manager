@@ -98,13 +98,40 @@ def needs_details(job: dict) -> bool:
         return job.get("company") == DJINNI_COMPANY
     return source in LAZY_DETAILS and not str(job.get("description") or "").strip()
 MAX_SEARCHES = 30
+# "Collect everything in my fields": broad searches each refresh adds to your
+# roles and saved searches. Everything they return is kept (in a supported
+# country); matching then happens in the database. LinkedIn is never browsed
+# broadly: it refuses more than a few dozen requests.
+BROAD_QUERIES = {
+    "arbeitsagentur": ["Informatik", "IT", "Software", "Entwickler", "Developer", "Data", "Daten", "Analyst",
+                       "Ingenieur", "Engineer", "Mathematik", "Statistik", "Wissenschaftler", "Forschung",
+                       "Machine Learning", "Künstliche Intelligenz", "Cloud", "DevOps", "Consultant", "Werkstudent"],
+    "djinni": ["python", "data", "machine learning", "devops", "java", "javascript", "golang", "c++", ".net", "php",
+               "qa", "analyst", "product", "project manager", "designer", "support", "engineer", "developer",
+               "manager", "marketing", "sales", "hr", "security", "embedded"],
+    "dou": ["category:" + name for name in (
+        "Python", "Data Science", "AI/ML", "Data Engineer", "Big Data", "Analyst", "Java", ".NET", "Front End",
+        "Node.js", "PHP", "Golang", "C++", "Ruby", "Scala", "Rust", "iOS/macOS", "Android", "Flutter", "DevOps",
+        "SysAdmin", "Security", "QA", "Embedded", "Architect", "Product Manager", "Project Manager",
+        "Engineering Manager", "Design", "Technical Writer", "Support", "DBA", "Blockchain", "Unity", "Other")],
+    "remotive": ["category:" + slug for slug in (
+        "software-dev", "data", "devops", "qa", "product", "project-management", "design", "customer-support",
+        "marketing", "sales-business", "finance-legal", "hr", "writing", "all-others")],
+    "himalayas": ["software engineer", "data", "machine learning", "devops", "product manager", "designer",
+                  "analyst", "python", "frontend", "backend", "mobile", "security", "marketing", "sales",
+                  "customer support", "project manager"],
+}
+# Seconds one provider may spend per refresh; the next refresh continues.
+REFRESH_SECONDS = 600
+LIVE_SECONDS = 90
 
 
 def validate_market_settings(value) -> dict:
     """Normalize the market section of sources.json."""
     if value is None:
         value = {}
-    if not isinstance(value, dict) or set(value) - {"enabled", "searches", "include_related_roles", "linkedin_terms_accepted"}:
+    if not isinstance(value, dict) or set(value) - {"enabled", "searches", "include_related_roles", "linkedin_terms_accepted",
+                                                    "collect_everything"}:
         raise ValueError("Market search settings must contain enabled providers, saved searches and options.")
     enabled = value.get("enabled", {})
     if not isinstance(enabled, dict) or any(name not in PROVIDERS or not isinstance(flag, bool) for name, flag in enabled.items()):
@@ -115,11 +142,12 @@ def validate_market_settings(value) -> dict:
         raise ValueError(f"Saved searches must be at most {MAX_SEARCHES} phrases of up to 120 characters.")
     related = value.get("include_related_roles", True)
     accepted = value.get("linkedin_terms_accepted", False)
-    if not isinstance(related, bool) or not isinstance(accepted, bool):
+    everything = value.get("collect_everything", True)
+    if not all(isinstance(flag, bool) for flag in (related, accepted, everything)):
         raise ValueError("Market search options must be true or false.")
     result = {"enabled": {**DEFAULT_ENABLED, **enabled},
               "searches": list(dict.fromkeys(" ".join(item.split()) for item in searches)),
-              "include_related_roles": related, "linkedin_terms_accepted": accepted}
+              "include_related_roles": related, "linkedin_terms_accepted": accepted, "collect_everything": everything}
     if result["enabled"]["linkedin"] and not accepted:
         raise ValueError("Confirm LinkedIn's terms notice before enabling LinkedIn public search.")
     return result
@@ -258,11 +286,15 @@ def _ba_job(item: dict) -> dict | None:
     return job
 
 
-def _arbeitsagentur(query: str, country: str, limit: int) -> list[dict]:
+def _arbeitsagentur(query: str, country: str, limit: int, *, since_days: int = 60, deadline: float = 0.0,
+                    **_) -> list[dict]:
+    """One search; at most 100 pages of 100, the API's own ceiling."""
     jobs = []
-    for page in range(1, 4):
+    for page in range(1, 101):
+        if deadline and time.monotonic() > deadline:
+            raise _Budget(jobs)
         data = _json(f"{_BA_BASE}/pc/v6/jobs?" + urlencode({
-            "was": query, "angebotsart": 1, "veroeffentlichtseit": 60, "size": 100, "page": page,
+            "was": query, "angebotsart": 1, "veroeffentlichtseit": since_days, "size": 100, "page": page,
         }), headers=_BA_HEADERS)
         items = data.get("ergebnisliste") if isinstance(data, dict) else None
         if items is None and isinstance(data, dict) and "maxErgebnisse" in data:
@@ -273,8 +305,16 @@ def _arbeitsagentur(query: str, country: str, limit: int) -> list[dict]:
         total = data.get("maxErgebnisse") or 0
         if len(jobs) >= limit or len(items) < 100 or page * 100 >= int(total or 0):
             break
-        time.sleep(REQUEST_PAUSE)
+        time.sleep(0.1)
     return jobs[:limit]
+
+
+class _Budget(Exception):
+    """A provider's time budget ran out; carries the jobs read so far."""
+
+    def __init__(self, jobs):
+        super().__init__("time budget")
+        self.jobs = jobs
 
 
 def _arbeitsagentur_details(job: dict) -> dict:
@@ -289,9 +329,10 @@ def _arbeitsagentur_details(job: dict) -> dict:
             "company": _plain(data.get("arbeitgeber") or data.get("firma"))}
 
 
-def _arbeitnow(queries: list[str], country: str, limit: int) -> list[dict]:
+def _arbeitnow(queries: list[str], country: str, limit: int, *, newest: int = 0, max_pages: int = 3, **_) -> list[dict]:
+    """The newest pages, stopping at a page older than the last refresh's newest job."""
     jobs = []
-    for page in range(1, 4):
+    for page in range(1, max_pages + 1):
         data = _json(f"https://www.arbeitnow.com/api/job-board-api?page={page}", respect_robots=True)
         items = data.get("data") if isinstance(data, dict) else None
         if not isinstance(items, list):
@@ -309,14 +350,16 @@ def _arbeitnow(queries: list[str], country: str, limit: int) -> list[dict]:
             if item.get("remote"):
                 job["location"] = "; ".join(filter(None, ["Remote", job["location"]]))
             _set_location_countries(job, [(job["location"], None)])
+            job["_created"] = created if isinstance(created, int) else 0
             jobs.append(job)
-        if len(items) < 100:
+        if len(items) < 100 or (newest and all(not isinstance(item, dict) or (item.get("created_at") or 0) <= newest
+                                               for item in items)):
             break
         time.sleep(REQUEST_PAUSE)
     return jobs
 
 
-def _djinni(query: str, country: str, limit: int) -> list[dict]:
+def _djinni(query: str, country: str, limit: int, **_) -> list[dict]:
     jobs = []
     for item in _rss("https://djinni.co/jobs/rss/?" + urlencode({"all_keywords": query}))[:limit]:
         link = _link(item.get("link"), "https://djinni.co/")
@@ -333,9 +376,10 @@ def _djinni(query: str, country: str, limit: int) -> list[dict]:
     return jobs
 
 
-def _dou(query: str, country: str, limit: int) -> list[dict]:
+def _dou(query: str, country: str, limit: int, **_) -> list[dict]:
     jobs = []
-    for item in _rss("https://jobs.dou.ua/vacancies/feeds/?" + urlencode({"search": query}))[:limit]:
+    params = {"category": query[9:]} if query.startswith("category:") else {"search": query}
+    for item in _rss("https://jobs.dou.ua/vacancies/feeds/?" + urlencode(params))[:limit]:
         link = _link(item.get("link"), "https://jobs.dou.ua/").split("?", 1)[0]
         match = re.search(r"/companies/([^/]+)/vacancies/(\d+)", link)
         raw_title = _plain(item.get("title"))
@@ -359,8 +403,9 @@ def _dou(query: str, country: str, limit: int) -> list[dict]:
     return jobs
 
 
-def _remotive(query: str, country: str, limit: int) -> list[dict]:
-    data = _json("https://remotive.com/api/remote-jobs?" + urlencode({"search": query}), respect_robots=True)
+def _remotive(query: str, country: str, limit: int, **_) -> list[dict]:
+    params = {"category": query[9:]} if query.startswith("category:") else {"search": query}
+    data = _json("https://remotive.com/api/remote-jobs?" + urlencode(params), respect_robots=True)
     items = data.get("jobs") if isinstance(data, dict) else None
     if not isinstance(items, list):
         raise SourceError("Remotive returned an unexpected response.")
@@ -377,7 +422,7 @@ def _remotive(query: str, country: str, limit: int) -> list[dict]:
     return jobs
 
 
-def _remoteok(queries: list[str], country: str, limit: int) -> list[dict]:
+def _remoteok(queries: list[str], country: str, limit: int, **_) -> list[dict]:
     data = _json("https://remoteok.com/api", respect_robots=True)
     if not isinstance(data, list):
         raise SourceError("Remote OK returned an unexpected response.")
@@ -393,7 +438,7 @@ def _remoteok(queries: list[str], country: str, limit: int) -> list[dict]:
     return jobs
 
 
-def _himalayas(query: str, country: str, limit: int) -> list[dict]:
+def _himalayas(query: str, country: str, limit: int, **_) -> list[dict]:
     jobs = []
     for page in (1, 2):
         data = _json("https://himalayas.app/jobs/api/search?" + urlencode({"q": query, "page": page}), respect_robots=True)
@@ -439,8 +484,8 @@ class ProviderRun:
 
     def report(self) -> dict:
         provider = PROVIDERS[self.provider]
-        coverage = (f"Searched {provider.name} for {len(self.queries)} role quer{'y' if len(self.queries) == 1 else 'ies'}: "
-                    f"{self.fetched} results, {len(self.jobs)} relevant.")
+        coverage = (f"Searched {provider.name} with {len(self.queries)} search{'' if len(self.queries) == 1 else 'es'}: "
+                    f"{self.fetched} results, {len(self.jobs)} new or updated vacancies kept.")
         if self.details_loaded:
             coverage += f" Loaded {self.details_loaded} full adverts for role matches."
         if self.stopped:
@@ -453,9 +498,17 @@ class ProviderRun:
                 "coverage": coverage, **({"error": self.errors[0]} if self.errors and not self.jobs else {})}
 
 
-def _keep(run: ProviderRun, found: list[dict], queries: list[str], country: str, seen: set) -> None:
+def _keep(run: ProviderRun, found: list[dict], tags: list[str], country: str, seen: set) -> None:
+    """Keep every vacancy a site returned in a supported country.
+
+    Nothing is discarded for relevance: matching happens in the database, so
+    a later search or profile change can use any collected advert. The
+    role and saved searches an advert answers are recorded as tags, which let
+    the local search find job-site adverts whose text is not loaded yet.
+    """
     run.fetched += len(found)
     for job in found:
+        job.pop("_created", None)
         key = (job["source"], job["source_id"])
         if key in seen:
             continue
@@ -463,39 +516,74 @@ def _keep(run: ProviderRun, found: list[dict], queries: list[str], country: str,
         # with no recognisable country cannot be placed in a supported market.
         if not job.get("countries") or (country and country not in job["countries"]):
             continue
-        if not any(matches_query(job, query) for query in queries):
-            continue
         seen.add(key)
         job.setdefault("raw_json", {})
         if isinstance(job["raw_json"], dict):
-            job["raw_json"]["matched_queries"] = [query for query in queries if matches_query(job, query)][:5]
+            job["raw_json"]["matched_queries"] = [query for query in tags if matches_query(job, query)][:5]
         run.jobs.append(job)
 
 
 def search_provider(name: str, queries: list[str], country: str = "", *, limit_per_query: int = 100,
                     role_terms: list[str] = (), detail_budget: int = 0, state: dict | None = None,
-                    progress=None) -> ProviderRun:
-    """Search one provider for several queries. Network only; never raises."""
+                    progress=None, broad: bool = False, seconds: float = REFRESH_SECONDS) -> ProviderRun:
+    """Search one provider for several queries. Network only; never raises.
+
+    broad adds the provider's field-wide searches and reads deeper, for a
+    refresh that collects everything; incremental positions live in state.
+    """
     run = ProviderRun(name)
     provider = PROVIDERS[name]
-    queries = queries[:provider.max_queries]
+    state = state if state is not None else {}
+    queries = list(queries[:provider.max_queries])
+    tags = list(queries)
+    if broad and name in BROAD_QUERIES:
+        covered = {query.casefold() for query in queries}
+        queries += [query for query in BROAD_QUERIES[name] if query.casefold() not in covered]
     run.queries = list(queries)
     seen: set = set()
     if not queries:
         return run
+    deadline = time.monotonic() + seconds
     try:
         if name == "linkedin":
             from .linkedin_public import search as linkedin_search
-            linkedin_search(run, queries, country, state if state is not None else {}, progress=progress)
-            _filter_linkedin(run, queries, country)
+            linkedin_search(run, queries, country, state, progress=progress)
+            _filter_linkedin(run, tags, country)
+        elif name == "arbeitnow":
+            newest = int(state.get("arbeitnow_newest") or 0)
+            found = _arbeitnow(queries, country, limit_per_query, newest=newest, max_pages=(10 if not newest else 5) if broad else 3)
+            if found:
+                state["arbeitnow_newest"] = max([newest, *(job.get("_created", 0) for job in found)])
+            _keep(run, found, tags, country, seen)
         elif name in _FEEDS:
-            _keep(run, _FEEDS[name](queries, country, limit_per_query), queries, country, seen)
+            _keep(run, _FEEDS[name](queries, country, limit_per_query), tags, country, seen)
         else:
+            synced = state.setdefault("arbeitsagentur_synced", {}) if name == "arbeitsagentur" else {}
+            today = time.strftime("%Y-%m-%d")
             for index, query in enumerate(queries):
+                if time.monotonic() > deadline:
+                    run.has_more = True
+                    run.stopped = "Time budget reached; the next refresh continues with the remaining searches."
+                    break
+                options = {}
+                if name == "arbeitsagentur" and broad:
+                    last = synced.get(query)
+                    days = (time.mktime(time.strptime(today, "%Y-%m-%d")) - time.mktime(time.strptime(last, "%Y-%m-%d"))) // 86400 if last else None
+                    options = {"since_days": int(min(60, days + 1)) if days is not None else 60, "deadline": deadline}
+                limit = 10000 if (broad and name == "arbeitsagentur") else limit_per_query
                 try:
-                    _keep(run, _SEARCHERS[name](query, country, limit_per_query), [query], country, seen)
+                    _keep(run, _SEARCHERS[name](query, country, limit, **options), [query] if query in tags else [], country, seen)
+                    if name == "arbeitsagentur" and broad:
+                        synced[query] = today
+                except _Budget as stop:
+                    _keep(run, stop.jobs, [query] if query in tags else [], country, seen)
+                    run.has_more = True
+                    run.stopped = "Time budget reached; the next refresh continues with the remaining searches."
+                    break
                 except SourceError as exc:
                     run.errors.append(f"{query}: {exc}")
+                if progress is not None and broad and len(queries) > 10 and index % 5 == 4:
+                    progress(f"{provider.name}: {index + 1} of {len(queries)} searches, {len(run.jobs):,} vacancies…")
                 if index + 1 < len(queries):
                     time.sleep(REQUEST_PAUSE)
     except (SourceError, OSError) as exc:
@@ -505,10 +593,10 @@ def search_provider(name: str, queries: list[str], country: str = "", *, limit_p
     return run
 
 
-def _filter_linkedin(run: ProviderRun, queries: list[str], country: str) -> None:
+def _filter_linkedin(run: ProviderRun, tags: list[str], country: str) -> None:
     found, run.jobs = run.jobs, []
     run.fetched = 0
-    _keep(run, found, queries, "", set())  # LinkedIn already searched this country.
+    _keep(run, found, tags, "", set())  # LinkedIn already searched this country.
 
 
 def _load_role_details(run: ProviderRun, role_terms: list[str], budget: int, state: dict | None) -> None:

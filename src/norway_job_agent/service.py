@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 import hashlib
 import os
-import re
 import tempfile
 import threading
 import zipfile
@@ -274,22 +273,26 @@ def _role_terms_for(profile: dict, country: str = "") -> list[str]:
             *(preferences.get("related_roles") or profile.get("related_roles", []))]
 
 
-def _fetch_nav(data_dir: Path, queries: list[str], known_ids: list[str], progress=None) -> dict:
-    """Bring the NAV index up to date and download adverts answering the queries.
+def _fetch_nav(data_dir: Path, queries: list[str], known_ids: list[str], progress=None, *,
+               everything: bool = False, seconds: float | None = None) -> dict:
+    """Bring the NAV index up to date and download adverts.
 
-    Network and the index cache only; the job database is written afterwards
-    by _store_nav, which also records which adverts were checked.
+    everything downloads every active advert not stored yet (search matches
+    first); otherwise only those answering the queries. Network and the index
+    cache only; _store_nav writes the jobs and records which were checked.
     """
     from . import nav_index
     try:
-        if not queries:
+        if not queries and not everything:
             raise ValueError("Add target roles in your profile, or a saved search, before collecting NAV vacancies.")
         synced = nav_index.sync(data_dir, progress=progress)
-        candidates = nav_index.find(data_dir, queries, known=set(known_ids))
+        candidates = nav_index.find(data_dir, queries, known=set(known_ids), everything=everything)
         if progress is not None and candidates:
-            progress(f"NAV: {len(candidates)} matching adverts to load…")
-        loaded = nav_index.hydrate(data_dir, candidates, progress=progress)
-        return {"sync": synced, "candidates": len(candidates), **loaded,
+            progress(f"NAV: {len(candidates):,} adverts to load…")
+        options = {"seconds": seconds} if seconds is not None else {}
+        loaded = nav_index.hydrate(data_dir, candidates, progress=progress, **options)
+        return {"sync": synced, "candidates": len(candidates), "everything": everything,
+                "matching": sum(bool(item["queries"]) for item in candidates), **loaded,
                 "pending_withdrawals": nav_index.pending_withdrawals(data_dir)}
     except (ValueError, RuntimeError, OSError) as exc:
         return {"error": str(exc)}
@@ -326,12 +329,16 @@ def _store_nav(data_dir: Path, source: dict, fetched: dict, store: JobStore, rep
         result.update(ok=True, has_more=more, pages=synced["pages"], seen=synced["events"],
                       experimental_token=synced["experimental_token"], fetched=synced["active"],
                       scanned=synced["active"], available=synced["active"], matched=len(fetched["jobs"]))
-        coverage = (f"NAV index: {synced['active']:,} active Norwegian vacancies (read {synced['pages']} feed pages this run). "
-                    f"{fetched['candidates']} titles matched your searches; {len(fetched['jobs'])} confirmed and saved.")
+        coverage = f"NAV index: {synced['active']:,} active Norwegian vacancies (read {synced['pages']} feed pages this run). "
+        if fetched.get("everything"):
+            coverage += (f"Loaded {len(fetched['jobs']):,} full adverts this run "
+                         f"({fetched.get('matching', 0):,} of the {fetched['candidates']:,} to load match your searches).")
+        else:
+            coverage += f"{fetched['candidates']} titles matched your searches; {len(fetched['jobs'])} saved."
         if synced["has_more"]:
             coverage += " The feed has more updates; the next refresh continues reading."
         if fetched["remaining"]:
-            coverage += f" {fetched['remaining']} more matching adverts load on the next refresh."
+            coverage += f" {fetched['remaining']:,} more adverts load on the next refresh."
         if skipped:
             coverage += f" {skipped} adverts conflicted with saved records and were left unchanged."
         result["coverage"] = coverage
@@ -369,15 +376,21 @@ def _store_market(run, store: JobStore, report: dict) -> dict:
 
 def _submit_market(data_dir: Path, pool, settings: dict, profile: dict, country: str, queries_for,
                    *, collection_detail: bool, progress=None) -> tuple[list, dict]:
-    """Start market-wide searches; returns (kind, label, future) rows and their shared state."""
+    """Start market-wide searches; returns (kind, label, future) rows and their shared state.
+
+    A refresh (collection_detail) reads broadly when "collect everything" is
+    on; a live search reads only its one query, within a shorter budget.
+    """
     from . import market
     rows = []
     state = _market_state(data_dir)
+    broad = collection_detail and settings["market"].get("collect_everything", True)
+    seconds = market.REFRESH_SECONDS if collection_detail else market.LIVE_SECONDS
     for name in market.providers_for(country, settings["market"]["enabled"]):
         budget = _DETAIL_BUDGET.get(name, 0) if collection_detail else 0
         rows.append(("market", market.PROVIDERS[name].name, pool.submit(
             market.search_provider, name, queries_for(country), country, role_terms=_role_terms_for(profile, country),
-            detail_budget=budget, state=state, progress=progress)))
+            detail_budget=budget, state=state, progress=progress, broad=broad, seconds=seconds)))
     return rows, state
 
 
@@ -410,8 +423,9 @@ def _collect(data_dir: Path, settings_override: dict | None = None, *, progress=
                                          collection_detail=True, progress=progress)
             for source in selected:
                 if source.get("type") == "nav":
-                    rows.insert(0, ("nav", "NAV", pool.submit(_fetch_nav, data_dir, queries_for("NO"),
-                                                              store.source_ids("nav"), progress), source))
+                    rows.insert(0, ("nav", "NAV", pool.submit(
+                        _fetch_nav, data_dir, queries_for("NO"), store.source_ids("nav"), progress,
+                        everything=settings["market"].get("collect_everything", True)), source))
                 else:
                     label = source.get("name") or source.get("board") or source.get("url") or source.get("type", "source").upper()
                     rows.append(("employer", label, pool.submit(collection.fetch_source, source)))
@@ -436,8 +450,23 @@ def _collect(data_dir: Path, settings_override: dict | None = None, *, progress=
             # After an unexpected failure, stop queued downloads; running ones
             # never touch the store and finish on their own.
             pool.shutdown(wait=False, cancel_futures=True)
+        report["removed"] = _cleanup_and_match(data_dir, store, profile, progress)
     report["completed_at"] = datetime.now(timezone.utc).isoformat()
     return report
+
+
+def _cleanup_and_match(data_dir: Path, store: JobStore, profile: dict, progress=None) -> int:
+    """Remove long-closed vacancies, then store matches so lists open instantly."""
+    from . import experience_matching, job_index
+    removed = job_index.cleanup(store)
+    if progress is not None:
+        progress("Matching new vacancies to your profile…")
+    experience_matching.attach_cache(Path(data_dir) / ANALYSIS_CACHE_FILE)
+    try:
+        job_index.ensure_matches(store, profile, progress=progress)
+    finally:
+        experience_matching.flush_cache()
+    return removed
 
 
 def market_search(data_dir: Path, query: str, country: str = "", *, progress=None) -> dict:
@@ -507,169 +536,123 @@ def load_details(data_dir: Path, id: int) -> dict:
     return get_vacancy(data_dir, id)
 
 
-BOARD_SOURCES = frozenset({"arbeitsagentur", "arbeitnow", "djinni", "dou", "remotive", "remoteok", "himalayas", "linkedin"})
-# Boards publish no complete snapshot, so a closed advert just stops appearing.
-STALE_BOARD_DAYS = 30
-# Which copy of a job seen on several sites to show: the employer's own first.
-_SOURCE_RANK = {"greenhouse": 0, "lever": 0, "ashby": 0, "workday": 0, "smartrecruiters": 0, "career_page": 0,
-                "manual": 0, "nav": 1, "arbeitsagentur": 1, "djinni": 2, "dou": 2, "arbeitnow": 2, "remotive": 2,
-                "remoteok": 2, "himalayas": 2, "gmail": 3, "linkedin": 3}
-_GENDER_MARKERS = re.compile(r"\((?:[^()]*\b(?:m|w|d|f|x|gn|all genders?|div)\b[^()]*)\)|\*in\b|\b[mwfd]\s*/\s*[mwfd](?:\s*/\s*[mwfdx])?\b", re.I)
-_LEGAL_SUFFIXES = re.compile(r"\b(?:gmbh|ag|as|asa|inc|llc|ltd|limited|corp|corporation|se|plc|co|kg|ab|oy|sa|bv|nv|ug|sp z o o|tov|тов)\b\.?", re.I)
+from .job_index import BOARD_SOURCES, RETENTION_DAYS as STALE_BOARD_DAYS  # noqa: E402,F401  (re-exported)
 
 
-def _stale_board_advert(job: dict) -> bool:
-    if job.get("source") not in BOARD_SOURCES or job.get("status") != "new":
-        return False
-    from datetime import datetime, timedelta, timezone
+# Matches a list request may compute itself before answering (about a second).
+LIST_MATCH_LIMIT = 1500
+
+
+def _open_index(data_dir: Path, *, progress=None):
+    """A store whose stored matches are current for the saved profile."""
+    from . import experience_matching, job_index
+    profile = read_profile(data_dir)
+    experience_matching.attach_cache(Path(data_dir) / ANALYSIS_CACHE_FILE)
+    store = JobStore(Path(data_dir) / "vacancies.db")
     try:
-        seen = datetime.fromisoformat(str(job.get("last_seen_at") or ""))
-    except ValueError:
-        return False
-    return seen < datetime.now(timezone.utc) - timedelta(days=STALE_BOARD_DAYS)
+        # Bounded and non-blocking: a refresh or re-match stores the rest.
+        job_index.ensure_matches(store, profile, progress=progress, limit=LIST_MATCH_LIMIT, wait=False)
+    except BaseException:
+        store.close()
+        raise
+    finally:
+        experience_matching.flush_cache()
+    return store
 
 
-def job_fingerprint(job: dict) -> tuple | None:
-    """Title, employer and first city with formatting differences removed."""
-    title = " ".join(re.findall(r"\w+", _GENDER_MARKERS.sub(" ", str(job.get("title") or "")).casefold()))
-    company = " ".join(re.findall(r"\w+", _LEGAL_SUFFIXES.sub(" ", str(job.get("company") or "")).casefold()))
-    location = re.split(r"[;,/|(\n]", str(job.get("location") or "").casefold())[0]
-    city = " ".join(re.findall(r"\w+", location)[:2])
-    if not title or not company or company.startswith("company on"):
-        return None
-    return title, company, city
-
-
-def merge_duplicates(jobs: list[dict]) -> list[dict]:
-    """Show one card per job that several sites list; keep the others as links.
-
-    Display only: records stay separate, so a site's refresh never overwrites
-    another's advert. Only copies from different sites merge; two postings
-    on one site are genuinely separate openings. The shown copy prefers your
-    workflow stage, then the employer's own posting, then the fuller advert.
-    """
-    groups: dict[tuple, list[dict]] = {}
-    order = []
-    for job in jobs:
-        key = job_fingerprint(job)
-        if key is None:
-            order.append([job])
-            continue
-        if key not in groups:
-            groups[key] = []
-            order.append(groups[key])
-        groups[key].append(job)
-    result = []
-    for group in order:
-        if len(group) == 1:
-            result.append(group[0])
-            continue
-        group.sort(key=lambda job: (job.get("status") == "new", _SOURCE_RANK.get(job.get("source"), 2),
-                                    not str(job.get("description") or "").strip()))
-        cards: list[tuple[dict, set]] = []
-        for job in group:
-            card = next((card for card in cards if job.get("source") not in card[1]), None)
-            if card is None:
-                cards.append((job, {job.get("source")}))
-                continue
-            card[1].add(job.get("source"))
-            card[0].setdefault("also_on", []).append(
-                {"source": job.get("source"), "id": job.get("id"), "url": job.get("source_url")})
-        result.extend(card for card, _ in cards)
-    return result
-
-
-def _deadline_passed(job: dict) -> bool:
-    from datetime import date
+def refresh_matches(data_dir: Path, *, progress=None) -> dict:
+    """Bring every stored match up to date, for example after a profile change."""
+    from . import experience_matching, job_index
+    profile = read_profile(data_dir)
+    experience_matching.attach_cache(Path(data_dir) / ANALYSIS_CACHE_FILE)
     try:
-        return date.fromisoformat(str(job.get("deadline") or "")[:10]) < date.today()
-    except ValueError:
-        return False
+        with JobStore(Path(data_dir) / "vacancies.db") as store:
+            return {"matched": job_index.ensure_matches(store, profile, progress=progress)}
+    finally:
+        experience_matching.flush_cache()
+
+
+def _scoped_rows(store: JobStore, *, query: str, status: str, country: str, include_inactive: bool) -> list[dict]:
+    from . import job_index
+    from .countries import COUNTRIES
+    if country and country not in {*COUNTRIES, "unknown"}:
+        raise ValueError("Choose a supported country or unknown.")
+    return job_index.select_rows(store, query=query, status=status, country=country, include_inactive=include_inactive)
 
 
 def vacancies(data_dir: Path, query: str = "", status: str = "", country: str = "", *, include_inactive: bool = False,
               recommendations_only: bool = False, coverage: dict | None = None,
               stages: set[str] | frozenset[str] | None = None) -> list[dict]:
-    """Return matched vacancies, best first.
+    """Return matched vacancies with full match evidence, best first.
 
-    stages limits which workflow stages are matched and returned. Jobs in
-    other stages still count toward coverage, so Saved and Applications report
-    the same search scope as before without matching every stored advert.
+    stages limits which workflow stages are returned; jobs in other stages
+    still count toward coverage. recommendations_only returns target and
+    related roles only. The interface pages through list_page instead; this
+    complete list serves the classic window and the command line.
     """
-    from .countries import COUNTRIES, job_countries
-    if country and country not in {*COUNTRIES, "unknown"}:
-        raise ValueError("Choose a supported country or unknown.")
-    profile = read_profile(data_dir)
-    from . import experience_matching
-    experience_matching.attach_cache(Path(data_dir) / ANALYSIS_CACHE_FILE)
-    from .profile import _role_terms
-    # "ML Engineer" also finds "Machine Learning Engineer" and other spellings.
-    from .market import LAZY_DETAILS, query_tokens, specific_tokens
-    alternatives = [term for term in _role_terms(query)][1:] if query and len(query) <= 120 else []
-    with JobStore(Path(data_dir) / "vacancies.db") as store:
-        jobs = store.list_jobs(status=status or None, query=query or None, include_inactive=include_inactive,
-                               alternatives=alternatives, title_only_sources=tuple(sorted(LAZY_DETAILS - {"djinni"})),
-                               title_terms=specific_tokens(query) if query and len(query) <= 120 else [])
-    if not include_inactive:
-        jobs = [job for job in jobs if not _stale_board_advert(job)]
-    jobs = merge_duplicates(jobs)
-    visible = []
-    in_scope, employers = 0, set()
-    for job in jobs:
-        job["countries"] = job_countries(job)
-        if country == "unknown" and job["countries"]:
-            continue
-        if country and country != "unknown" and country not in job["countries"]:
-            continue
-        if stages is not None and job["status"] not in stages:
-            # Count scope exactly as matching would: only active views drop
-            # NAV adverts whose deadline has passed.
-            if include_inactive or job.get("source") != "nav" or not _deadline_passed(job):
-                in_scope += 1
-                employers.add(job["company"])
-            continue
-        if recommendations_only and not include_inactive and job.get("source") == "nav":
-            # Count precisely the same active NAV scope before the early role
-            # gate; a non-recommended advert need not parse its full description.
-            if _deadline_passed(job):
-                continue
-        job["match"] = match_job(job, profile, recommendations_only=recommendations_only)
-        # NAV requires inactive ads to leave results; an elapsed explicit
-        # deadline also keeps the active search clear before the next refresh.
-        if not include_inactive and job.get("source") == "nav" and job["match"] and job["match"]["expired"]:
-            continue
-        in_scope += 1
-        employers.add(job["company"])
-        if job["match"] is None:
-            continue
-        visible.append(job)
-    if coverage is not None:
-        coverage.update(in_scope=in_scope, employers=len(employers))
-    rank = {"target": 2, "horizon": 1, "other": 0}
-    if query:
-        # A search ranks titles naming what was searched above adverts that
-        # merely mention it, as a web search would.
-        from .profile import _role_text, contains_phrase
-        tokens, phrases = query_tokens(query), _role_terms(query)
+    from . import job_index
+    with _open_index(data_dir) as store:
+        rows = _scoped_rows(store, query=query, status=status, country=country, include_inactive=include_inactive)
+        if coverage is not None:
+            coverage.update(in_scope=len(rows), employers=len({row["company"] for row in rows}))
+        if stages is not None:
+            rows = [row for row in rows if row["status"] in stages]
+        if recommendations_only:
+            rows = [row for row in rows if row["track"] in {"target", "horizon"}]
+        if query:
+            job_index.relevance_sort(rows, query)
+        rows = job_index.sort_rows(rows)
+        return job_index.load_full(store, [row["id"] for row in rows])
 
-        def relevance(job):
-            title = _role_text(str(job.get("title", "")))
-            if any(contains_phrase(title, phrase) for phrase in phrases):
-                return 3
-            hits = sum(contains_phrase(title, token) for token in tokens)
-            return 2 if tokens and hits == len(tokens) else 1 if hits else 0
-        for job in visible:
-            job["_relevance"] = relevance(job)
-    visible.sort(key=lambda job: (
-        job.get("_relevance", 0),
-        job["match"].get("experience", {}).get("status") != "mismatch",
-        not bool(job["match"].get("excluded_terms") or job["match"].get("expired")),
-        rank[job["match"]["track"]],
-        job["match"]["score"] if job["match"]["score"] is not None else -1), reverse=True)
-    for job in visible:
-        job.pop("_relevance", None)
-    experience_matching.flush_cache()
-    return visible
+
+LIST_VIEWS = {"discover", "saved", "applications", "for-you"}
+
+
+def list_page(data_dir: Path, *, view: str = "discover", query: str = "", status: str = "", country: str = "",
+              experience: str | None = None, sort: str = "match", offset: int = 0, limit: int = 80,
+              progress=None) -> dict:
+    """One page of a vacancy view plus the counts the interface shows.
+
+    Filtering and counting use stored matches only; full records and match
+    evidence are loaded for the returned page alone.
+    """
+    from . import job_index
+    if view not in LIST_VIEWS:
+        raise ValueError("Choose a vacancy view.")
+    experience = experience or ("relevant" if view == "for-you" else "all")
+    if experience not in {"all", "relevant", "mismatch"}:
+        raise ValueError("Choose relevant, all or mismatch experience levels.")
+    if sort not in {"match", "newest", "company"}:
+        raise ValueError("Choose match, newest or company sorting.")
+    if isinstance(offset, bool) or not isinstance(offset, int) or offset < 0 or isinstance(limit, bool) or not isinstance(limit, int) or not 1 <= limit <= 500:
+        raise ValueError("Choose a page offset of 0 or more and a page size from 1 to 500.")
+    stages = None
+    if view == "saved":
+        stages = {"saved"}
+    elif view == "applications":
+        stages = {"preparing", "ready", "applied", "interview", "rejected"} | ({"archived"} if status == "archived" else set())
+    with _open_index(data_dir, progress=progress) as store:
+        rows = _scoped_rows(store, query=query, status=status, country=country,
+                            include_inactive=view in {"saved", "applications"})
+        summary = {"in_scope": len(rows), "employers": len({row["company"] for row in rows})}
+        if stages is not None:
+            rows = [row for row in rows if row["status"] in stages]
+        if view == "for-you":
+            rows = [row for row in rows if row["track"] in {"target", "horizon"} and not row["excluded"] and not row["expired"]]
+        summary["role_matches"] = sum(row["track"] in {"target", "horizon"} for row in rows)
+        summary["experience_mismatches"] = sum(bool(row["mismatch"]) for row in rows)
+        if experience != "all":
+            rows = [row for row in rows if bool(row["mismatch"]) == (experience == "mismatch")]
+        summary["shown"] = len(rows)
+        summary["shown_employers"] = len({row["company"] for row in rows})
+        if query and sort == "match":
+            job_index.relevance_sort(rows, query)
+        rows = job_index.sort_rows(rows, sort)
+        if view == "for-you" and sort == "match" and not query:
+            rows = job_index.diversify(rows)
+        page = job_index.load_full(store, [row["id"] for row in rows[offset:offset + limit]])
+    summary.update(offset=offset, limit=limit, has_more=offset + limit < len(rows))
+    return {"jobs": page, "summary": summary}
 
 
 def discovery_coverage(data_dir: Path, country: str = "") -> dict:

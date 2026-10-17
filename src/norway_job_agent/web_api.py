@@ -49,27 +49,6 @@ def _same_token(supplied, expected):
     return isinstance(supplied, str) and secrets.compare_digest(supplied.encode("utf-8"), expected.encode("utf-8"))
 
 
-def _diverse_recommendations(jobs):
-    """Keep role/experience groups ordered, with two jobs per employer per pass."""
-    from collections import deque
-    groups = {}
-    for job in jobs:
-        match = job["match"]
-        group = (match.get("experience", {}).get("status") == "mismatch", match["track"])
-        employers = groups.setdefault(group, {})
-        employer = " ".join(job["company"].casefold().split())
-        employers.setdefault(employer, deque()).append(job)
-    result = []
-    for employers in groups.values():
-        remaining = list(employers.values())
-        while remaining:
-            for queue in remaining:
-                for _ in range(min(2, len(queue))):
-                    result.append(queue.popleft())
-            remaining = [queue for queue in remaining if queue]
-    return result
-
-
 # What a vacancy card renders; the detail view fetches the full record.
 _LIST_FIELDS = ("id", "title", "company", "location", "source", "status", "notes", "is_active", "countries",
                 "published_at", "discovered_at", "deadline", "also_on")
@@ -328,48 +307,21 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
 
     @app.get("/api/jobs")
     def jobs():
-        view = request.args.get("view", "discover")
-        if view not in {"discover", "saved", "applications", "for-you"}:
-            raise ValueError("Choose a vacancy view.")
-        summary = {}
-        stages = None
-        if view == "saved":
-            stages = {"saved"}
-        elif view == "applications":
-            stages = {"preparing", "ready", "applied", "interview", "rejected"}
-            if request.args.get("status") == "archived":
-                stages.add("archived")
-        jobs = service.vacancies(data_dir, query=request.args.get("query", ""), status=request.args.get("status", ""),
-                                 country=request.args.get("country", ""), include_inactive=view in {"saved", "applications"},
-                                 recommendations_only=view == "for-you", coverage=summary, stages=stages)
-        if view == "for-you":
-            jobs = [job for job in jobs if job["match"]["track"] in {"target", "horizon"} and not job["match"].get("excluded_terms") and not job["match"].get("expired")]
-        summary["role_matches"] = len(jobs) if view == "for-you" else sum(job["match"]["track"] in {"target", "horizon"} for job in jobs)
-        summary["experience_mismatches"] = sum(job["match"].get("experience", {}).get("status") == "mismatch" for job in jobs)
-        experience = request.args.get("experience", "relevant" if view == "for-you" else "all")
-        if experience not in {"all", "relevant", "mismatch"}:
-            raise ValueError("Choose relevant, all or mismatch experience levels.")
-        if experience != "all":
-            jobs = [job for job in jobs if (job["match"].get("experience", {}).get("status") == "mismatch") == (experience == "mismatch")]
-        summary["shown"] = len(jobs)
-        summary["shown_employers"] = len({job["company"] for job in jobs})
-        sort = request.args.get("sort", "match")
-        if sort == "newest":
-            jobs.sort(key=lambda item: str(item.get("published_at") or item.get("discovered_at") or ""), reverse=True)
-        elif sort == "company":
-            jobs.sort(key=lambda item: (str(item.get("company", "")).casefold(), str(item.get("title", "")).casefold()))
-        elif sort != "match":
-            raise ValueError("Choose match, newest or company sorting.")
-        elif view == "for-you":
-            jobs = _diverse_recommendations(jobs)
+        def number(name, default):
+            value = request.args.get(name, str(default))
+            if not value.isdecimal() or len(value) > 7:
+                raise ValueError("Page offset and size must be whole numbers.")
+            return int(value)
+        result = service.list_page(
+            data_dir, view=request.args.get("view", "discover"), query=request.args.get("query", ""),
+            status=request.args.get("status", ""), country=request.args.get("country", ""),
+            experience=request.args.get("experience") or None, sort=request.args.get("sort", "match"),
+            offset=number("offset", 0), limit=number("limit", 200))
         # Descriptions, raw provider JSON and full match evidence are loaded
-        # only for the selected vacancy. Cards need just these summary fields;
-        # sending everything made a large discovery list several megabytes.
-        # The same applies to notes, links and identifiers: with whole-market
-        # job sites a list holds thousands of vacancies.
+        # only for the selected vacancy; cards need just these summary fields.
         jobs = [{**{key: job.get(key) for key in _LIST_FIELDS if key in job}, "match": _list_match(job["match"])}
-                for job in jobs]
-        return jsonify(jobs=jobs, summary=summary)
+                for job in result["jobs"]]
+        return jsonify(jobs=jobs, summary=result["summary"])
 
     @app.get("/api/discovery/coverage")
     def coverage():
@@ -476,6 +428,8 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
             query = _text(value.get("query"), "Search", 120)
             market_country = _text(value.get("country", ""), "Country", 2)
             callback = lambda progress: service.market_search(data_dir, query, market_country, progress=progress)
+        elif action == "rematch":
+            callback = lambda progress: service.refresh_matches(data_dir, progress=progress)
         elif action == "load-details":
             identifier = _job_id(value.get("job_id"))
             def callback(progress):

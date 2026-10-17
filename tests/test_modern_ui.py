@@ -168,6 +168,24 @@ class ModernInterfaceTests(unittest.TestCase):
         self.select("NO")
         self.expect(self.page.locator(".detail-actions").get_by_role("link", name="On Arbeitsagentur")).to_be_visible()
 
+    def test_long_lists_load_page_by_page_with_show_more_and_keyboard(self):
+        for index in range(90):
+            service.import_vacancy(self.data, {"title": f"Analyst {index:02d}", "company": f"Paging {index:02d}",
+                                               "location": "Oslo, Norway", "source": "manual",
+                                               "source_url": f"https://jobs.example.test/page/{index}"})
+        self.reload()
+        self.expect(self.page.locator(".job-card")).to_have_count(80)
+        self.expect(self.page.locator(".list-title .count")).to_contain_text("94")
+        more = self.page.get_by_role("button", name="Show 14 more of 94")
+        more.click()
+        self.expect(self.page.locator(".job-card")).to_have_count(94)
+        self.expect(more).to_have_count(0)
+        self.reload()
+        self.page.locator(".job-card").nth(79).click()
+        self.page.locator("body").press("j")
+        self.expect(self.page.locator(".job-card")).to_have_count(94)
+        self.expect(self.page.locator(".job-card").nth(80)).to_have_attribute("aria-pressed", "true")
+
     def test_leaving_discovery_while_a_search_reload_is_pending_sends_no_bad_request(self):
         failed = []
         self.page.on("response", lambda response: failed.append(response.url) if response.status >= 400 else None)
