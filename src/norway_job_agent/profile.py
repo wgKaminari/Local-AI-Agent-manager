@@ -157,8 +157,28 @@ def _active_neighbours(targets: tuple[str, ...]) -> tuple[tuple[tuple[str, ...],
     return tuple((titles, label) for fields, titles, label in _ROLE_NEIGHBOURS if folded.intersection(fields))
 
 
+@lru_cache(maxsize=256)
+def _screen(phrases: tuple[str, ...]):
+    """One pattern finding any phrase's folded hint, or None for no phrases.
+
+    contains_phrase can only succeed where its hint occurs in the folded
+    text, so titles this pattern misses skip the per-phrase checks. With many
+    role spellings, those checks were most of a large list's matching time.
+    """
+    hints = {_phrase_hint(phrase.strip()) for phrase in phrases if phrase.strip()}
+    return re.compile("|".join(map(re.escape, sorted(hints, key=len, reverse=True)))) if hints else None
+
+
+@lru_cache(maxsize=256)
+def _role_phrases(roles: tuple[str, ...]) -> tuple[str, ...]:
+    return tuple(term for role in roles for term in _role_terms(role))
+
+
 def _neighbour_labels(normalized_title: str, folded_title: str, profile: dict) -> list[str]:
     groups = _active_neighbours(tuple(profile.get("target_roles", [])))
+    screen = _screen(tuple(title for titles, _ in groups for title in titles))
+    if screen is None or not screen.search(folded_title):
+        return []
     return [label for titles, label in groups
             if any(contains_phrase(normalized_title, title, folded_text=folded_title) for title in titles)]
 
@@ -178,12 +198,14 @@ def match_job(job: dict, profile: dict, today: date | None = None, *, recommenda
     location = str(job.get("location", ""))
     body = "\n".join(str(job.get(key, "")) for key in ("title", "company", "location", "description"))
     configured = []
-    matched_roles = [x for x in profile.get("target_roles", []) if _role_matches_normalized(normalized_title, x, folded_title=folded_title)]
+    screen = _screen(_role_phrases(tuple(profile.get("target_roles", [])) + tuple(profile.get("related_roles", []))))
+    possible_role = screen is not None and screen.search(folded_title) is not None
+    matched_roles = [x for x in profile.get("target_roles", []) if possible_role and _role_matches_normalized(normalized_title, x, folded_title=folded_title)]
     broad_topics = {"artificial intelligence", "data science", "maskinlæring", "kunstig intelligens"}
     technical_title = re.search(r"engineer|ingeniør|ingenieur|scientist|forsker|research|utvikler|developer|entwickler|"
                                 r"matemati|mathemati|specialist|spesialist|spezialist|architect|arkitekt|analyst|analytiker", title, re.IGNORECASE)
     matched_roles = [role for role in matched_roles if role.casefold() not in broad_topics or technical_title]
-    related_roles = [x for x in profile.get("related_roles", []) if _role_matches_normalized(normalized_title, x, folded_title=folded_title)]
+    related_roles = [x for x in profile.get("related_roles", []) if possible_role and _role_matches_normalized(normalized_title, x, folded_title=folded_title)]
     research_labels = {"phd", "stipendiat", "research assistant", "research scientist", "research engineer"}
     academic_title = re.search(r"\bphd\b|stipendiat|postdoc|postdoktor", title, re.IGNORECASE)
     research_overlap = False

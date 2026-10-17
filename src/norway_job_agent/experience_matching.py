@@ -7,11 +7,15 @@ from __future__ import annotations
 
 import hashlib
 import html
+import json
 import math
 import re
+import sqlite3
 import threading
 import unicodedata
 from collections import OrderedDict
+from contextlib import closing
+from pathlib import Path
 
 
 def validate_experience_years(value):
@@ -108,6 +112,50 @@ def _clauses(value):
 _REQUIREMENT_CACHE: OrderedDict[bytes, tuple[dict, ...]] = OrderedDict()
 _REQUIREMENT_CACHE_LIMIT = 20000
 _requirement_cache_lock = threading.Lock()
+# Results also persist between app starts: parsing every stored advert again
+# made the first list after launch several times slower than later ones.
+# Bump the version whenever extraction rules change, so old results retire.
+_PERSIST_TABLE = "requirements_v1"
+_persist_path: Path | None = None
+_pending: dict[bytes, tuple[dict, ...]] = {}
+
+
+def attach_cache(path: Path) -> None:
+    """Load requirements saved by earlier runs; later results save to this file."""
+    global _persist_path
+    path = Path(path)
+    with _requirement_cache_lock:
+        if _persist_path == path:
+            return
+    try:
+        with closing(sqlite3.connect(path, timeout=10)) as database, database:
+            database.execute(f"CREATE TABLE IF NOT EXISTS {_PERSIST_TABLE} (digest BLOB PRIMARY KEY, value TEXT NOT NULL)")
+            rows = database.execute(f"SELECT digest, value FROM {_PERSIST_TABLE}").fetchall()
+    except sqlite3.Error:
+        return  # A cache problem must never stop matching.
+    with _requirement_cache_lock:
+        for digest, value in rows[-_REQUIREMENT_CACHE_LIMIT:]:
+            try:
+                _REQUIREMENT_CACHE.setdefault(digest, tuple(json.loads(value)))
+            except (ValueError, TypeError):
+                continue
+        _persist_path = path
+        _pending.clear()
+
+
+def flush_cache() -> None:
+    """Save requirements computed since the last flush."""
+    with _requirement_cache_lock:
+        path, pending = _persist_path, dict(_pending)
+        _pending.clear()
+    if path is None or not pending:
+        return
+    try:
+        with closing(sqlite3.connect(path, timeout=10)) as database, database:
+            database.executemany(f"INSERT OR REPLACE INTO {_PERSIST_TABLE} (digest, value) VALUES (?, ?)",
+                                 [(digest, json.dumps(value)) for digest, value in pending.items()])
+    except sqlite3.Error:
+        pass
 
 
 def experience_requirements(description):
@@ -132,6 +180,8 @@ def experience_requirements(description):
     result = _extract_experience_requirements(text)
     with _requirement_cache_lock:
         _REQUIREMENT_CACHE[key] = tuple(dict(item) for item in result)
+        if _persist_path is not None:
+            _pending[key] = _REQUIREMENT_CACHE[key]
         while len(_REQUIREMENT_CACHE) > _REQUIREMENT_CACHE_LIMIT:
             _REQUIREMENT_CACHE.popitem(last=False)
     return result

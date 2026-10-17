@@ -388,6 +388,9 @@ function renderCards() {
   }).join('') + (S.jobs.length > S.limit ? `<div class="empty">${button(`Show ${Math.min(80,S.jobs.length-S.limit)} more`, 'more-jobs', 'quiet')}</div>` : '') : `<div class="empty"><div class="empty-icon">${icon('discover')}</div><h2>${S.query||S.status?'Nothing matches these filters':'No opportunities yet'}</h2><p>${S.query?'Nothing collected matches yet. Search job sites above, try other words, or reset the filters.':S.status?'Try another stage or reset the filters. Your saved work is unaffected.':'Choose a country and find opportunities, or add a vacancy you found yourself.'}</p>${button(S.query||S.status?'Reset filters':'Find opportunities',S.query||S.status?'reset-filters':'collect',S.query?'':'primary')}</div>`);
 }
 async function loadJobs() {
+  // A delayed search reload or a finished job-site search may arrive after
+  // the user has moved to a page without a vacancy list.
+  if (!['discover', 'for-you', 'saved', 'applications'].includes(S.view)) return;
   const version = ++S.generation;
   const params = new URLSearchParams({
     country: S.country,

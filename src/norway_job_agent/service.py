@@ -249,6 +249,8 @@ def _collection_scope(settings: dict) -> list[dict]:
 
 
 MARKET_STATE_FILE = "market-state.json"
+# Rebuildable matching results (experience requirements per advert text).
+ANALYSIS_CACHE_FILE = "analysis-cache.db"
 # Per provider and run: full adverts loaded during collection for role matches.
 # The rest load when opened, so a refresh stays polite and quick.
 _DETAIL_BUDGET = {"arbeitsagentur": 60, "linkedin": 6, "djinni": 0}
@@ -598,6 +600,8 @@ def vacancies(data_dir: Path, query: str = "", status: str = "", country: str = 
     if country and country not in {*COUNTRIES, "unknown"}:
         raise ValueError("Choose a supported country or unknown.")
     profile = read_profile(data_dir)
+    from . import experience_matching
+    experience_matching.attach_cache(Path(data_dir) / ANALYSIS_CACHE_FILE)
     from .profile import _role_terms
     # "ML Engineer" also finds "Machine Learning Engineer" and other spellings.
     from .market import LAZY_DETAILS, query_tokens, specific_tokens
@@ -664,6 +668,7 @@ def vacancies(data_dir: Path, query: str = "", status: str = "", country: str = 
         job["match"]["score"] if job["match"]["score"] is not None else -1), reverse=True)
     for job in visible:
         job.pop("_relevance", None)
+    experience_matching.flush_cache()
     return visible
 
 
