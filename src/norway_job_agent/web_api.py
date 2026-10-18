@@ -258,6 +258,21 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
         # The interface offers a one-click restore instead of a dead end.
         return jsonify(error=str(exc), damaged_file=exc.file), 409
 
+    @app.get("/api/updates")
+    def check_updates():
+        from . import updates
+        return jsonify(updates.check())
+
+    @app.post("/api/updates/apply")
+    def apply_update():
+        from . import updates
+        result = updates.start_update(_text(body().get("tag"), "Version", 40))
+        quit_app = app.config.get("QUIT_APP")
+        if quit_app is not None:
+            # The installer waits for this process to exit before replacing files.
+            threading.Timer(1.5, quit_app).start()
+        return jsonify(result)
+
     @app.post("/api/recover")
     def recover():
         from .maintenance import restore_settings_file
@@ -300,8 +315,10 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
     def bootstrap():
         from .storage import STATUS_ORDER as STATUSES
         from .market import provider_catalog
+        from . import __version__
         return jsonify(profile=service.read_profile(data_dir), settings=service.read_settings(data_dir),
-                       appearance=_appearance(data_dir), job_sites=provider_catalog(),
+                       appearance=_appearance(data_dir), job_sites=provider_catalog(), version=__version__,
+                       update_check=bool(app.config.get("UPDATE_CHECK")),
                        countries=COUNTRIES, statuses=STATUSES, catalog=company_catalog(), boards=job_board_catalog(),
                        gmail=gmail.connection_status(data_dir), collection=service.read_collection_report(data_dir))
 

@@ -197,6 +197,17 @@ def launch(data_dir: Path, *, preview: bool = False):
             return True
 
         window.events.closing += closing
+
+        def quit_for_update():
+            # The updater replaces files after this process exits; edits are
+            # saved first (the interface refuses to update with unsaved work).
+            window.confirm_close = False
+            close_state._requires_confirmation = lambda: False
+            window.destroy()
+
+        workspace.app.config["QUIT_APP"] = quit_for_update
+        # The real app checks GitHub for a newer release once per start.
+        workspace.app.config["UPDATE_CHECK"] = not preview
         # pywebview follows the Windows theme; follow the app's theme instead.
         window.events.shown += lambda: windows.set_title_bar_theme(dark)
         workspace.app.config["THEME_CHANGED"] = lambda theme: windows.set_title_bar_theme(theme == "dark")

@@ -1,8 +1,22 @@
 # Personal Job Agent
 
-A private **Python desktop application** for discovering vacancies in Norway, the USA, Germany and Ukraine, organizing opportunities, and preparing application answers and cover letters. Version 0.4 opens in its own desktop window with a modern, locally packaged interface. Your existing profile, SQLite database and draft histories stay in the same private folder.
+A private **Python desktop application** for discovering vacancies in Norway, the USA, Germany and Ukraine, organizing opportunities, and preparing application answers and cover letters. It opens in its own desktop window with a locally packaged interface; your profile, database and drafts stay on your computer.
 
-## Start
+## Install (Windows)
+
+Open **PowerShell** and run:
+
+```powershell
+irm https://raw.githubusercontent.com/wgKaminari/Local-AI-Agent-manager/main/install.ps1 | iex
+```
+
+The installer downloads the latest release, creates a private Python environment in `%LOCALAPPDATA%\PersonalJobAgent`, and adds **Personal Job Agent** to the Start menu and desktop. It needs Python 3.12 or newer and offers to install it (and the free local AI, Ollama) with winget if they are missing. Your data in `%USERPROFILE%\.norway-job-agent` is never changed by installing or updating, so an existing profile and database are picked up automatically. Prefer to read the script first? Download [install.ps1](install.ps1), review it, and run `powershell -ExecutionPolicy Bypass -File install.ps1`.
+
+### Update
+
+The app checks GitHub for a newer release once per start and shows a notice. **Settings & activity → Updates → Update now** closes the app, installs the new version and reopens it; if anything fails, the version you had opens again. Running the install command again also updates. A developer checkout (a `git clone`) updates itself with `git pull` instead, and only when it has no local changes. Releases are published from version tags by GitHub Actions, after the tests and a test install pass; see [Releases](https://github.com/wgKaminari/Local-AI-Agent-manager/releases).
+
+## Run from source
 
 Use Python **3.12 or newer**. Install the dependencies once, then start the application:
 
