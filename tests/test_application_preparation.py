@@ -1,8 +1,12 @@
 """Question extraction and grounded local draft regression tests; no live sites."""
 import copy
 import json
+import sys
 import unittest
+from pathlib import Path
 from unittest.mock import patch
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from norway_job_agent import application_answers as answers
 from norway_job_agent import application_forms as forms
@@ -211,6 +215,26 @@ class DraftTests(unittest.TestCase):
             result = answers.generate_application_answers(self.job, self.profile, form)
         self.assertEqual(chat.call_count, 3)
         self.assertEqual([a['field_id'] for a in result['answers']], [f['id'] for f in form['fields']])
+
+
+class AvoidPhraseTests(unittest.TestCase):
+    def test_a_pasted_comma_separated_list_becomes_separate_phrases(self):
+        pasted = ("leverage, synergy; passionate about, dynamic team player, results-driven, think outside the box, "
+                  "go-getter, fast-paced environment, hit the ground running, self-starter, Leverage")
+        style = answers.validate_writing_style({"avoid_phrases": [pasted]})
+        self.assertEqual(style["avoid_phrases"][:3], ["leverage", "synergy", "passionate about"])
+        self.assertEqual(len(style["avoid_phrases"]), 10)  # The repeated "Leverage" is kept once.
+
+    def test_many_and_long_phrases_are_accepted(self):
+        phrases = [f"phrase number {index}" for index in range(200)] + ["x" * 400]
+        self.assertEqual(len(answers.validate_writing_style({"avoid_phrases": phrases})["avoid_phrases"]), 201)
+        with self.assertRaisesRegex(ValueError, "too long in total"):
+            answers.validate_writing_style({"avoid_phrases": ["y" * (answers.AVOID_PHRASES_MAX_CHARS + 1)]})
+
+    def test_each_pasted_phrase_is_enforced_in_drafts(self):
+        style = answers.validate_writing_style({"avoid_phrases": ["leverage, synergy"]})
+        draft = "I would bring synergy to the team."
+        self.assertTrue(any(phrase.casefold() in draft.casefold() for phrase in style["avoid_phrases"]))
 
 
 if __name__ == '__main__':
