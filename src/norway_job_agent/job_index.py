@@ -22,7 +22,7 @@ from datetime import date, datetime, timedelta, timezone
 from .storage import JobStore, search_terms
 
 # Bump when match_job, fingerprints or stored fields change meaning.
-MATCH_VERSION = "1"
+MATCH_VERSION = "2"
 RETENTION_DAYS = 30
 BOARD_SOURCES = ("arbeitsagentur", "arbeitnow", "djinni", "dou", "remotive", "remoteok", "himalayas", "linkedin")
 # User-added or email-imported vacancies are never removed automatically.
@@ -246,7 +246,7 @@ def select_rows(store: JobStore, *, query: str = "", status: str = "", country: 
         where.append("j.status = :status")
     if query and query.strip():
         where.append(_query_sql(query.strip()[:500], params))
-    sql = (f"SELECT j.id, j.title, j.company, j.status, j.source, j.deadline, j.published_at, j.discovered_at, "
+    sql = (f"SELECT j.id, j.title, j.company, j.location, j.status, j.source, j.deadline, j.published_at, j.discovered_at, "
            f"m.track, m.track_rank, m.score, m.mismatch, m.excluded, {_DEADLINE_SQL} AS expired "
            f"FROM jobs j JOIN job_matches m ON m.job_id = j.id WHERE {' AND '.join(where)} "
            f"ORDER BY j.discovered_at DESC, j.id DESC")
@@ -269,15 +269,18 @@ def relevance_sort(rows: list[dict], query: str) -> None:
         row["_relevance"] = relevance(row)
 
 
-def sort_rows(rows: list[dict], sort: str = "match") -> list[dict]:
+def sort_rows(rows: list[dict], sort: str = "match", *, local_first: bool = False) -> list[dict]:
     if sort == "newest":
         return sorted(rows, key=lambda row: str(row.get("published_at") or row.get("discovered_at") or ""), reverse=True)
     if sort == "company":
         return sorted(rows, key=lambda row: (str(row.get("company", "")).casefold(), str(row.get("title", "")).casefold()))
     if sort != "match":
         raise ValueError("Choose match, newest or company sorting.")
+    # In a country view, jobs located there come before remote-anywhere ones
+    # of the same fit, so worldwide remote boards do not fill every country.
+    local = (lambda row: not str(row.get("location") or "").casefold().startswith("remote")) if local_first else (lambda row: True)
     return sorted(rows, key=lambda row: (row.get("_relevance", 0), not row["mismatch"], not (row["excluded"] or row["expired"]),
-                                         row["track_rank"], row["score"] if row["score"] is not None else -1), reverse=True)
+                                         row["track_rank"], local(row), row["score"] if row["score"] is not None else -1), reverse=True)
 
 
 def diversify(rows: list[dict]) -> list[dict]:

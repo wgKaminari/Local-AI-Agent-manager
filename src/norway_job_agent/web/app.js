@@ -362,6 +362,7 @@ function jobTags(j) {
   const tags = [];
   if (j.status !== 'new') tags.push(pill(cap(j.status), stageTones[j.status] || ''));
   if (e.status === 'mismatch') tags.push(pill(e.minimum_years != null ? `${e.minimum_years}+ yrs asked` : 'Above your level', 'amber'));
+  else if (e.status === 'stretch') tags.push(pill(`Stretch: ${e.minimum_years}+ yrs`, 'blue'));
   else if (j.match?.track === 'horizon' && S.view !== 'for-you') tags.push(pill('Related role'));
   return tags.join('');
 }
@@ -388,7 +389,7 @@ function renderCards() {
     const score = j.match?.score,
       tier = score == null ? '' : score >= 70 ? 'high' : score >= 45 ? 'mid' : '';
     const selected = S.selected === j.id;
-    return `<button type="button" class="job-card ${selected?'selected':''}" data-job="${j.id}" aria-pressed="${selected}"><span class="score ${tier}" title="Keyword overlap with your profile">${score??'–'}</span><span class="title-line"><span class="sr-only">${score==null?'No match score. ':score+'% keyword match. '}</span>${esc(j.title)}</span><span class="age" title="${esc(j.published_at||j.discovered_at||'')}">${ago(j.published_at||j.discovered_at)}</span><span class="job-sub">${esc(j.company||'Employer not listed')} · ${esc(j.location||'Location to confirm')}${j.also_on?.length?`<span class="also-on" title="${esc('Also on '+[...new Set(j.also_on.map(o=>siteLabel(o.source)))].join(', '))}"> · +${j.also_on.length} site${j.also_on.length>1?'s':''}</span>`:''}</span><span class="job-tags">${jobTags(j)}</span></button>`;
+    return `<button type="button" class="job-card ${selected?'selected':''}" data-job="${j.id}" aria-pressed="${selected}"><span class="score ${tier}" title="Fit with your profile: role 50%, skills 30%, experience 20%">${score??'–'}</span><span class="title-line"><span class="sr-only">${score==null?'No match score. ':score+'% fit. '}</span>${esc(j.title)}</span><span class="age" title="${esc(j.published_at||j.discovered_at||'')}">${ago(j.published_at||j.discovered_at)}</span><span class="job-sub">${esc(j.company||'Employer not listed')} · ${esc(j.location||'Location to confirm')}${j.also_on?.length?`<span class="also-on" title="${esc('Also on '+[...new Set(j.also_on.map(o=>siteLabel(o.source)))].join(', '))}"> · +${j.also_on.length} site${j.also_on.length>1?'s':''}</span>`:''}</span><span class="job-tags">${jobTags(j)}</span></button>`;
   }).join('') + (S.summary?.has_more ? `<div class="empty">${button(`Show ${Math.min(PAGE_SIZE,(S.summary.shown||0)-S.jobs.length)} more of ${(S.summary.shown||0).toLocaleString()}`, 'more-jobs', 'quiet')}</div>` : '') : `<div class="empty"><div class="empty-icon">${icon('discover')}</div><h2>${S.query||S.status?'Nothing matches these filters':'No opportunities yet'}</h2><p>${S.query?'Nothing collected matches yet. Search job sites above, try other words, or reset the filters.':S.status?'Try another stage or reset the filters. Your saved work is unaffected.':'Choose a country and find opportunities, or add a vacancy you found yourself.'}</p>${button(S.query||S.status?'Reset filters':'Find opportunities',S.query||S.status?'reset-filters':'collect',S.query?'':'primary')}</div>`);
 }
 // The server pages lists; the database may hold tens of thousands of vacancies.
@@ -569,7 +570,8 @@ function fitTiles(j) {
     m.track === 'horizon' ? ['warn', 'Related role', (m.related_roles || []).join(', ') || 'Close to your target fields'] :
     ['', 'Other role', 'Not one of your target or related roles'];
   const years = e.candidate_years;
-  const experience = e.status === 'mismatch' ? ['bad', 'Experience mismatch', `${e.minimum_years!=null?`Asks for ${e.minimum_years}+ years`:`${cap(e.seniority)} title`} · you have ${years}`] :
+  const experience = e.status === 'stretch' ? ['warn', 'Stretch', `Asks for ${e.minimum_years}+ years · you have ${years}; worth applying if the rest fits`] :
+    e.status === 'mismatch' ? ['bad', 'Experience mismatch', `${e.minimum_years!=null?`Asks for ${e.minimum_years}+ years`:`${cap(e.seniority)} title`} · you have ${years}`] :
     years == null ? ['warn', 'Not screened', 'Add your years of experience in Profile & writing'] :
     e.status === 'no_conflict' ? ['good', `${e.minimum_years}+ years asked`, `You have ${years}`] :
     ['warn', 'Needs review', e.minimum_years != null ? `Asks for ${e.minimum_years}+ years · you have ${years}` : 'No clear minimum stated'];
@@ -585,7 +587,7 @@ function overview(j) {
   const failure = S.detailFailures.get(j.id);
   const missing = needsDetails(j) ? (failure ? `${siteLabel(j.source)} could not show the full advert: ${failure} Open it on the site instead.` :
     `Loading the full advert from ${siteLabel(j.source)}…`) : 'No full description was imported. Read the original posting for details.';
-  return `${fitTiles(j)}<div class="prose">${esc(String(j.description||'').trim()?j.description:missing)}</div>${experience}<details class="evidence"><summary>Things to check before applying</summary>${(m.warnings||[]).map(w=>`<p>${esc(w)}</p>`).join('')}<p>${m.score==null?'No keyword score.':`${m.score}% keyword overlap.`} This measures text overlap, not eligibility or hiring probability.</p></details>`;
+  return `${fitTiles(j)}<div class="prose">${esc(String(j.description||'').trim()?j.description:missing)}</div>${experience}<details class="evidence"><summary>Things to check before applying</summary>${(m.warnings||[]).map(w=>`<p>${esc(w)}</p>`).join('')}<p>${m.score==null?'No fit score yet: add target roles, skills or your years of experience.':`${m.score}% fit: role 50%, skills 30% (full credit at 8 of your skills), experience 20%.`} It estimates fit from the advert's text, not eligibility or hiring probability.</p></details>`;
 }
 
 function notes(b) {

@@ -154,26 +154,34 @@ class CountryServiceTests(unittest.TestCase):
         self.assertEqual([job["id"] for job in service.vacancies(self.folder, country="DE")], [job_id])
         self.assertEqual(service.vacancies(self.folder, country="NO"), [])
 
-    def test_collection_uses_only_active_country_sources_without_mutating_configuration(self):
+    def test_a_refresh_covers_every_target_country_whatever_the_view(self):
+        # The country switch filters what you see. A refresh used to collect
+        # only the selected country, so unselected countries stayed empty.
         settings = {"active_country": "DE", "model": "qwen3:4b", "sources": [
             {"type": "nav"},
             {"type": "greenhouse", "board": "norway-fixture", "countries": ["NO"]},
             {"type": "greenhouse", "board": "german-fixture", "countries": ["DE", "US"]},
             {"type": "lever", "board": "global-fixture"},
         ]}
+        profile = service.read_profile(self.folder)
+        profile["target_countries"] = ["NO", "DE"]
+        service.save_profile(self.folder, profile)
         baseline = copy.deepcopy(settings)
         profile_before = (self.folder / "profile.json").read_bytes()
         service.save_settings(self.folder, settings)
         settings_before = (self.folder / "sources.json").read_bytes()
-        with patch("norway_job_agent.service._fetch_nav") as nav, patch(
+        with patch("norway_job_agent.service._fetch_nav", return_value={"error": "offline"}) as nav, patch(
             "norway_job_agent.collection.fetch_source",
             side_effect=lambda source: {"result": {"source": source, "ok": True}, "jobs": None},
         ) as collect:
-            service.collect(self.folder, settings_override=settings)
-        nav.assert_not_called()
+            report = service.collect(self.folder, settings_override=settings)
+        nav.assert_called_once()
         sources = [call.args[0] for call in collect.call_args_list]
-        self.assertEqual([item["board"] for item in sources], ["german-fixture", "global-fixture"])
-        self.assertTrue(all(item["countries"] == ["DE"] for item in sources))
+        self.assertEqual([item["board"] for item in sources], ["norway-fixture", "german-fixture", "global-fixture"])
+        # Scoped boards keep only your countries; unscoped ones stay unscoped.
+        self.assertEqual([item.get("countries") for item in sources], [["NO"], ["DE"], None])
+        self.assertEqual((report["country"], report["countries"]), ("", ["NO", "DE"]))
+        self.assertEqual(service.discovery_coverage(self.folder, "DE")["last_run"], report["started_at"])
         self.assertEqual(settings, baseline)
         self.assertEqual((self.folder / "profile.json").read_bytes(), profile_before)
         self.assertEqual((self.folder / "sources.json").read_bytes(), settings_before)

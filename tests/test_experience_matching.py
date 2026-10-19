@@ -62,13 +62,15 @@ class RequirementTests(unittest.TestCase):
             with self.subTest(text=text):
                 result = self.assess(text)
                 self.assertEqual(result["minimum_years"], minimum)
-                self.assertEqual(result["status"], "mismatch" if minimum > 2.5 else "no_conflict")
+                # Up to one year above your experience is a stretch, more a mismatch.
+                expected = "no_conflict" if minimum <= 2.5 else "stretch" if minimum - 2.5 <= 1 else "mismatch"
+                self.assertEqual(result["status"], expected)
                 self.assertTrue(result["requirements"][0]["evidence"])
 
     def test_required_fields_use_strongest_floor_without_adding_overlapping_years(self):
         result = self.assess("2 years of Python experience. 3 years of SQL experience.")
         self.assertEqual(result["minimum_years"], 3)
-        self.assertEqual(result["status"], "mismatch")
+        self.assertEqual(result["status"], "stretch")
 
     def test_degree_after_experience_does_not_erase_a_real_requirement(self):
         result = self.assess("5 years of work experience and a Master degree required.")
@@ -138,7 +140,8 @@ class RequirementTests(unittest.TestCase):
     def test_company_history_does_not_erase_a_separate_candidate_requirement(self):
         result = self.assess("Our company has 20 years of experience and candidates must have 3 years of experience.")
         self.assertEqual(result["minimum_years"], 3)
-        self.assertEqual(result["status"], "mismatch")
+        self.assertEqual(result["status"], "stretch")
+        self.assertIn("stretch", result["reasons"][0])
 
     def test_customer_facing_experience_is_a_real_requirement(self):
         result = self.assess("5+ years of experience working with customers.")
@@ -213,8 +216,15 @@ class ReportedRecommendationTests(unittest.TestCase):
     def test_title_mismatch_can_coexist_with_high_keyword_overlap(self):
         result = match_job({"title": "Senior ML Engineer", "description": "Python"},
                            {"years_of_experience": 2.5, "target_roles": ["Machine Learning Engineer"], "skills": ["Python"]})
-        self.assertEqual(result["score"], 100)
+        # Full role and skill fit; the experience gap lowers the score but stays visible.
+        self.assertEqual((result["matched_roles"], result["matched_skills"]), (["Machine Learning Engineer"], ["Python"]))
+        self.assertEqual(result["score"], 82)
         self.assertEqual(result["experience"]["status"], "mismatch")
+
+    def test_a_small_experience_gap_is_a_stretch_even_with_a_senior_title(self):
+        result = assess_experience({"title": "Senior Data Scientist", "description": "3 years of experience required."}, 2.5)
+        self.assertEqual(result["status"], "stretch")
+        self.assertEqual(assess_experience({"description": "4 years of experience required."}, 2.5)["status"], "mismatch")
 
     def test_principal_and_leadership_are_not_assumed_junior(self):
         for title in ("Principal Data Scientist", "Engineering Manager", "Head of Data", "Lead AI Engineer"):

@@ -231,11 +231,20 @@ class TransientRetryTests(unittest.TestCase):
             self.assertEqual(self.sources._fetch("https://example.com/job")[2], b"page")
         self.assertEqual(request.call_count, 2)
 
+    def test_a_busy_refresh_survives_two_dropped_connections(self):
+        dropped = self.sources._TransientSourceError("Could not download from example.com; check connectivity or try again later.")
+        with patch.object(self.sources, "_request_once", side_effect=[dropped, dropped, (200, {}, b"page")]) as request,                 patch.object(self.sources.time, "sleep") as sleep:
+            self.assertEqual(self.sources._fetch("https://example.com/job")[2], b"page")
+        self.assertEqual(request.call_count, 3)
+        self.assertEqual(sleep.call_count, 2)
+        with patch.object(self.sources, "RETRY_PAUSE_SECONDS", 1.0):
+            self.assertEqual([self.sources.retry_pause(n) for n in range(2)], [1.0, 4.0])
+
     def test_repeated_failures_status_codes_and_posts_are_not_retried(self):
         dropped = self.sources._TransientSourceError("Could not download from example.com; check connectivity or try again later.")
-        with patch.object(self.sources, "_request_once", side_effect=[dropped, dropped, (200, {}, b"")]) as request,                 self.assertRaisesRegex(self.sources.SourceError, "Could not download"):
+        with patch.object(self.sources, "_request_once", side_effect=[dropped, dropped, dropped, (200, {}, b"")]) as request,                 self.assertRaisesRegex(self.sources.SourceError, "Could not download"):
             self.sources._fetch("https://example.com/job")
-        self.assertEqual(request.call_count, 2)
+        self.assertEqual(request.call_count, 3)
         with patch.object(self.sources, "_request_once", return_value=(503, {}, b"")) as request,                 self.assertRaisesRegex(self.sources.SourceError, "HTTP 503"):
             self.sources._fetch("https://example.com/job")
         self.assertEqual(request.call_count, 1)

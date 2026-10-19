@@ -95,7 +95,9 @@ class MatchingPerformanceRegressionTests(unittest.TestCase):
             ({"title": "Research Assistant", "description": "Ancient history"}, "other"),
             ({"title": "Artificial Intelligence Sales Director", "description": "Python"}, "other"),
             ({"title": "Data Scientist", "countries": ["DE"], "description": "Mindestens 3 Jahre Berufserfahrung."}, "target"),
-            ({"title": "Machine Learning Engineer", "countries": ["DE"]}, "other"),
+            # Germany targets Data Scientist only: machine learning is a related
+            # field there, never a target role.
+            ({"title": "Machine Learning Engineer", "countries": ["DE"]}, "horizon"),
             ({"title": "Machine Learning Engineer", "countries": ["DE", "US"]}, "target"),
         ]
         for job, expected_track in cases:
