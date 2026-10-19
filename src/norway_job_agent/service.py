@@ -400,7 +400,7 @@ def _submit_market(data_dir: Path, pool, settings: dict, profile: dict, country:
     A refresh (collection_detail) reads broadly when "collect everything" is
     on; a live search reads only its one query, within a shorter budget.
     """
-    from . import employer_pack, market
+    from . import adzuna, employer_pack, market
     rows = []
     state = _market_state(data_dir)
     broad = collection_detail and settings["market"].get("collect_everything", True)
@@ -410,11 +410,19 @@ def _submit_market(data_dir: Path, pool, settings: dict, profile: dict, country:
         served = [code for code in market.PROVIDERS[name].countries if code in targets]
         if not served or (not collection_detail and name in market.REFRESH_ONLY):
             continue
+        options = {}
+        if name == "adzuna":
+            key = adzuna.read_key(data_dir)
+            if key is None:
+                continue  # Nothing to search until you add your free key.
+            options = {"credentials": key, "request_budget": adzuna.REQUESTS_PER_REFRESH if collection_detail
+                       else adzuna.REQUESTS_PER_LIVE_SEARCH}
         # A one-country site searches with that country's role preferences;
         # remote boards and LinkedIn cover all your countries in one run.
         code = served[0] if len(market.PROVIDERS[name].countries) == 1 else country
         budget = _DETAIL_BUDGET.get(name, 0) if collection_detail else 0
-        options = {"skip_boards": employer_pack.configured_keys(settings["sources"])} if name == "us_employers" else {}
+        if name == "us_employers":
+            options = {"skip_boards": employer_pack.configured_keys(settings["sources"])}
         rows.append(("market", market.PROVIDERS[name].name, pool.submit(
             market.search_provider, name, queries_for(code), code, role_terms=_role_terms_for(profile, code),
             detail_budget=budget, state=state, progress=progress, broad=broad, seconds=seconds, **options)))
@@ -481,6 +489,21 @@ def _collect(data_dir: Path, settings_override: dict | None = None, *, progress=
         report["removed"] = _cleanup_and_match(data_dir, store, profile, progress)
     report["completed_at"] = datetime.now(timezone.utc).isoformat()
     return report
+
+
+def save_adzuna_key(data_dir: Path, app_id: str, app_key: str) -> dict:
+    """Check an Adzuna key with one search and save it; returns what the UI may show."""
+    from . import adzuna
+    state = _market_state(Path(data_dir))
+    try:
+        return adzuna.save_key(Path(data_dir), app_id, app_key, state=state)
+    finally:
+        _save_market_state(Path(data_dir), state)
+
+
+def delete_adzuna_key(data_dir: Path) -> dict:
+    from . import adzuna
+    return adzuna.delete_key(Path(data_dir))
 
 
 def _cleanup_and_match(data_dir: Path, store: JobStore, profile: dict, progress=None) -> int:
@@ -728,7 +751,9 @@ def discovery_coverage(data_dir: Path, country: str = "") -> dict:
     checked = current_report.get("sources", []) if current_report else []
     from . import market, nav_index
     enabled = settings["market"]["enabled"]
-    sites = [{"id": name, "name": provider.name, "enabled": bool(enabled.get(name))}
+    from .adzuna import read_key
+    keyed = read_key(data_dir) is not None
+    sites = [{"id": name, "name": provider.name, "enabled": bool(enabled.get(name)) and (name != "adzuna" or keyed)}
              for name, provider in market.PROVIDERS.items() if not country or country in provider.countries]
     nav_on = any(source.get("type") == "nav" for source in settings["sources"]) and country in {"", "NO"}
     return {"country": country, "job_sites": sites, "job_sites_enabled": sum(site["enabled"] for site in sites) + nav_on,

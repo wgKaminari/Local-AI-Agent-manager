@@ -608,6 +608,35 @@ class ModernInterfaceTests(unittest.TestCase):
         self.expect(self.page.locator(".coverage-notice")).to_contain_text("available employer collectors")
         self.expect(self.page.get_by_role("button", name="Add all country collectors", exact=True)).to_be_visible()
 
+    def test_adzuna_key_is_checked_saved_and_never_shown_again(self):
+        self.nav("Settings & activity")
+        block = self.page.locator(".adzuna-key")
+        self.expect(block).to_contain_text("Not added")
+        block.get_by_label("Application ID").fill("fixture1234")
+        block.get_by_label("Application key").fill("0123456789abcdef0123456789abcdef")
+        with patch("norway_job_agent.adzuna._status", return_value=(200, b"{}")) as check:
+            block.get_by_role("button", name="Check and save key").click()
+            self.expect(self.page.locator("#notifications")).to_contain_text("Adzuna key checked and saved")
+        check.assert_called_once()
+        self.expect(block).to_contain_text("Saved")
+        self.expect(block).to_contain_text("…1234")
+        self.assertNotIn("0123456789abcdef", self.page.content())
+        self.assertEqual(json.loads((self.data / "adzuna-key.json").read_text(encoding="utf-8"))["app_id"], "fixture1234")
+        block.get_by_role("button", name="Remove key").click()
+        self.expect(block).to_contain_text("Not added")
+        self.assertFalse((self.data / "adzuna-key.json").exists())
+
+    def test_a_rejected_adzuna_key_is_not_saved(self):
+        self.nav("Settings & activity")
+        block = self.page.locator(".adzuna-key")
+        block.get_by_label("Application ID").fill("fixture1234")
+        block.get_by_label("Application key").fill("0123456789abcdef0123456789abcdef")
+        with patch("norway_job_agent.adzuna._status", return_value=(401, b"")):
+            block.get_by_role("button", name="Check and save key").click()
+            self.expect(self.page.locator("#notifications")).to_contain_text("did not accept this Application ID")
+        self.expect(block).to_contain_text("Not added")
+        self.assertFalse((self.data / "adzuna-key.json").exists())
+
     def test_country_sources_survive_a_later_settings_save(self):
         self.nav("Settings & activity")
         self.page.get_by_label("Model name", exact=False).fill("fixture-model")

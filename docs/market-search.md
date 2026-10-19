@@ -181,3 +181,26 @@ One refresh across Norway, Germany, Ukraine and the USA, 14 minutes:
 | US tech employers | — | 306 of 333 boards read, 23,728 vacancies kept |
 | Hacker News | — | 215 posts |
 | All countries "For you" | ~1,500 | 3,230 |
+
+## 0.7.6: all of Djinni, and Adzuna for the USA
+
+**Djinni.** Its RSS feed returns the newest 100 jobs for any filter and
+ignores paging, so 36 keyword searches reached 1,892 of the 6,172 jobs on the
+site. Djinni's job categories split the board: 157 categories including
+sub-categories (a parent such as JavaScript does not include React.js). A
+category that fills its 100-job feed is split by experience level, and a
+level that is still full by region. A live run read 415 feeds in 5.6 minutes
+and found 6,136 unique jobs. The full crawl runs at most once every 20 hours;
+refreshes in between read the newest-jobs feed and your role searches.
+
+**Adzuna.** The only free whole-market US source; it needs the user's own
+key (developer.adzuna.com). The key is entered under Settings & activity →
+Job sites, checked with one search, saved in `adzuna-key.json` (not in
+sources.json or backups) and never sent back to the page, which shows only
+the last characters of the Application ID. Adzuna's terms allow 25 requests a
+minute, 250 a day, 1,000 a week and 2,500 a month by default; the app stays
+under 90% of each, counts requests in market-state.json, pauses 2.6 seconds
+between requests, and uses at most 40 per refresh and 2 per live search.
+Searches cover your saved searches and roles in the USA, adverts from the
+last 30 days, newest first, 50 per page. Results carry an excerpt of the
+advert and link to Adzuna, which the terms ask to credit as the source.

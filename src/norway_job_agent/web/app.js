@@ -369,8 +369,8 @@ function jobTags(j) {
 
 // Display names for where a vacancy was found.
 const SITE_LABELS = {nav: 'NAV', arbeitsagentur: 'Arbeitsagentur', arbeitnow: 'Arbeitnow', djinni: 'Djinni', dou: 'DOU',
-  remotive: 'Remotive', remoteok: 'Remote OK', himalayas: 'Himalayas', hackernews: 'Hacker News', linkedin: 'LinkedIn',
-  gmail: 'job-alert email'};
+  remotive: 'Remotive', remoteok: 'Remote OK', himalayas: 'Himalayas', hackernews: 'Hacker News', adzuna: 'Adzuna',
+  linkedin: 'LinkedIn', gmail: 'job-alert email'};
 const siteLabel = source => SITE_LABELS[source] || 'employer site';
 
 function marketBar() {
@@ -533,7 +533,7 @@ function renderDetail() {
 }
 
 // Job sites whose lists omit the advert text (Djinni: the employer).
-const BOARD_SOURCES = ['arbeitsagentur', 'arbeitnow', 'djinni', 'dou', 'remotive', 'remoteok', 'himalayas', 'hackernews', 'linkedin'];
+const BOARD_SOURCES = ['arbeitsagentur', 'arbeitnow', 'djinni', 'dou', 'remotive', 'remoteok', 'himalayas', 'hackernews', 'adzuna', 'linkedin'];
 const needsDetails = j => Boolean(j.is_active) && ((['arbeitsagentur', 'linkedin'].includes(j.source) && !String(j.description || '').trim()) ||
   (j.source === 'djinni' && j.company === 'Company on Djinni'));
 
@@ -744,11 +744,21 @@ function renderCatalogCards() {
   $('#catalog-grid').innerHTML = entries.length ? entries.map(e => `<article class="catalog-card"><div class="row"><span class="company-mark">${esc(e.name.slice(0,2).toUpperCase())}</span><h3>${esc(e.name)}</h3></div><div class="tags">${pill(e.source?'Automatic collector':'Career link',e.source?'green':'')}${pill(e.countries.map(c=>S.boot.countries[c]).join(' · '))}</div><p>${esc(e.note||e.sectors?.join(' · ')||'Explore this source on its official website.')}</p><small>Checked ${esc(e.checked_at||'date not recorded')} · ${esc(cap(e.verification?.status||'Research directory'))}</small><footer>${link('Open site',e.careers_url)}${e.source?button(sourceAdded(e)?'Added':'Add source','add-source',sourceAdded(e)?'quiet':'',`data-source-id="${esc(e.id)}" ${sourceAdded(e)?'disabled':''}`):''}</footer></article>`).join('') : '<div class="empty"><h2>No sources match</h2><p>Try a different search or access filter.</p></div>';
 }
 
+// Adzuna needs the user's own free key. The page never receives the key
+// back: only whether one is saved and the last characters of its ID.
+function adzunaKeyBlock() {
+  const a = S.boot.adzuna || {};
+  const body = a.configured
+    ? `<p class="evidence">Key saved for Application ID ${esc(a.app_id_hint || '')}${a.saved_at ? ' on ' + esc(a.saved_at.slice(0, 10)) : ''}. It stays on this computer. Each refresh uses at most 40 Adzuna searches, within the free allowance of 250 a day.</p><div class="row">${button('Remove key', 'remove-adzuna', 'quiet')}</div>`
+    : `<p class="evidence">Adzuna adds adverts from across US job sites. Create a free developer account, then copy the Application ID and Application key from its dashboard (API access details). The key is checked with one search and stays on this computer.</p><div class="adzuna-fields"><label class="field"><span>Application ID</span><input id="adzuna-id" autocomplete="off" spellcheck="false" maxlength="64"></label><label class="field"><span>Application key</span><input id="adzuna-secret" type="password" autocomplete="off" spellcheck="false" maxlength="128"></label></div><div class="row">${button('Check and save key', 'save-adzuna', 'primary')}${link('Get a free key', 'https://developer.adzuna.com/signup')}</div>`;
+  return `<div class="adzuna-key"><h3>Adzuna key ${a.configured ? pill('Saved', 'green') : pill('Not added')}</h3>${body}</div>`;
+}
+
 function jobSitesPanel(settings) {
   const m = settings.market || {enabled: {}, searches: []};
   const on = Object.values(m.enabled || {}).filter(Boolean).length;
   const rows = (S.boot.job_sites || []).map(s => `<label class="site-row"><input type="checkbox" data-site="${esc(s.id)}" ${m.enabled?.[s.id]?'checked':''}><span><strong>${esc(s.name)}</strong> <small>${esc(s.countries.map(c=>S.boot.countries[c]).join(' · '))}</small> ${s.opt_in?pill('Opt-in','amber'):''}<small class="site-note">${esc(s.note)}</small></span></label>`).join('');
-  return `<section class="panel"><div class="panel-title"><div><h2>Job sites</h2><p>Whole-market search: every employer on these sites, for your saved searches and target roles. NAV covers Norway and is listed under connected sources.</p></div>${pill(on+' on',on?'green':'')}</div><div class="site-list">${rows}</div><label class="field"><span>Saved searches</span><textarea id="market-searches" rows="3" placeholder="One search per line, for example: Linux DevOps" aria-label="Saved searches">${esc((m.searches||[]).join('\n'))}</textarea><small>Every refresh searches these first, then your target roles${m.include_related_roles?' and related roles':''}. Use the search box on Discover to search all sites once.</small></label><label class="check-row"><input type="checkbox" id="market-related" ${m.include_related_roles?'checked':''}> Also search my related roles</label><label class="check-row"><input type="checkbox" id="market-everything" ${m.collect_everything!==false?'checked':''}> Collect everything in my fields</label><p class="evidence">On: each refresh also browses whole fields (IT, data, engineering, science…) and NAV's entire Norwegian market, and keeps every vacancy in your countries; matching happens in your database. The first refresh per country can take 10–20 minutes. Vacancies closed or unseen for 30 days are removed, except ones you saved, noted or applied to. Changes apply after Save settings, below.</p></section>`;
+  return `<section class="panel"><div class="panel-title"><div><h2>Job sites</h2><p>Whole-market search: every employer on these sites, for your saved searches and target roles. NAV covers Norway and is listed under connected sources.</p></div>${pill(on+' on',on?'green':'')}</div><div class="site-list">${rows}</div>${adzunaKeyBlock()}<label class="field"><span>Saved searches</span><textarea id="market-searches" rows="3" placeholder="One search per line, for example: Linux DevOps" aria-label="Saved searches">${esc((m.searches||[]).join('\n'))}</textarea><small>Every refresh searches these first, then your target roles${m.include_related_roles?' and related roles':''}. Use the search box on Discover to search all sites once.</small></label><label class="check-row"><input type="checkbox" id="market-related" ${m.include_related_roles?'checked':''}> Also search my related roles</label><label class="check-row"><input type="checkbox" id="market-everything" ${m.collect_everything!==false?'checked':''}> Collect everything in my fields</label><p class="evidence">On: each refresh also browses whole fields (IT, data, engineering, science…) and NAV's entire Norwegian market, and keeps every vacancy in your countries; matching happens in your database. The first refresh per country can take 10–20 minutes. Vacancies closed or unseen for 30 days are removed, except ones you saved, noted or applied to. Changes apply after Save settings, below.</p></section>`;
 }
 
 function updatesPanel() {
@@ -781,7 +791,7 @@ function linkedinNotice() {
 function renderSettings() {
   const settings = S.settingsDraft || S.boot.settings;
   $('#main').insertAdjacentHTML('beforeend', `<div class="content-width"><section class="panel"><div class="panel-title"><div><h2>Local AI</h2><p>Ollama runs your model on this computer. No cloud AI key is needed.</p></div>${pill('On-device','green')}</div><div class="form-grid">${field('Model name','model',settings.model,{group:'settings',hint:'Save a model name before downloading or generating.'})}<div><label class="field"><span>Available models</span><select id="model-picker"><option value="">Check setup to list installed models</option></select></label></div></div><div class="section-actions">${button('Check setup','check-setup')}${button('Start Ollama','start-ollama')}${button('Download saved model','download-model')}${button('Install PDF support','install-pdf')}${link('Install Ollama','https://ollama.com/download/windows')}</div><div id="setup-result" class="evidence"></div></section>
-  ${jobSitesPanel(settings)}<section class="panel"><div class="panel-title"><div><h2>Connected job sources</h2><p>${S.boot.settings.sources.length} configured. The country switch limits each collection to that market.</p></div>${button('Browse library','go-sources')}</div><div class="table-wrap"><table><thead><tr><th>Source</th><th>Countries</th><th>Action</th></tr></thead><tbody>${settings.sources.map((s,i)=>`<tr><td>${esc(s.name||s.board||cap(s.type))}<span class="sub">${esc(s.type)}</span></td><td>${esc(s.countries?.join(', ')||(s.type==='nav'?'NO':'Any'))}</td><td>${button('Remove','remove-source','quiet',`data-source-index="${i}"`)}</td></tr>`).join('')}</tbody></table></div><details class="evidence"><summary>Advanced source configuration</summary><p>Edit the source array for custom boards, locations or limits. Invalid changes are rejected when you save.</p><textarea id="sources-json" rows="10" aria-label="Advanced sources JSON">${esc(S.sourcesText??JSON.stringify(settings.sources,null,2))}</textarea></details><div class="savebar"><small>${S.settingsDirty?'Unsaved settings':'Changes apply after saving.'}</small>${button('Save settings','save-settings','primary')}</div></section>
+  ${jobSitesPanel(settings)}<section class="panel"><div class="panel-title"><div><h2>Connected job sources</h2><p>${S.boot.settings.sources.length} configured. One refresh collects every target country; the country switch only filters what you see.</p></div>${button('Browse library','go-sources')}</div><div class="table-wrap"><table><thead><tr><th>Source</th><th>Countries</th><th>Action</th></tr></thead><tbody>${settings.sources.map((s,i)=>`<tr><td>${esc(s.name||s.board||cap(s.type))}<span class="sub">${esc(s.type)}</span></td><td>${esc(s.countries?.join(', ')||(s.type==='nav'?'NO':'Any'))}</td><td>${button('Remove','remove-source','quiet',`data-source-index="${i}"`)}</td></tr>`).join('')}</tbody></table></div><details class="evidence"><summary>Advanced source configuration</summary><p>Edit the source array for custom boards, locations or limits. Invalid changes are rejected when you save.</p><textarea id="sources-json" rows="10" aria-label="Advanced sources JSON">${esc(S.sourcesText??JSON.stringify(settings.sources,null,2))}</textarea></details><div class="savebar"><small>${S.settingsDirty?'Unsaved settings':'Changes apply after saving.'}</small>${button('Save settings','save-settings','primary')}</div></section>
   <section class="panel"><div class="panel-title"><div><h2>Collection activity</h2><p>See what was collected and which sources need attention.</p></div>${button('Find opportunities','collect')}</div>${collectionReport()}</section><section class="panel"><div class="panel-title"><div><h2>Desktop app</h2><p>Open Job Agent from the Start menu or desktop like any other program: its own icon, no console window, and only one window at a time.</p></div></div><p class="evidence">The app runs entirely on this computer. Your profile, database, notes and drafts stay in your private data folder.</p><div class="section-actions">${button('Add Start menu & desktop shortcuts','create-shortcuts','primary')}${button('Switch theme','theme')}${button('Keyboard shortcuts','help')}</div></section>${updatesPanel()}</div>`);
 }
 
@@ -1520,6 +1530,20 @@ async function action(name, el) {
   }
   if (name === 'go-sources') {
     await navigate('sources');
+    return;
+  }
+  if (name === 'save-adzuna' || name === 'remove-adzuna') {
+    if (name === 'save-adzuna') {
+      const id = $('#adzuna-id').value.trim(), secret = $('#adzuna-secret').value.trim();
+      if (!id || !secret) throw Error('Paste both the Application ID and the Application key.');
+      S.boot.adzuna = await api('/adzuna-key', {method: 'POST', body: {app_id: id, app_key: secret}});
+      toast('Adzuna key checked and saved. The next refresh searches Adzuna.');
+    } else {
+      S.boot.adzuna = await api('/adzuna-key', {method: 'DELETE'});
+      toast('Adzuna key removed from this computer.');
+    }
+    if (S.view === 'settings') renderPage();
+    await refreshCoverage();
     return;
   }
   if (name === 'remove-source') {
