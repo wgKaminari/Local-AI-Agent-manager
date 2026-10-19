@@ -112,7 +112,7 @@ class CountryProfileTests(unittest.TestCase):
             with self.subTest(value=value), self.assertRaises(ValueError):
                 validate_countries(value)
         for value in ({"FR": {}}, {"DE": {"skills": ["Invented"]}},
-                      {"DE": {"target_roles": "Engineer"}}, {"UA": {"work_authorization": True}}):
+                      {"DE": {"target_roles": 5}}, {"UA": {"work_authorization": True}}):
             with self.subTest(value=value), self.assertRaises(ValueError):
                 validate_country_preferences(value)
 

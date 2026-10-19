@@ -80,6 +80,98 @@ def role_matches(title: str, role: str) -> bool:
     return _role_matches_normalized(_role_text(title), role)
 
 
+# How pasted lists are read. Terms (skills, roles, places, keywords) are
+# separated by new lines, commas, semicolons, "|", tabs or bullets; a comma
+# inside brackets stays, so "Python (pandas, NumPy)" is one skill. Sentences
+# (achievements, writing examples) contain commas, so only new lines and
+# bullets separate them.
+_TERM_SEPARATORS = "\n\r,;|\t\u2022\u00b7\u25cf\u25aa\u25e6\u2023\u2043"
+_LINE_SEPARATORS = "\n\r\u2022\u25cf\u25aa\u25e6\u2023\u2043"
+_LIST_MARKER = re.compile(r"^(?:[-*+\u2013\u2014]\s+|\(?\d{1,3}[.)]\s+|[a-z][.)]\s+(?=\S))", re.I)
+TERM_FIELDS = ("target_roles", "related_roles", "skills", "preferred_locations", "excluded_keywords")
+SENTENCE_FIELDS = ("evidence",)
+# Proficiency written after a language name without a separator ("English C1").
+_LEVEL = re.compile(r"(?:[ABC][12](?:\s*[-/+]\s*[ABC]?[12])?\+?|native|fluent|basic|beginner|intermediate|advanced|"
+                    r"professional|conversational|business|working|morsm\u00e5l|flytende|muttersprache|\u0440\u0456\u0434\u043d\u0430)$", re.I)
+
+
+def _split(text: str, separators: str) -> list[str]:
+    parts, current, depth = [], [], 0
+    for char in text:
+        if char in "([{":
+            depth += 1
+        elif char in ")]}" and depth:
+            depth -= 1
+        if char in separators and (depth == 0 or char in "\n\r"):
+            parts.append("".join(current))
+            current, depth = [], 0 if char in "\n\r" else depth
+            continue
+        current.append(char)
+    parts.append("".join(current))
+    return parts
+
+
+def _clean_items(values, separators: str, *, terms: bool) -> list[str]:
+    if isinstance(values, str):
+        values = [values]
+    result, seen = [], set()
+    for value in values:
+        for part in _split(value, separators):
+            item = _LIST_MARKER.sub("", " ".join(part.split()))
+            if terms:
+                item = item.rstrip(".:").strip()
+            key = item.casefold()
+            if item and key not in seen:
+                seen.add(key)
+                result.append(item)
+    return result
+
+
+def split_terms(value) -> list[str]:
+    """Skills, roles, places or keywords, however they were pasted."""
+    return _clean_items(value, _TERM_SEPARATORS, terms=True)
+
+
+def split_sentences(value) -> list[str]:
+    """Achievements or examples: one per line or bullet; commas stay."""
+    return _clean_items(value, _LINE_SEPARATORS, terms=False)
+
+
+def parse_languages(value) -> dict[str, str]:
+    """Languages with levels: "English: C1", "English - C1", "English (C1)" or "English C1".
+
+    Entries may be on separate lines or separated by commas or semicolons.
+    """
+    if isinstance(value, dict):
+        entries = [f"{name}: {level}" for name, level in value.items()]
+    elif isinstance(value, str):
+        entries = _split(value, "\n\r,;")
+    else:
+        raise ValueError("Write languages as Language: level, for example English: C1.")
+    languages = {}
+    for entry in entries:
+        entry = _LIST_MARKER.sub("", " ".join(str(entry).split()))
+        if not entry:
+            continue
+        name = level = ""
+        for pattern in (r"^(.+?)\s*[:=]\s*(.+)$", r"^(.+?)\s+[-\u2013\u2014]\s+(.+)$", r"^(.+?)\s*\((.+)\)$"):
+            match = re.match(pattern, entry)
+            if match:
+                name, level = match.group(1).strip(), match.group(2).strip()
+                break
+        else:
+            words = entry.rsplit(" ", 2)
+            for size in (2, 1):
+                tail = " ".join(words[-size:]) if len(words) > size else ""
+                if tail and _LEVEL.match(tail):
+                    name, level = entry[:-len(tail)].strip(" -:"), tail
+                    break
+        if not name or not level:
+            raise ValueError(f"Add a level for \"{entry}\", for example {entry.split()[0]}: B2.")
+        languages[name] = level
+    return languages
+
+
 def load_profile(path: str | Path) -> dict:
     return validate_profile(json.loads(Path(path).read_text(encoding="utf-8-sig")))
 
@@ -91,16 +183,22 @@ def validate_profile(profile: dict) -> dict:
     profile["years_of_experience"] = validate_experience_years(profile.get("years_of_experience"))
     for key in LIST_FIELDS:
         value = profile.setdefault(key, [])
+        if isinstance(value, str):
+            value = [value]
         if not isinstance(value, list) or any(not isinstance(item, str) for item in value):
             raise ValueError(f"Profile '{key}' must be a list of strings.")
+        # Lists are read the same way however they were typed or pasted,
+        # including profiles saved before this reading existed.
+        profile[key] = split_sentences(value) if key in SENTENCE_FIELDS else split_terms(value)
     for key in TEXT_FIELDS:
         value = profile.setdefault(key, "English" if key == "cover_letter_language" else "")
         if not isinstance(value, str):
             raise ValueError(f"Profile '{key}' must be text.")
     for field in ("languages", "search_languages"):
         languages = profile.setdefault(field, {})
-        if not isinstance(languages, dict) or any(not isinstance(k, str) or not isinstance(v, str) for k, v in languages.items()):
+        if isinstance(languages, dict) and any(not isinstance(k, str) or not isinstance(v, str) for k, v in languages.items()):
             raise ValueError(f"Profile '{field}' must map language names to levels as text.")
+        profile[field] = parse_languages(languages)
     from .countries import COUNTRIES, validate_countries, validate_country_preferences
     profile["target_countries"] = validate_countries(profile.get("target_countries", list(COUNTRIES)))
     profile["country_preferences"] = validate_country_preferences(profile.get("country_preferences", {}))

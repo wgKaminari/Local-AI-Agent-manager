@@ -29,7 +29,7 @@ class ProfileTests(unittest.TestCase):
     def test_profile_rejects_wrong_types(self):
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder) / "profile.json"
-            path.write_text(json.dumps({"skills": "Python"}), encoding="utf-8")
+            path.write_text(json.dumps({"skills": 5}), encoding="utf-8")
             with self.assertRaisesRegex(ValueError, "list of strings"):
                 load_profile(path)
 
@@ -50,6 +50,41 @@ class ProfileTests(unittest.TestCase):
         result = match_job({"title": "Jurist innen kunstig intelligens"}, profile)
         self.assertEqual(result["track"], "other")
         self.assertEqual(result["score"], 0)
+
+
+PASTED_SKILLS = 'Mathematical Statistics, Probability Theory, Hypothesis Testing, Parametric Tests, Non-Parametric Tests, Linear Regression, Logistic Regression, Bayesian Analysis, PyMC, Stan, NumPyro, Causal Inference, Experimental Design, A/B Testing, Time Series Analysis, ARIMA, STL, ADF, KPSS, Stochastic Processes, Numerical Methods, Optimization, Machine Learning, Deep Learning, Natural Language Processing (NLP), Reinforcement Learning, PPO, A2C, SAC, TD3, Feature Engineering, Model Evaluation, Classification, Regression, Clustering, Gradient Boosting, scikit-learn, XGBoost, PyTorch, Stable-Baselines3, Gymnasium, Unity ML-Agents, Computer Vision, YOLO, Large Language Models (LLMs), AI Agents, Agentic Workflows, RAG, Embeddings, Vector Databases, Vector Search, Structured Outputs, Prompt Engineering, Context Engineering, Dify, AI Workflow Orchestration, AI Agent Architecture, Document Processing, Document Verification, Data Extraction, Data Validation Pipelines, REST APIs, API Integration, Custom Plugins, Microsoft Graph API, Microsoft SharePoint, Python, NumPy, pandas, statsmodels, Matplotlib, seaborn, xlwings, SQL, PostgreSQL, pgAdmin, R, JavaScript, VBA, Excel, Power BI, Alteryx, Pentaho PDI, Jupyter, Docker, Containerization, Linux, Git, GitHub, MLOps, CI/CD, Logging, Observability, AWS, AWS EC2, GCP, Azure, Data Analysis, Data Quality, Data Automation, Process Automation, Statistical Modelling, Predictive Modelling, Time Series Forecasting, Data Visualization, Business Intelligence'
+
+
+class ListReadingTests(unittest.TestCase):
+    def test_a_comma_separated_skill_paste_becomes_separate_skills(self):
+        from norway_job_agent.profile import split_terms
+        skills = split_terms(PASTED_SKILLS)
+        self.assertEqual(len(skills), 106)
+        self.assertEqual(skills[:3], ["Mathematical Statistics", "Probability Theory", "Hypothesis Testing"])
+        self.assertIn("Natural Language Processing (NLP)", skills)
+        self.assertIn("CI/CD", skills)
+        self.assertEqual(skills[-1], "Business Intelligence")
+
+    def test_profiles_saved_as_one_long_item_are_read_as_a_list(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "profile.json"
+            path.write_text(json.dumps({"skills": [PASTED_SKILLS], "target_roles": ["Data Scientist; ML Engineer"]}), encoding="utf-8")
+            profile = load_profile(path)
+        self.assertEqual(len(profile["skills"]), 106)
+        self.assertEqual(profile["target_roles"], ["Data Scientist", "ML Engineer"])
+        match = match_job({"title": "Data Scientist", "description": "We use PyMC, Docker and Power BI."}, profile)
+        self.assertEqual(match["matched_skills"], ["PyMC", "Power BI", "Docker"])
+
+    def test_every_list_format_is_read(self):
+        from norway_job_agent.profile import parse_languages, split_sentences, split_terms
+        self.assertEqual(split_terms("\u2022 Python\n\u2022 SQL (PostgreSQL, SQLite)\n- Docker | Git; Linux\n1. Excel.\nPython"),
+                         ["Python", "SQL (PostgreSQL, SQLite)", "Docker", "Git", "Linux", "Excel"])
+        self.assertEqual(split_sentences("\u2022 At Acme, built 10 agents, saving time.\n2. Cut costs by 90%, via automation"),
+                         ["At Acme, built 10 agents, saving time.", "Cut costs by 90%, via automation"])
+        self.assertEqual(parse_languages("English: B2-C1, German - A2; Norwegian (A1-A2)\nRussian Native"),
+                         {"English": "B2-C1", "German": "A2", "Norwegian": "A1-A2", "Russian": "Native"})
+        with self.assertRaisesRegex(ValueError, "Add a level"):
+            parse_languages("English")
 
 
 if __name__ == "__main__":

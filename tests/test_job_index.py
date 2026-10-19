@@ -80,10 +80,27 @@ class StoredMatchTests(Fixture):
                 self.assertEqual(service.list_page(self.folder)["summary"]["shown"], 1)
             finally:
                 lock.release()
-        with patch.object(service, "LIST_MATCH_LIMIT", 2):
+        with patch.object(service, "LIST_MATCH_LIMIT", 2), \
+                patch.object(service, "_rematch_in_background") as background:
             self.assertEqual(service.list_page(self.folder)["summary"]["shown"], 3)
+        # More remained, so the list asked for one background re-match.
+        background.assert_called_once()
         self.assertEqual(service.refresh_matches(self.folder)["matched"], 3)
         self.assertEqual(service.list_page(self.folder)["summary"]["shown"], 6)
+
+    def test_a_background_rematch_finishes_what_lists_left(self):
+        for index in range(4):
+            self.add(f"bg{index}")
+        with patch.object(service, "LIST_MATCH_LIMIT", 1):
+            service.list_page(self.folder)
+        for _ in range(100):
+            if not service._background_rematches:
+                break
+            __import__("time").sleep(0.05)
+        with self.store() as store:
+            stale = store._connection.execute("SELECT count(*) FROM jobs j LEFT JOIN job_matches m ON m.job_id = j.id "
+                                              "WHERE m.job_id IS NULL").fetchone()[0]
+        self.assertEqual(stale, 0)
 
     def test_stored_deadlines_are_judged_against_today(self):
         identifier = self.add("a", deadline=(datetime.now() + timedelta(days=1)).date().isoformat())
