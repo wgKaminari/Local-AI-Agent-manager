@@ -369,7 +369,8 @@ function jobTags(j) {
 
 // Display names for where a vacancy was found.
 const SITE_LABELS = {nav: 'NAV', arbeitsagentur: 'Arbeitsagentur', arbeitnow: 'Arbeitnow', djinni: 'Djinni', dou: 'DOU',
-  remotive: 'Remotive', remoteok: 'Remote OK', himalayas: 'Himalayas', linkedin: 'LinkedIn', gmail: 'job-alert email'};
+  remotive: 'Remotive', remoteok: 'Remote OK', himalayas: 'Himalayas', hackernews: 'Hacker News', linkedin: 'LinkedIn',
+  gmail: 'job-alert email'};
 const siteLabel = source => SITE_LABELS[source] || 'employer site';
 
 function marketBar() {
@@ -532,7 +533,7 @@ function renderDetail() {
 }
 
 // Job sites whose lists omit the advert text (Djinni: the employer).
-const BOARD_SOURCES = ['arbeitsagentur', 'arbeitnow', 'djinni', 'dou', 'remotive', 'remoteok', 'himalayas', 'linkedin'];
+const BOARD_SOURCES = ['arbeitsagentur', 'arbeitnow', 'djinni', 'dou', 'remotive', 'remoteok', 'himalayas', 'hackernews', 'linkedin'];
 const needsDetails = j => Boolean(j.is_active) && ((['arbeitsagentur', 'linkedin'].includes(j.source) && !String(j.description || '').trim()) ||
   (j.source === 'djinni' && j.company === 'Company on Djinni'));
 
