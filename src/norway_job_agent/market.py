@@ -7,6 +7,8 @@ has configured. These providers search a whole market for each role query:
 * arbeitnow       - German tech job board (free public API)
 * djinni, dou     - Ukrainian IT job boards (public RSS feeds)
 * remotive, remoteok, himalayas - remote-job boards (free public APIs)
+* hackernews      - Hacker News "Who is hiring?" threads, see hackernews.py
+* us_employers    - a few hundred US company boards, see employer_pack.py
 * linkedin        - LinkedIn's public guest job search; opt-in, see linkedin_public.py
 
 Downloads never touch the database, so providers may run concurrently. Every
@@ -80,11 +82,19 @@ PROVIDERS: dict[str, Provider] = {
                          note="Remote jobs; country follows each job's stated eligibility."),
     "himalayas": Provider("Himalayas", REMOTE, "https://himalayas.app/jobs", max_queries=8,
                           note="Remote jobs; country follows each job's stated eligibility."),
+    "hackernews": Provider("Hacker News: Who is hiring?", REMOTE, "https://news.ycombinator.com/submitted?id=whoishiring",
+                           per_query=False, note="Monthly hiring threads of mostly US and remote tech startups; "
+                                                 "read through Hacker News' official search API."),
+    "us_employers": Provider("US tech employers", ("US",), "https://github.com/wgKaminari/Local-AI-Agent-manager/blob/main/docs/market-search.md#us-tech-employers",
+                             per_query=False, note="A few hundred verified US company career boards (Greenhouse, Lever, "
+                                                   "Ashby, Workday), each read at most once a day."),
     "linkedin": Provider("LinkedIn public search", ("NO", "US", "DE", "UA"), "https://www.linkedin.com/jobs/",
                          opt_in=True, max_queries=6,
                          note="No login. Slow and polite, but LinkedIn's terms forbid automated access; off until you enable it."),
 }
 DEFAULT_ENABLED = {name: not provider.opt_in for name, provider in PROVIDERS.items()}
+# Too large for a live "Search job sites" query; refreshes read it.
+REFRESH_ONLY = frozenset({"us_employers"})
 # Lists from these providers carry no advert text; descriptions are loaded
 # when a vacancy is opened, and during collection for role matches.
 LAZY_DETAILS = frozenset({"arbeitsagentur", "linkedin", "djinni"})
@@ -466,9 +476,14 @@ def _himalayas(query: str, country: str, limit: int, **_) -> list[dict]:
     return jobs[:limit]
 
 
+def _hackernews(queries: list[str], country: str, limit: int) -> list[dict]:
+    from .hackernews import fetch
+    return fetch()
+
+
 _SEARCHERS = {"arbeitsagentur": _arbeitsagentur, "djinni": _djinni, "dou": _dou,
               "remotive": _remotive, "himalayas": _himalayas}
-_FEEDS = {"arbeitnow": _arbeitnow, "remoteok": _remoteok}
+_FEEDS = {"arbeitnow": _arbeitnow, "remoteok": _remoteok, "hackernews": _hackernews}
 
 
 @dataclass
@@ -481,11 +496,15 @@ class ProviderRun:
     details_loaded: int = 0
     has_more: bool = False
     stopped: str = ""
+    # Complete employer boards read: (source, id prefix, ids) for retirement.
+    snapshots: list = field(default_factory=list)
+    summary: str = ""
 
     def report(self) -> dict:
         provider = PROVIDERS[self.provider]
-        coverage = (f"Searched {provider.name} with {len(self.queries)} search{'' if len(self.queries) == 1 else 'es'}: "
-                    f"{self.fetched} results, {len(self.jobs)} new or updated vacancies kept.")
+        coverage = self.summary or (
+            f"Searched {provider.name} with {len(self.queries)} search{'' if len(self.queries) == 1 else 'es'}: "
+            f"{self.fetched} results, {len(self.jobs)} new or updated vacancies kept.")
         if self.details_loaded:
             coverage += f" Loaded {self.details_loaded} full adverts for role matches."
         if self.stopped:
@@ -525,11 +544,13 @@ def _keep(run: ProviderRun, found: list[dict], tags: list[str], country: str, se
 
 def search_provider(name: str, queries: list[str], country: str = "", *, limit_per_query: int = 100,
                     role_terms: list[str] = (), detail_budget: int = 0, state: dict | None = None,
-                    progress=None, broad: bool = False, seconds: float = REFRESH_SECONDS) -> ProviderRun:
+                    progress=None, broad: bool = False, seconds: float = REFRESH_SECONDS,
+                    skip_boards: frozenset[str] = frozenset()) -> ProviderRun:
     """Search one provider for several queries. Network only; never raises.
 
     broad adds the provider's field-wide searches and reads deeper, for a
     refresh that collects everything; incremental positions live in state.
+    skip_boards names employer boards already configured as sources.
     """
     run = ProviderRun(name)
     provider = PROVIDERS[name]
@@ -549,6 +570,10 @@ def search_provider(name: str, queries: list[str], country: str = "", *, limit_p
             from .linkedin_public import search as linkedin_search
             linkedin_search(run, queries, country, state, progress=progress)
             _filter_linkedin(run, tags, country)
+        elif name == "us_employers":
+            from . import employer_pack
+            employer_pack.collect(run, tags, state, skip=skip_boards, deadline=deadline, progress=progress,
+                                  keep=lambda run, jobs, tags: _keep(run, jobs, tags, "", seen))
         elif name == "arbeitnow":
             newest = int(state.get("arbeitnow_newest") or 0)
             found = _arbeitnow(queries, country, limit_per_query, newest=newest, max_pages=(10 if not newest else 5) if broad else 3)

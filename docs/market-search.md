@@ -79,9 +79,11 @@ NAV full index                 Whole-market job sites                  Employer 
 
 ## Remaining limits
 
-* The USA has no free, key-less national job API; US coverage comes from
-  employer boards, remote boards and the opt-in LinkedIn search. Free keyed
-  APIs (Adzuna, Jooble, USAJobs) would add more and could be added later.
+* The USA has no free, key-less national job API like NAV or the
+  Bundesagentur. Since 0.7.5, US coverage comes from the US tech employers
+  job site (below), Hacker News, remote boards, configured employer boards
+  and the opt-in LinkedIn search. Free keyed APIs (Adzuna, Jooble, USAJobs)
+  would add more and could be added later.
 * NAV excludes FINN-origin adverts.
 * Board adverts are not withdrawn explicitly; those not seen by any search for
   30 days leave Discover (saved ones stay).
@@ -131,3 +133,51 @@ took 5.5 s for 4,249 vacancies. On 68,221 vacancies, a Discover page took
 0.76 s, Germany 0.6 s, For you 0.66 s and a search about 0.25 s; the
 interface opened in 1.6 s. The previous design needed 2 s per list for
 4,600 vacancies.
+
+## US tech employers
+
+Norway and Germany publish nearly every vacancy through free government
+APIs (NAV, Bundesagentur für Arbeit); the USA does not, and Indeed,
+LinkedIn, Glassdoor and ZipRecruiter forbid automated collection. In 0.7.4
+the USA therefore had about 3,900 vacancies against 52,800 in Germany.
+
+0.7.5 adds two job sites, both on by default:
+
+* **US tech employers** reads 332 public career boards of US employers that
+  are not already in the employer directory: 286 Greenhouse, Lever and Ashby
+  boards (OpenAI, Anthropic, Databricks, Stripe, SpaceX, Anduril, Waymo, ...)
+  and 46 Workday boards (NVIDIA, Capital One, Visa, Disney, Johnson &
+  Johnson, ...). The list lives in `data/us_employer_boards.json`; each board
+  was downloaded with the app's own collector on 19 October 2026, and slugs
+  that belonged to a different company (for example a veterinary clinic
+  called Archer) were removed. Greenhouse, Lever and Ashby boards are read
+  whole and retire postings they no longer list. Workday has no whole-board
+  feed, so each Workday employer is searched for your first two roles (25
+  adverts each). Jobs in any supported country are kept, so a US company's
+  Berlin office counts for Germany.
+* **Hacker News: Who is hiring?** reads the latest two monthly threads
+  through HN's official search API (two requests per thread). The first line
+  of each post gives company, role and place; posts naming no supported
+  country are skipped, and a fully remote post naming no region counts as
+  open everywhere, like the remote boards.
+
+Boards are a job site rather than configured sources, so they do not count
+toward the 250-source limit, need no setup, and updates can add boards.
+Boards you configured yourself are skipped here. Each board is read at most
+once every 20 hours: a full pass downloads about 450 MB (SpaceX and Anduril
+publish over 20 MB each, so the download limit for whole boards is now
+48 MB). A refresh that runs out of its 10-minute budget continues with the
+boards it did not reach. Workday and Hacker News adverts that no refresh has
+seen for 30 days leave Discover, like other job-site adverts.
+
+### Measured on a copy of the real data (19 October 2026)
+
+One refresh across Norway, Germany, Ukraine and the USA, 14 minutes:
+
+| | Before | After |
+|---|---|---|
+| US vacancies | 3,543 | 27,320 |
+| US "For you" (fit your experience) | 306 | 1,973 |
+| US tech employers | — | 306 of 333 boards read, 23,728 vacancies kept |
+| Hacker News | — | 215 posts |
+| All countries "For you" | ~1,500 | 3,230 |

@@ -25,7 +25,8 @@ from itertools import combinations
 from .countries import country_code
 
 MAX_RESPONSE_BYTES = 2 * 1024 * 1024
-MAX_ATS_RESPONSE_BYTES = 20 * 1024 * 1024
+# Whole-company boards: SpaceX and Anduril each publish over 20 MB of adverts.
+MAX_ATS_RESPONSE_BYTES = 48 * 1024 * 1024
 # TIMEOUT_SECONDS bounds connecting and any silence while a response
 # arrives; TOTAL_SECONDS bounds a whole download. A refresh runs many
 # downloads at once, so a large board can take longer than 15 seconds in

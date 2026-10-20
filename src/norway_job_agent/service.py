@@ -367,7 +367,7 @@ def _store_nav(data_dir: Path, source: dict, fetched: dict, store: JobStore, rep
 def _store_market(run, store: JobStore, report: dict) -> dict:
     """Write one provider's results; a conflicting advert skips only itself."""
     result = run.report()
-    counts = {"created": 0, "updated": 0}
+    counts = {"created": 0, "updated": 0, "withdrawn": 0}
     skipped = 0
     try:
         with store.transaction():
@@ -378,13 +378,15 @@ def _store_market(run, store: JobStore, report: dict) -> dict:
                     skipped += 1
                     continue
                 counts["created" if created else "updated"] += 1
+            # A complete employer board retires the postings it no longer lists.
+            for source, prefix, ids in run.snapshots:
+                counts["withdrawn"] += store.reconcile_source_snapshot(source, prefix, ids)
     except (ValueError, OSError) as exc:
         result.update(ok=False, error=str(exc))
-        counts = {"created": 0, "updated": 0}
+        counts = {"created": 0, "updated": 0, "withdrawn": 0}
     for key, count in counts.items():
         result[key] = count
         report[key] = report.get(key, 0) + count
-    result["withdrawn"] = 0
     if skipped:
         result["coverage"] += f" {skipped} conflicted with saved records and were left unchanged."
     report["sources"].append(result)
@@ -398,7 +400,7 @@ def _submit_market(data_dir: Path, pool, settings: dict, profile: dict, country:
     A refresh (collection_detail) reads broadly when "collect everything" is
     on; a live search reads only its one query, within a shorter budget.
     """
-    from . import market
+    from . import employer_pack, market
     rows = []
     state = _market_state(data_dir)
     broad = collection_detail and settings["market"].get("collect_everything", True)
@@ -406,15 +408,16 @@ def _submit_market(data_dir: Path, pool, settings: dict, profile: dict, country:
     targets = [country] if country else _target_countries(profile)
     for name in market.providers_for(country, settings["market"]["enabled"]):
         served = [code for code in market.PROVIDERS[name].countries if code in targets]
-        if not served:
+        if not served or (not collection_detail and name in market.REFRESH_ONLY):
             continue
         # A one-country site searches with that country's role preferences;
         # remote boards and LinkedIn cover all your countries in one run.
         code = served[0] if len(market.PROVIDERS[name].countries) == 1 else country
         budget = _DETAIL_BUDGET.get(name, 0) if collection_detail else 0
+        options = {"skip_boards": employer_pack.configured_keys(settings["sources"])} if name == "us_employers" else {}
         rows.append(("market", market.PROVIDERS[name].name, pool.submit(
             market.search_provider, name, queries_for(code), code, role_terms=_role_terms_for(profile, code),
-            detail_budget=budget, state=state, progress=progress, broad=broad, seconds=seconds)))
+            detail_budget=budget, state=state, progress=progress, broad=broad, seconds=seconds, **options)))
     return rows, state
 
 

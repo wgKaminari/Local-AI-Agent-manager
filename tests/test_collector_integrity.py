@@ -69,7 +69,7 @@ class CompleteFeedTests(unittest.TestCase):
             result = sources._request_once("https://example.org/feed", max_response_bytes=sources.MAX_ATS_RESPONSE_BYTES)
             self.assertEqual(result[2], large)
             response.getheaders.return_value = [("Content-Length", str(sources.MAX_ATS_RESPONSE_BYTES + 1))]
-            with self.assertRaisesRegex(sources.SourceError, "20 MB"):
+            with self.assertRaisesRegex(sources.SourceError, "48 MB"):
                 sources._request_once("https://example.org/feed", max_response_bytes=sources.MAX_ATS_RESPONSE_BYTES)
         with patch.object(sources, "_public_addresses") as resolve:
             for budget in (0, True, sources.MAX_ATS_RESPONSE_BYTES + 1):
