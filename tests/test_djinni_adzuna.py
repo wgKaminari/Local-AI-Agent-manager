@@ -51,7 +51,7 @@ class DjinniCrawlTests(unittest.TestCase):
         return [djinni_job("newest-1")]  # the newest-jobs feed
 
     def crawl(self, state, seconds=600):
-        with patch("norway_job_agent.market._djinni_categories", return_value=["Python", "Java"]), \
+        with patch("norway_job_agent.market._djinni_categories", return_value=[("Python", "Python"), ("Java", "Java")]), \
                 patch("norway_job_agent.market._djinni_jobs", side_effect=self.feed):
             return market.search_provider("djinni", ["Python Developer"], "UA", state=state, broad=True, seconds=seconds)
 
@@ -82,7 +82,7 @@ class DjinniCrawlTests(unittest.TestCase):
 
     def test_a_crawl_out_of_time_is_not_recorded_as_complete(self):
         state, run, seen = {}, market.ProviderRun("djinni"), set()
-        with patch("norway_job_agent.market._djinni_categories", return_value=["Python", "Java"]), \
+        with patch("norway_job_agent.market._djinni_categories", return_value=[("Python", "Python"), ("Java", "Java")]), \
                 patch("norway_job_agent.market._djinni_jobs", side_effect=self.feed):
             market._djinni_everything(run, [], state, seen, time.monotonic() - 1)
         self.assertTrue(run.has_more)
@@ -94,7 +94,8 @@ class DjinniCrawlTests(unittest.TestCase):
                     {"key": "JavaScript", "children": [{"key": "React.js"}, {"key": "Vue.js"}]},
                     {"key": "Python"}, {"key": "Python"}]}]}).encode() + b"</script></html>")
         with patch("norway_job_agent.market._fetch", return_value=(200, {}, page, "https://djinni.co/jobs/")):
-            self.assertEqual(market._djinni_categories(), ["JavaScript", "React.js", "Vue.js", "Python"])
+            self.assertEqual(market._djinni_categories(), [("JavaScript", "JavaScript"), ("React.js", "JavaScript"),
+                                                           ("Vue.js", "JavaScript"), ("Python", "Python")])
         with patch("norway_job_agent.market._fetch", return_value=(200, {}, b"<html></html>", "")), \
                 self.assertRaisesRegex(SourceError, "category list"):
             market._djinni_categories()

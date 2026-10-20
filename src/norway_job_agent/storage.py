@@ -32,6 +32,7 @@ _SCHEMA_OBJECTS = frozenset({
     "drafts_job", "job_provenance", "application_preparations", "application_preparations_job",
     "application_deliveries", "job_matches", "job_matches_fingerprint", "job_matches_profile", "jobs_fts",
     "jobs_fts_insert", "jobs_fts_delete", "jobs_fts_update", "job_matches_stale", "jobs_last_seen",
+    "job_identities_job", "job_provenance_job", "application_deliveries_job",
 })
 SCHEMA_VERSION = 4
 # Version 4 adds derived data, so lists stay fast with tens of thousands of
@@ -41,6 +42,12 @@ SCHEMA_VERSION = 4
 # not). Both are rebuildable from the jobs table.
 _DERIVED_SCHEMA = """
     CREATE INDEX IF NOT EXISTS jobs_last_seen ON jobs(last_seen_at);
+    -- Deleting a vacancy checks every table that refers to it. Without these
+    -- indexes each deletion scanned all job identities (275,000 rows on real
+    -- data), so removing tens of thousands of adverts took hours.
+    CREATE INDEX IF NOT EXISTS job_identities_job ON job_identities(job_id);
+    CREATE INDEX IF NOT EXISTS job_provenance_job ON job_provenance(job_id);
+    CREATE INDEX IF NOT EXISTS application_deliveries_job ON application_deliveries(job_id);
     CREATE TABLE IF NOT EXISTS job_matches (
         job_id INTEGER PRIMARY KEY REFERENCES jobs(id) ON DELETE CASCADE,
         profile_hash TEXT NOT NULL,

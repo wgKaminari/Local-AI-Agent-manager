@@ -58,6 +58,16 @@ class NavIndex:
             CREATE INDEX IF NOT EXISTS nav_ads_status ON nav_ads(status);
             CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
         """)
+        # "IT jobs only" stores IT adverts alone; outside = 1 remembers that an
+        # unchanged advert was read and is not IT, so it is not read again.
+        columns = {row[1] for row in self._connection.execute("PRAGMA table_info(nav_ads)")}
+        if "outside" not in columns:
+            self._connection.execute("ALTER TABLE nav_ads ADD COLUMN outside INTEGER NOT NULL DEFAULT 0")
+        # Adverts loaded before 0.7.7 lack NAV's occupation category, which
+        # "IT jobs only" needs: load each active advert once more.
+        if self._connection.execute("SELECT 1 FROM meta WHERE key = 'occupations_v1'").fetchone() is None:
+            self._connection.execute("UPDATE nav_ads SET hydrated = ''")
+            self._connection.execute("INSERT INTO meta (key, value) VALUES ('occupations_v1', '1')")
         self._connection.commit()
 
     def __enter__(self):
@@ -89,13 +99,18 @@ class NavIndex:
 
     def active(self) -> list[tuple]:
         return self._connection.execute(
-            "SELECT uuid, title, employer, municipal, modified, detail_url, hydrated, checked_queries"
+            "SELECT uuid, title, employer, municipal, modified, detail_url, hydrated, checked_queries, outside"
             " FROM nav_ads WHERE status = 'ACTIVE'").fetchall()
 
     def mark_hydrated(self, values: list[tuple[str, str, str]]) -> None:
         """(modified, checked queries JSON, uuid): this version was checked for these queries."""
         with self._connection:
-            self._connection.executemany("UPDATE nav_ads SET hydrated = ?, checked_queries = ? WHERE uuid = ?", values)
+            self._connection.executemany(
+                "UPDATE nav_ads SET hydrated = ?, checked_queries = ?, outside = 0 WHERE uuid = ?", values)
+
+    def mark_outside(self, uuids: list[str]) -> None:
+        with self._connection:
+            self._connection.executemany("UPDATE nav_ads SET outside = 1 WHERE uuid = ?", [(u,) for u in uuids])
 
     def pending_withdrawals(self) -> list[str]:
         return [row[0] for row in self._connection.execute(
@@ -190,7 +205,12 @@ def _title_candidate(folded_title: str, query: str, tokens: list[str]) -> bool:
     return any(token not in GENERIC_WORDS for token in present)
 
 
-def find(data_dir: Path, queries: list[str], *, known: set[str] | frozenset[str] = frozenset(),
+def mark_outside(data_dir: Path, uuids: list[str]) -> None:
+    with NavIndex(data_dir) as index:
+        index.mark_outside(uuids)
+
+
+def find(data_dir: Path, queries: list[str], *, known: set[str] | frozenset[str] = frozenset(), skip_outside: bool = False,
          everything: bool = False) -> list[dict]:
     """Active ads that still need their full advert, search matches first.
 
@@ -207,11 +227,13 @@ def find(data_dir: Path, queries: list[str], *, known: set[str] | frozenset[str]
     hints = {hint for query, tokens in prepared for hint in [*(_role_terms(query)), *tokens] if hint}
     results, rest = [], []
     with NavIndex(data_dir) as index:
-        for uuid, title, employer, municipal, modified, detail_url, hydrated, checked in index.active():
+        for uuid, title, employer, municipal, modified, detail_url, hydrated, checked, outside in index.active():
             folded = _role_text(title)
             matched = [query for query, tokens in prepared if _title_candidate(folded, query, tokens)] \
                 if any(hint in folded for hint in hints) else []
             current = hydrated == modified
+            if skip_outside and current and outside:
+                continue  # Read already and not an IT job; read again once NAV changes it.
             if everything:
                 if current and uuid in known:
                     continue
@@ -267,7 +289,8 @@ def hydrate(data_dir: Path, candidates: list[dict], *, token: str | None = None,
                     withdrawn.append(candidate["uuid"])
                 elif job is not None:
                     # Multi-word searches are confirmed against the full advert.
-                    job["raw_json"] = {"matched_queries": [query for query in candidate["queries"] if matches_query(job, query)][:5]}
+                    job["raw_json"] = {**(job.get("raw_json") or {}),
+                                       "matched_queries": [query for query in candidate["queries"] if matches_query(job, query)][:5]}
                     jobs.append(job)
                 if error is None:
                     hydrated.append((candidate["modified"], json.dumps(candidate["checked"][-50:]), candidate["uuid"]))

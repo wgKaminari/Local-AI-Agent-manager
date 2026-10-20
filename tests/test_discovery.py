@@ -122,7 +122,7 @@ class DiscoveryTests(unittest.TestCase):
         ]
         for number, (title, description, country, source, deadline) in enumerate(cases):
             service.import_vacancy(self.data, {"title": title, "description": description,
-                "countries": [country], "company": "Fixture " + str(number % 3), "source": source,
+                "countries": [country], "company": "Fixture " + str(number), "source": source,
                 "deadline": deadline, "source_url": f"https://jobs.example.test/parity/{number}"})
         full_search = service.vacancies
 

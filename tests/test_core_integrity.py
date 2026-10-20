@@ -30,7 +30,7 @@ class CoreFixture(unittest.TestCase):
     def job(self, identifier, **changes):
         return {"source": "fixture", "source_id": identifier,
                 "source_url": f"https://example.org/jobs/{identifier}",
-                "title": "Data Scientist", "company": "Fixture Company",
+                "title": f"Data Scientist {identifier}", "company": "Fixture Company",
                 "description": "Python tools", "location": "Berlin, Germany", **changes}
 
 
@@ -98,7 +98,7 @@ class CoreIntegrityTests(CoreFixture):
             self.assertEqual((report["sources"][0]["created"], report["sources"][0]["updated"]), (0, 0))
             self.assertTrue(report["sources"][1]["ok"])
             self.assertEqual({row["source_id"] for row in store.list_jobs()}, {"first", "second", "successful"})
-            self.assertEqual(store.get_job(first)["title"], "Data Scientist")
+            self.assertEqual(store.get_job(first)["title"], "Data Scientist first")
             self.assertEqual(store.get_job(first)["notes"], "Keep me")
 
     def test_conflicting_email_batch_rolls_back_new_rows_and_prior_refreshes(self):

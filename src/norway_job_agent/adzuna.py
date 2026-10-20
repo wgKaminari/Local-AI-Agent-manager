@@ -5,7 +5,8 @@ big US job sites forbid automated collection. Adzuna collects adverts from
 many US job sites and employers and offers a free developer key
 (https://developer.adzuna.com). Its terms allow 25 requests a minute, 250 a
 day, 1,000 a week and 2,500 a month by default; this module stays below 90%
-of each and keeps the count in market-state.json. Lists carry an excerpt of
+of each, spreads the month evenly over its days and keeps the count in
+market-state.json. Lists carry an excerpt of
 each advert, not the full text, and every result links to Adzuna, which the
 terms ask users to credit as the source.
 
@@ -30,7 +31,8 @@ API = "https://api.adzuna.com/v1/api/jobs"
 COUNTRY_CODES = {"US": "us"}
 PER_PAGE = 50
 PAGES_PER_SEARCH = 2
-REQUESTS_PER_REFRESH = 40
+# A refresh may use up to the day's share: 2,250 a month is about 72 a day.
+REQUESTS_PER_REFRESH = 80
 REQUESTS_PER_LIVE_SEARCH = 2
 LIMITS = {"day": 250, "week": 1000, "month": 2500}
 SHARE = 0.9
@@ -149,16 +151,68 @@ def _parse(item: dict) -> dict | None:
     return job
 
 
-def search(run, queries: list[str], key: dict, state: dict, *, keep, budget: int, deadline: float, progress=None) -> None:
-    """Search Adzuna USA for each query, newest month first, within the quota."""
-    allowed = min(budget, remaining(state))
+def _daily_pace(state: dict, today: date | None = None) -> int:
+    """Requests left today so the monthly allowance lasts the whole month."""
+    import calendar
+    today = today or date.today()
+    usage = state.get(STATE_KEY) if isinstance(state.get(STATE_KEY), dict) else {}
+    used_today = usage.get("day_count", 0) if usage.get("day") == today.isoformat() else 0
+    days = calendar.monthrange(today.year, today.month)[1]
+    return max(0, int(LIMITS["month"] * SHARE / days) - int(used_today))
+
+
+def _it_category(key: dict, state: dict) -> str:
+    """Adzuna's tag for IT jobs in the USA, read once from its category list."""
+    cached = state.get("adzuna_it_category")
+    if isinstance(cached, str) and cached:
+        return cached
+    status, body = _status(key, f"{API}/{COUNTRY_CODES['US']}/categories?content-type=application/json")
+    _count(state)
+    _check(status)
+    try:
+        items = json.loads(body).get("results")
+    except (ValueError, AttributeError) as exc:
+        raise SourceError("Adzuna returned an unexpected category list.") from exc
+    tags = {str(item.get("tag")): str(item.get("label", "")) for item in items or [] if isinstance(item, dict) and item.get("tag")}
+    tag = "it-jobs" if "it-jobs" in tags else next(
+        (tag for tag, label in tags.items() if re.search(r"\bIT\b|information technology", label)), "")
+    if not tag:
+        raise SourceError("Adzuna has no IT category for the USA; your role searches still ran.")
+    state["adzuna_it_category"] = tag
+    return tag
+
+
+def search(run, queries: list[str], key: dict, state: dict, *, keep, budget: int, deadline: float, progress=None,
+           it_only: bool = False) -> None:
+    """Search Adzuna USA within the quota, newest adverts of the last 30 days first.
+
+    Your roles come first. With "IT jobs only" the rest of the day's share
+    browses Adzuna's whole IT category; otherwise it reads further pages of
+    your role searches.
+    """
+    allowed = min(budget, remaining(state), _daily_pace(state))
     if allowed <= 0:
-        run.stopped = "Adzuna's daily, weekly or monthly allowance for your key is used up; the next refresh continues."
+        run.stopped = ("Today's share of your Adzuna key's free allowance is used; the next day continues. "
+                       "(Free keys allow 2,500 requests a month.)")
         return
-    plan = [(query, page) for page in range(1, PAGES_PER_SEARCH + 1) for query in queries]
+    category = ""
+    before = remaining(state)
+    if it_only:
+        try:
+            category = _it_category(key, state)
+        except SourceError as exc:
+            run.errors.append(str(exc))
+            if "did not accept" in str(exc):
+                return
+        if category:
+            # The category lookup (once per key) counts against this run too.
+            allowed = min(budget - (before - remaining(state)), remaining(state), _daily_pace(state))
+    roles = [(query, 1) for query in queries[:5]] if category else [
+        (query, page) for page in range(1, PAGES_PER_SEARCH + 1) for query in queries]
+    browse = [("", page) for page in range(1, allowed + 1)] if category else []
     exhausted: set[str] = set()
     used = 0
-    for query, page in plan:
+    for query, page in [*roles, *browse]:
         if used >= allowed:
             run.has_more = True
             break
@@ -170,26 +224,34 @@ def search(run, queries: list[str], key: dict, state: dict, *, keep, budget: int
             break
         if used:
             time.sleep(PAUSE_SECONDS)
-        url = f"{API}/{COUNTRY_CODES['US']}/search/{page}?" + urlencode(
-            {"results_per_page": PER_PAGE, "what": query, "max_days_old": 30, "sort_by": "date", "content-type": "application/json"})
-        status, body = _status(key, url)
+        params = {"results_per_page": PER_PAGE, "max_days_old": 30, "sort_by": "date", "content-type": "application/json"}
+        if query:
+            params["what"] = query
+        if category:
+            params["category"] = category
+        status, body = _status(key, f"{API}/{COUNTRY_CODES['US']}/search/{page}?" + urlencode(params))
         used += 1
         _count(state)
+        label = query or "IT category"
         try:
             _check(status)
             data = json.loads(body)
         except ValueError as exc:
-            run.errors.append(f"{query}: {exc if isinstance(exc, SourceError) else 'Adzuna returned invalid data.'}")
+            run.errors.append(f"{label}: {exc if isinstance(exc, SourceError) else 'Adzuna returned invalid data.'}")
             if status in {401, 403, 429}:
                 break
             continue
         results = data.get("results") if isinstance(data, dict) else None
         if not isinstance(results, list):
-            run.errors.append(f"{query}: Adzuna returned an unexpected response.")
+            run.errors.append(f"{label}: Adzuna returned an unexpected response.")
             continue
-        keep(run, [job for job in map(_parse, results) if job is not None], queries)
+        jobs = [job for job in map(_parse, results) if job is not None]
+        for job in jobs if category else ():
+            job["raw_json"]["it_category"] = True
+        keep(run, jobs, queries)
         if len(results) < PER_PAGE or page * PER_PAGE >= int(data.get("count") or 0):
             exhausted.add(query)
         if progress is not None and used % 10 == 0:
-            progress(f"Adzuna: {used} of {allowed} searches, {len(run.jobs):,} vacancies…")
-    run.summary_note = f"Used {used} Adzuna requests; {remaining(state)} left today within your key's free allowance."
+            progress(f"Adzuna: {used} of {allowed} requests, {len(run.jobs):,} vacancies…")
+    run.summary_note = (f"Used {used} Adzuna requests" + (" (your roles, then the newest IT jobs)" if category else "")
+                        + f"; {remaining(state)} left today within your key's free allowance.")

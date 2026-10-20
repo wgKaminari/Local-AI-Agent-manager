@@ -240,18 +240,33 @@ def _collection_scope(settings: dict, countries: list[str]) -> list[dict]:
     filters what you see. (It used to refresh the selected country alone, so
     countries never selected were never collected.)
     """
-    selected = []
+    selected, seen = [], {}
     for source in settings["sources"]:
         if source.get("type") == "nav":
-            if "NO" in countries:
+            if "NO" in countries and not any(item.get("type") == "nav" for item in selected):
                 selected.append(source)
             continue
         if not source.get("countries"):
-            selected.append(source)  # An unscoped board keeps every posting, as before.
+            candidate = dict(source)  # An unscoped board keeps every posting, as before.
+        else:
+            scope = [code for code in source["countries"] if code in countries]
+            if not scope:
+                continue
+            candidate = {**source, "countries": scope}
+        # The same board configured twice ("bekk" and "Bekk") downloads once.
+        key = json.dumps({name: value.casefold().rstrip("/") if isinstance(value, str) else value
+                          for name, value in candidate.items() if name not in {"name", "countries", "locations"}},
+                         sort_keys=True, ensure_ascii=False)
+        if key in seen:
+            first = seen[key]
+            if "countries" in first:
+                if "countries" in candidate:
+                    first["countries"] = list(dict.fromkeys([*first["countries"], *candidate["countries"]]))
+                else:
+                    first.pop("countries")
             continue
-        scope = [code for code in source["countries"] if code in countries]
-        if scope:
-            selected.append({**source, "countries": scope})
+        seen[key] = candidate
+        selected.append(candidate)
     return selected
 
 
@@ -287,7 +302,7 @@ def _role_terms_for(profile: dict, country: str = "") -> list[str]:
 
 
 def _fetch_nav(data_dir: Path, queries: list[str], known_ids: list[str], progress=None, *,
-               everything: bool = False, seconds: float | None = None) -> dict:
+               everything: bool = False, seconds: float | None = None, it_only: bool = False) -> dict:
     """Bring the NAV index up to date and download adverts.
 
     everything downloads every active advert not stored yet (search matches
@@ -299,7 +314,7 @@ def _fetch_nav(data_dir: Path, queries: list[str], known_ids: list[str], progres
         if not queries and not everything:
             raise ValueError("Add target roles in your profile, or a saved search, before collecting NAV vacancies.")
         synced = nav_index.sync(data_dir, progress=progress)
-        candidates = nav_index.find(data_dir, queries, known=set(known_ids), everything=everything)
+        candidates = nav_index.find(data_dir, queries, known=set(known_ids), everything=everything, skip_outside=it_only)
         if progress is not None and candidates:
             progress(f"NAV: {len(candidates):,} adverts to load…")
         options = {"seconds": seconds} if seconds is not None else {}
@@ -311,8 +326,19 @@ def _fetch_nav(data_dir: Path, queries: list[str], known_ids: list[str], progres
         return {"error": str(exc)}
 
 
-def _store_nav(data_dir: Path, source: dict, fetched: dict, store: JobStore, report: dict) -> None:
-    from . import nav_index
+def _in_scope(jobs, it_only: bool) -> tuple[list, list]:
+    """(kept, outside): with "IT jobs only", adverts that are not IT jobs stay out."""
+    if not it_only:
+        return list(jobs), []
+    from .it_jobs import is_it
+    kept, outside = [], []
+    for job in jobs:
+        (kept if is_it(job) else outside).append(job)
+    return kept, outside
+
+
+def _store_nav(data_dir: Path, source: dict, fetched: dict, store: JobStore, report: dict, it_only: bool = False) -> None:
+    from . import job_index, nav_index
     result = {"source": source, "created": 0, "updated": 0, "withdrawn": 0}
     try:
         if "error" in fetched:
@@ -320,8 +346,11 @@ def _store_nav(data_dir: Path, source: dict, fetched: dict, store: JobStore, rep
         counts = {"created": 0, "updated": 0, "withdrawn": 0}
         skipped = 0
         withdrawals = list(dict.fromkeys([*fetched["withdrawn"], *fetched["pending_withdrawals"]]))
+        jobs, outside = _in_scope(fetched["jobs"], it_only)
         with store.transaction():
-            for job in fetched["jobs"]:
+            if outside:
+                job_index.discard(store, "nav", [job["source_id"] for job in outside])
+            for job in jobs:
                 try:
                     _, created = store.upsert_job(job)
                     counts["created" if created else "updated"] += 1
@@ -332,6 +361,8 @@ def _store_nav(data_dir: Path, source: dict, fetched: dict, store: JobStore, rep
                     counts["withdrawn"] += 1
         # Only now are these adverts safely stored; record them as checked.
         nav_index.mark_hydrated(data_dir, fetched["marks"])
+        if outside:
+            nav_index.mark_outside(data_dir, [job["source_id"] for job in outside])
         nav_index.mark_inactive(data_dir, fetched["withdrawn"])
         nav_index.mark_withdrawals_applied(data_dir, fetched["pending_withdrawals"])
         for key, count in counts.items():
@@ -341,7 +372,7 @@ def _store_nav(data_dir: Path, source: dict, fetched: dict, store: JobStore, rep
         more = synced["has_more"] or fetched["remaining"] > 0
         result.update(ok=True, has_more=more, pages=synced["pages"], seen=synced["events"],
                       experimental_token=synced["experimental_token"], fetched=synced["active"],
-                      scanned=synced["active"], available=synced["active"], matched=len(fetched["jobs"]))
+                      scanned=synced["active"], available=synced["active"], matched=len(jobs), outside_it=len(outside))
         coverage = f"NAV index: {synced['active']:,} active Norwegian vacancies (read {synced['pages']} feed pages this run). "
         if fetched.get("everything"):
             coverage += (f"Loaded {len(fetched['jobs']):,} full adverts this run "
@@ -364,14 +395,18 @@ def _store_nav(data_dir: Path, source: dict, fetched: dict, store: JobStore, rep
     report["sources"].append(result)
 
 
-def _store_market(run, store: JobStore, report: dict) -> dict:
+def _store_market(run, store: JobStore, report: dict, it_only: bool = False) -> dict:
     """Write one provider's results; a conflicting advert skips only itself."""
     result = run.report()
     counts = {"created": 0, "updated": 0, "withdrawn": 0}
     skipped = 0
+    jobs, outside = _in_scope(run.jobs, it_only)
+    if outside:
+        result["outside_it"] = len(outside)
+        result["matched"] = len(jobs)
     try:
         with store.transaction():
-            for job in run.jobs:
+            for job in jobs:
                 try:
                     _, created = store.upsert_job(job)
                 except ValueError:
@@ -425,7 +460,8 @@ def _submit_market(data_dir: Path, pool, settings: dict, profile: dict, country:
             options = {"skip_boards": employer_pack.configured_keys(settings["sources"])}
         rows.append(("market", market.PROVIDERS[name].name, pool.submit(
             market.search_provider, name, queries_for(code), code, role_terms=_role_terms_for(profile, code),
-            detail_budget=budget, state=state, progress=progress, broad=broad, seconds=seconds, **options)))
+            detail_budget=budget, state=state, progress=progress, broad=broad, seconds=seconds,
+            it_only=settings["market"].get("it_only", True), **options)))
     return rows, state
 
 
@@ -461,7 +497,8 @@ def _collect(data_dir: Path, settings_override: dict | None = None, *, progress=
                 if source.get("type") == "nav":
                     rows.insert(0, ("nav", "NAV", pool.submit(
                         _fetch_nav, data_dir, queries_for("NO"), store.source_ids("nav"), progress,
-                        everything=settings["market"].get("collect_everything", True)), source))
+                        everything=settings["market"].get("collect_everything", True),
+                        it_only=settings["market"].get("it_only", True)), source))
                 else:
                     label = source.get("name") or source.get("board") or source.get("url") or source.get("type", "source").upper()
                     rows.append(("employer", label, pool.submit(collection.fetch_source, source)))
@@ -470,14 +507,20 @@ def _collect(data_dir: Path, settings_override: dict | None = None, *, progress=
                 progress(f"Checking {len(rows)} source{'' if len(rows) == 1 else 's'}"
                          + (f", including {sites} whole-market job site{'' if sites == 1 else 's'}" if sites else "")
                          + "… You can keep browsing.")
+            it_only = settings["market"].get("it_only", True)
             for index, row in enumerate(rows, 1):
                 kind, label, future = row[:3]
                 fetched = future.result()
                 if kind == "nav":
-                    _store_nav(data_dir, row[3], fetched, store, report)
+                    _store_nav(data_dir, row[3], fetched, store, report, it_only)
                 elif kind == "market":
-                    _store_market(fetched, store, report)
+                    _store_market(fetched, store, report, it_only)
                 else:
+                    if fetched["jobs"] is not None:
+                        fetched["jobs"], outside = _in_scope(fetched["jobs"], it_only)
+                        if outside:
+                            fetched["result"]["outside_it"] = len(outside)
+                            fetched["result"]["matched"] = len(fetched["jobs"])
                     collection.store_fetched_source(fetched, store, report)
                 if progress is not None:
                     progress(f"Checked {label} ({index} of {len(rows)})… You can keep browsing.")
@@ -486,7 +529,7 @@ def _collect(data_dir: Path, settings_override: dict | None = None, *, progress=
             # After an unexpected failure, stop queued downloads; running ones
             # never touch the store and finish on their own.
             pool.shutdown(wait=False, cancel_futures=True)
-        report["removed"] = _cleanup_and_match(data_dir, store, profile, progress)
+        report["removed"] = _cleanup_and_match(data_dir, store, profile, progress, it_only=settings["market"].get("it_only", True))
     report["completed_at"] = datetime.now(timezone.utc).isoformat()
     return report
 
@@ -506,10 +549,18 @@ def delete_adzuna_key(data_dir: Path) -> dict:
     return adzuna.delete_key(Path(data_dir))
 
 
-def _cleanup_and_match(data_dir: Path, store: JobStore, profile: dict, progress=None) -> int:
-    """Remove long-closed vacancies, then store matches so lists open instantly."""
+def _cleanup_and_match(data_dir: Path, store: JobStore, profile: dict, progress=None, *, it_only: bool = False) -> int:
+    """Remove long-closed vacancies, then store matches so lists open instantly.
+
+    With "IT jobs only", stored adverts that are not IT jobs go too, except
+    ones you saved, staged, noted, drafted, added or imported.
+    """
     from . import experience_matching, job_index
     removed = job_index.cleanup(store)
+    if it_only:
+        if progress is not None:
+            progress("Removing vacancies outside IT…")
+        removed += job_index.prune_outside_it(store)
     if progress is not None:
         progress("Matching new vacancies to your profile…")
     experience_matching.attach_cache(Path(data_dir) / ANALYSIS_CACHE_FILE)
@@ -546,16 +597,18 @@ def market_search(data_dir: Path, query: str, country: str = "", *, progress=Non
                 rows, state = _submit_market(data_dir, pool, settings, profile, country, lambda code: [query],
                                              collection_detail=False, progress=progress)
                 if nav_enabled and country in {"", "NO"}:
-                    rows.insert(0, ("nav", "NAV", pool.submit(_fetch_nav, data_dir, [query], store.source_ids("nav"), progress),
+                    rows.insert(0, ("nav", "NAV", pool.submit(_fetch_nav, data_dir, [query], store.source_ids("nav"), progress,
+                                                              it_only=settings["market"].get("it_only", True)),
                                     {"type": "nav"}))
                 if progress is not None:
                     progress(f"Searching {len(rows)} job sites for “{query}”…")
+                it_only = settings["market"].get("it_only", True)
                 for row in rows:
                     fetched = row[2].result()
                     if row[0] == "nav":
-                        _store_nav(data_dir, row[3], fetched, store, report)
+                        _store_nav(data_dir, row[3], fetched, store, report, it_only)
                     else:
-                        _store_market(fetched, store, report)
+                        _store_market(fetched, store, report, it_only)
             _save_market_state(data_dir, state)
         report["found"] = sum(row.get("matched") or 0 for row in report["sources"])
         return report
