@@ -12,11 +12,13 @@ from pathlib import Path
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from norway_job_agent import service
 from norway_job_agent.application_forms import parse_html_form, parse_manual_questions
 from norway_job_agent.storage import JobStore
 from norway_job_agent.web_api import create_app, close_resources
+from support import nav_fetch, offline_collection
 
 
 FORM_URL = "https://careers.example.com/apply/1"
@@ -27,6 +29,7 @@ FORM = parse_html_form('''<form action="/applications" method="post" enctype="mu
 
 
 def setUpModule():
+    offline_collection()
     # Drafting starts an installed Ollama; tests use mocked generation and
     # must never launch the real local AI server.
     patcher = patch("norway_job_agent.runtime_setup.ensure_ollama")
@@ -209,8 +212,10 @@ class LocalApiTests(unittest.TestCase):
     def test_explicit_settings_save_is_ordered_after_pending_country_switch(self):
         requested = {"sources": [], "model": "qwen3:4b", "active_country": "US", "country_presets_added": ["DE", "US"]}
         settings, response = self.overlapping_settings_requests("PUT", "/api/settings", requested)
-        self.assertEqual(settings, requested)
-        self.assertEqual(response, requested)
+        # Saving fills in the default job-site section; the rest is as requested.
+        self.assertEqual({key: value for key, value in settings.items() if key != "market"}, requested)
+        self.assertEqual({key: value for key, value in response.items() if key != "market"}, requested)
+        self.assertEqual(settings["market"]["searches"], [])
 
     def test_jobs_saved_and_application_views_preserve_workflow(self):
         self.post(f"/api/jobs/{self.job_id}/workflow", {"status": "saved", "notes": "My next step"})

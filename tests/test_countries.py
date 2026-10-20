@@ -14,6 +14,7 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from norway_job_agent import service
 from norway_job_agent.application_forms import parse_manual_questions
@@ -22,10 +23,11 @@ from norway_job_agent.countries import (
 )
 from norway_job_agent.profile import match_job, validate_profile
 from norway_job_agent.storage import JobStore
-
+from support import nav_fetch, offline_collection
 
 
 def setUpModule():
+    offline_collection()
     # Drafting starts an installed Ollama; tests use mocked generation and
     # must never launch the real local AI server.
     patcher = patch("norway_job_agent.runtime_setup.ensure_ollama")
@@ -163,7 +165,7 @@ class CountryServiceTests(unittest.TestCase):
         profile_before = (self.folder / "profile.json").read_bytes()
         service.save_settings(self.folder, settings)
         settings_before = (self.folder / "sources.json").read_bytes()
-        with patch("norway_job_agent.nav.fetch_nav_batch") as nav, patch(
+        with patch("norway_job_agent.service._fetch_nav") as nav, patch(
             "norway_job_agent.collection.fetch_source",
             side_effect=lambda source: {"result": {"source": source, "ok": True}, "jobs": None},
         ) as collect:

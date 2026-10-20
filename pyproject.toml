@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "norway-job-agent"
-version = "0.5.0"
+version = "0.6.0"
 description = "A local job discovery and application preparation assistant for Norway, USA, Germany and Ukraine."
 requires-python = ">=3.12"
 dependencies = ["pypdf>=6.18,<7", "Flask>=3.1,<4", "waitress>=3,<4", "pywebview>=6,<7"]

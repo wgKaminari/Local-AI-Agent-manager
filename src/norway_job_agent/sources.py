@@ -1,6 +1,9 @@
 """Read-only public job sources. No browser automation or application submission.
 
-NAV's incremental feed lives in nav.py. FINN and LinkedIn require manual import.
+NAV's incremental feed lives in nav.py and nav_index.py; market-wide job-board
+searches live in market.py. FINN forbids automated collection, and LinkedIn is
+reachable only through the opt-in public search in linkedin_public.py; pasted
+links from either still require manual import.
 """
 
 from __future__ import annotations
@@ -39,7 +42,7 @@ class _TransientSourceError(SourceError):
     """A connection-level failure (reset, timeout); an idempotent GET may retry."""
 
 
-def _url_parts(url: str):
+def _url_parts(url: str, *, allow_restricted: bool = False):
     if not isinstance(url, str) or not url or any(ord(c) < 32 for c in url):
         raise SourceError("Enter a valid public http:// or https:// URL.")
     try:
@@ -59,7 +62,7 @@ def _url_parts(url: str):
         host = host.encode("idna").decode("ascii")
     except UnicodeError as exc:
         raise SourceError("The source URL has an invalid host.") from exc
-    if any(host == name or host.endswith("." + name) for name in _BLOCKED_HOSTS):
+    if not allow_restricted and any(host == name or host.endswith("." + name) for name in _BLOCKED_HOSTS):
         raise SourceError("FINN and LinkedIn are manual-import sources. Paste the vacancy text instead.")
     return parts, host, port or (443 if parts.scheme == "https" else 80)
 
@@ -85,18 +88,24 @@ def _public_addresses(host: str, port: int) -> list[str]:
 
 
 def _request_once(url: str, *, method: str = "GET", body: bytes | None = None,
-                  max_response_bytes: int = MAX_RESPONSE_BYTES) -> tuple[int, dict[str, str], bytes]:
+                  max_response_bytes: int = MAX_RESPONSE_BYTES, headers: dict[str, str] | None = None,
+                  allow_restricted: bool = False) -> tuple[int, dict[str, str], bytes]:
     """Pin connections to checked IPs, including HTTPS hostname verification.
 
     No environment proxies are used. DNS is never resolved a second time when
-    connecting, avoiding a DNS-check/connection gap.
+    connecting, avoiding a DNS-check/connection gap. Extra headers may add an
+    API key or Accept type, never replace the agent's honest User-Agent.
     """
     if method not in {"GET", "POST"} or (body is not None and (not isinstance(body, bytes) or len(body) > 65536)):
         raise SourceError("Unsupported source request or oversized request body.")
     if isinstance(max_response_bytes, bool) or not isinstance(max_response_bytes, int) or not 1 <= max_response_bytes <= MAX_ATS_RESPONSE_BYTES:
         raise SourceError("Invalid source download budget.")
+    extra = dict(headers or {})
+    if any(not isinstance(key, str) or not isinstance(value, str) or key.casefold() in {"user-agent", "host", "content-length"}
+           or any(ord(char) < 32 for char in key + value) for key, value in extra.items()):
+        raise SourceError("Invalid source request header.")
     budget_label = f"{max_response_bytes / (1024 * 1024):g} MB"
-    parts, host, port = _url_parts(url)
+    parts, host, port = _url_parts(url, allow_restricted=allow_restricted)
     addresses = _public_addresses(host, port)
     deadline = time.monotonic() + TIMEOUT_SECONDS
 
@@ -128,6 +137,7 @@ def _request_once(url: str, *, method: str = "GET", body: bytes | None = None,
             "Accept": "application/json, text/html, text/plain;q=0.9",
             "Accept-Encoding": "identity",
             **({"Content-Type": "application/json"} if body is not None else {}),
+            **extra,
         })
         response = connection.getresponse()
         headers = {key.lower(): value for key, value in response.getheaders()}
@@ -188,7 +198,8 @@ def _check_robots(url: str, cache: dict[str, RobotFileParser | None]) -> None:
         raise SourceError("This page is disallowed by robots.txt. Paste the vacancy text instead.")
 
 
-def _request_retrying(url: str, method: str, body: bytes | None, max_response_bytes: int):
+def _request_retrying(url: str, method: str, body: bytes | None, max_response_bytes: int,
+                      headers: dict[str, str] | None = None, allow_restricted: bool = False):
     """One request; a GET that failed at the connection level is retried once.
 
     A single dropped connection previously failed a whole multi-page career
@@ -197,6 +208,9 @@ def _request_retrying(url: str, method: str, body: bytes | None, max_response_by
     """
     for attempt in range(2):
         try:
+            if headers or allow_restricted:
+                return _request_once(url, method=method, body=body, max_response_bytes=max_response_bytes,
+                                     headers=headers, allow_restricted=allow_restricted)
             if max_response_bytes != MAX_RESPONSE_BYTES:
                 return _request_once(url, method=method, body=body, max_response_bytes=max_response_bytes)
             if method == "GET" and body is None:
@@ -209,14 +223,17 @@ def _request_retrying(url: str, method: str, body: bytes | None, max_response_by
 
 
 def _fetch(url: str, *, respect_robots: bool = False, allow_missing: bool = False,
-           method: str = "GET", body: bytes | None = None, max_response_bytes: int = MAX_RESPONSE_BYTES):
+           method: str = "GET", body: bytes | None = None, max_response_bytes: int = MAX_RESPONSE_BYTES,
+           headers: dict[str, str] | None = None, allow_restricted: bool = False):
     current = url
     robots_cache: dict[str, RobotFileParser | None] = {}
+    request_headers = headers
     for _ in range(MAX_REDIRECTS + 1):
-        _url_parts(current)
+        _url_parts(current, allow_restricted=allow_restricted)
         if respect_robots:
             _check_robots(current, robots_cache)
-        status, headers, response_body = _request_retrying(current, method, body, max_response_bytes)
+        status, headers, response_body = _request_retrying(current, method, body, max_response_bytes,
+                                                           request_headers, allow_restricted)
         if status in {301, 302, 303, 307, 308}:
             location = headers.get("location")
             if not location:
@@ -224,6 +241,8 @@ def _fetch(url: str, *, respect_robots: bool = False, allow_missing: bool = Fals
             destination = urljoin(current, location)
             if method != "GET" and urlsplit(destination).netloc != urlsplit(current).netloc:
                 raise SourceError("The listing request redirected to a different host; update the source URL.")
+            if urlsplit(destination).netloc != urlsplit(current).netloc:
+                request_headers = None  # API keys belong to the original host.
             if status in {301, 302, 303}:
                 method, body = "GET", None
             current = destination

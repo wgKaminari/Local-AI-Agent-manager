@@ -442,6 +442,23 @@ def job_url(value: str) -> str:
             if match:
                 return "https://www.linkedin.com/jobs/view/" + match.group(1)
             return ""
+        # Job sites whose alerts identify an advert by a site-specific code.
+        # Without these rules FINN alert links lost their code and every ad
+        # collapsed into one address; Indeed and StepStone links were dropped.
+        code = (query.get("finnkode") or [""])[0]
+        if (host == "finn.no" or host.endswith(".finn.no")) and (code.isdecimal() or re.search(r"/job/ad/(\d+)", parts.path)):
+            return "https://www.finn.no/job/ad/" + (code if code.isdecimal() else re.search(r"/job/ad/(\d+)", parts.path).group(1))
+        if host == "finn.no" or host.endswith(".finn.no"):
+            return ""  # Searches, saved-search pages and settings are not adverts.
+        indeed = (query.get("jk") or query.get("vjk") or [""])[0]
+        if re.search(r"(?:^|\.)indeed\.[a-z.]+$", host) and re.fullmatch(r"[0-9a-f]{12,20}", indeed):
+            return canonical_url(f"https://{host}/viewjob?jk={indeed}")
+        if re.search(r"(?:^|\.)stepstone\.[a-z.]+$", host) and re.search(r"/stellenangebote--[^/]+--\d+", parts.path):
+            return canonical_url(urlunsplit((parts.scheme, parts.netloc, parts.path, "", "")))
+        if re.search(r"(?:^|\.)glassdoor\.[a-z.]+$", host) and (query.get("jl") or [""])[0].isdecimal():
+            return canonical_url(urlunsplit((parts.scheme, parts.netloc, parts.path, "jl=" + query["jl"][0], "")))
+        if (host == "robota.ua" or host.endswith(".robota.ua")) and re.search(r"/vacancy\d+", parts.path):
+            return canonical_url(urlunsplit((parts.scheme, parts.netloc, parts.path, "", "")))
         # Paths/parameters must identify an individual posting, not a homepage,
         # unsubscribe link, generic search, notification or account action.
         if re.search(r"unsubscribe|email-preferences|manage-alert|sign-?in|log-?in|tracking|/pixel", parts.path, re.I):

@@ -53,6 +53,21 @@ class GmailParsingTests(unittest.TestCase):
             self.assertEqual(gmail.job_url(wrapper), "https://www.linkedin.com/jobs/view/123456")
             self.assertEqual(gmail.job_url("https://boards.greenhouse.io/fixture?gh_jid=4321&utm_source=email&email=user%40example.com"), "https://boards.greenhouse.io/fixture?gh_jid=4321")
 
+    def test_job_site_alert_links_keep_the_code_that_identifies_each_advert(self):
+        cases = {
+            "https://www.finn.no/job/fulltime/ad.html?finnkode=412345678&utm_source=alert": "https://www.finn.no/job/ad/412345678",
+            "https://www.finn.no/job/ad/412345679": "https://www.finn.no/job/ad/412345679",
+            "https://no.indeed.com/rc/clk?jk=abcdef1234567890&from=ja": "https://no.indeed.com/viewjob?jk=abcdef1234567890",
+            "https://www.stepstone.de/stellenangebote--Data-Scientist-Berlin-Fixture--12345678-inline.html?rltr=x":
+                "https://www.stepstone.de/stellenangebote--Data-Scientist-Berlin-Fixture--12345678-inline.html",
+            "https://robota.ua/company123/vacancy456?utm=x": "https://robota.ua/company123/vacancy456",
+            "https://www.finn.no/job/fulltime/search.html?q=devops": "",
+            "https://www.indeed.com/jobs?q=devops": "",
+        }
+        for url, expected in cases.items():
+            with self.subTest(url=url):
+                self.assertEqual(gmail.job_url(url), expected)
+
     def test_private_account_search_and_non_job_urls_are_rejected(self):
         for url in ["javascript:alert(1)", "file:///tmp/jobs/1", "https://127.0.0.1/jobs/1", "https://10.0.0.1/jobs/1", "https://2130706433/jobs/1", "https://0x7f.0.0.1/jobs/1", "https://host.local/jobs/1", "https://user:secret@example.com/jobs/1", "https://example.com:8080/jobs/1", "https://linkedin.com/jobs/search?keywords=Python", "https://example.com/jobs/search", "https://example.com/unsubscribe?jobId=12", "https://example.com/", "https://notlever.co/company/arbitrary"]:
             with self.subTest(url=url):
