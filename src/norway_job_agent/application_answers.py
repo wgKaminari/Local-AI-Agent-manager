@@ -63,17 +63,12 @@ def _avoid_phrases(value) -> list[str]:
     Each phrase is checked on its own: a pasted comma-separated list used to
     count as one long phrase that no draft could ever contain.
     """
+    from .profile import split_terms
     if isinstance(value, str):
         value = [value]
     if not isinstance(value, list) or any(not isinstance(item, str) for item in value):
         raise ValueError("Phrases to avoid must be text, one per line or separated by commas.")
-    phrases, seen = [], set()
-    for item in value:
-        for phrase in re.split(r"[\n\r,;]+", item):
-            phrase = " ".join(phrase.split())
-            if phrase and phrase.casefold() not in seen:
-                seen.add(phrase.casefold())
-                phrases.append(phrase)
+    phrases = split_terms(value)
     if sum(len(phrase) for phrase in phrases) > AVOID_PHRASES_MAX_CHARS:
         raise ValueError(f"Phrases to avoid are too long in total; keep them under {AVOID_PHRASES_MAX_CHARS:,} characters "
                          "so the local AI still has room for your CV and the vacancy.")

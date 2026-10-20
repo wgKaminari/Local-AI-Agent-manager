@@ -132,12 +132,19 @@ def validate_country_preferences(value):
         raise ValueError("Country preferences must map NO, US, DE or UA to preferences.")
     text_fields = {"work_authorization", "cover_letter_language", "remote_preference", "relocation_preference"}
     list_fields = {"target_roles", "related_roles", "preferred_locations", "excluded_keywords"}
+    from .profile import split_terms
+    value = deepcopy(value)
     for code, preferences in value.items():
         if not isinstance(preferences, dict) or set(preferences) - text_fields - list_fields:
             raise ValueError(f"Invalid preference fields for {code}.")
+        for key in list_fields & set(preferences):
+            if isinstance(preferences[key], str):
+                preferences[key] = [preferences[key]]
+            if isinstance(preferences[key], list) and all(isinstance(term, str) for term in preferences[key]):
+                preferences[key] = split_terms(preferences[key])
         for key, item in preferences.items():
             if key in text_fields and (not isinstance(item, str) or len(item) > 4000):
                 raise ValueError(f"{code} {key} must be text of at most 4,000 characters.")
             if key in list_fields and (not isinstance(item, list) or len(item) > 100 or any(not isinstance(term, str) or len(term) > 300 for term in item)):
                 raise ValueError(f"{code} {key} must be a list of short text values.")
-    return deepcopy(value)
+    return value

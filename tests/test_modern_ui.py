@@ -168,6 +168,17 @@ class ModernInterfaceTests(unittest.TestCase):
         self.select("NO")
         self.expect(self.page.locator(".detail-actions").get_by_role("link", name="On Arbeitsagentur")).to_be_visible()
 
+    def test_pasted_comma_lists_are_read_into_separate_items(self):
+        self.nav("Profile & writing")
+        self.page.get_by_label(re.compile("^Skills")).fill("Python, SQL (PostgreSQL, SQLite), Docker; Linux")
+        self.page.get_by_label(re.compile("^Actual language proficiency")).fill("English C1, German - A2")
+        self.page.get_by_role("button", name="Save profile", exact=True).first.click()
+        self.expect(self.page.locator("#notifications")).to_contain_text("Profile saved: 4 skills")
+        self.expect(self.page.get_by_label(re.compile("^Skills"))).to_have_value("Python\nSQL (PostgreSQL, SQLite)\nDocker\nLinux")
+        profile = service.read_profile(self.data)
+        self.assertEqual(profile["skills"], ["Python", "SQL (PostgreSQL, SQLite)", "Docker", "Linux"])
+        self.assertEqual(profile["languages"], {"English": "C1", "German": "A2"})
+
     def test_updates_panel_checks_github_and_starts_an_update(self):
         newer = {"current": "0.7.1", "latest": "0.7.2", "tag": "v0.7.2", "newer": True, "notes": "Faster lists.",
                  "url": "https://github.com/wgKaminari/Local-AI-Agent-manager/releases/tag/v0.7.2", "kind": "installed",
@@ -296,7 +307,7 @@ class ModernInterfaceTests(unittest.TestCase):
         self.expect(languages).to_have_value(raw)
         self.assertTrue(self.page.evaluate("window.hasUnsavedChanges()"))
         self.page.get_by_role("button", name="Save profile", exact=True).first.click()
-        self.expect(self.page.locator("#notifications")).to_contain_text("Language: level")
+        self.expect(self.page.locator("#notifications")).to_contain_text("Add a level for")
         self.assertEqual((self.data / "profile.json").read_bytes(), before)
         languages.fill("English: fluent\nGerman: A2")
         self.page.get_by_role("button", name="Save profile", exact=True).first.click()
@@ -385,7 +396,7 @@ class ModernInterfaceTests(unittest.TestCase):
         self.nav("Profile & writing")
         self.page.get_by_label(re.compile("^Actual language proficiency")).fill("English without level separator")
         self.page.get_by_role("button", name="Save profile", exact=True).first.click()
-        self.expect(self.page.locator("#notifications")).to_contain_text("Language: level")
+        self.expect(self.page.locator("#notifications")).to_contain_text("Add a level for")
         self.page.get_by_label(re.compile("^Actual language proficiency")).fill("English: fluent\nGerman: A2")
         self.page.get_by_label("Tone", exact=True).fill("Warm, precise, confident")
         self.page.get_by_label(re.compile("^Maximum words")).fill("120")

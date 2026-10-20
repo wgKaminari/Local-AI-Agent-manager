@@ -709,9 +709,9 @@ function renderProfile() {
   <div class="notice">Your profile is shared across countries. Only country-specific facts, such as work authorization, are separate.</div>
   <section class="panel"><div class="panel-title"><div><h2>Your story</h2><p>Facts your local AI can use when preparing an application.</p></div>${pill('Shared profile','blue')}</div>
   <div class="form-grid">${field('Full name','name',p.name)}${field('Cover-letter language','cover_letter_language',p.cover_letter_language)}${field('Years of professional experience','years_of_experience',p.years_of_experience??'',{type:'number',hint:'Use a decimal such as 2.5. Blank means unknown. Used to screen seniority and required experience.'})}
-  <div class="span-2">${field('Professional summary','summary',p.summary,{lines:3})}</div>${field('Skills','skills',listText(p.skills),{lines:4,hint:'One skill per line.'})}${field('Projects & experience evidence','evidence',listText(p.evidence),{lines:4,hint:'One factual achievement per line.'})}
-  ${field('Actual language proficiency','languages',Object.entries(p.languages||{}).map(([k,v])=>k+': '+v).join('\n'),{lines:3,hint:'Language: level, one per line.'})}${field('Language levels to include in searches','search_languages',Object.entries(p.search_languages||{}).map(([k,v])=>k+': '+v).join('\n'),{lines:3,hint:'Search preferences never change your stated proficiency.'})}</div></section>
-  <section class="panel"><div class="panel-title"><div><h2>What you’re looking for</h2><p>These preferences stay with you when you switch countries.</p></div></div><div class="form-grid">${[['Target roles','target_roles'],['Related roles to explore','related_roles'],['Preferred locations','preferred_locations'],['Terms to exclude','excluded_keywords']].map(([label,key])=>field(label,key,listText(p[key]),{lines:3,hint:'One item per line. Leave locations empty to consider all.'})).join('')}</div></section>
+  <div class="span-2">${field('Professional summary','summary',p.summary,{lines:3})}</div>${field('Skills','skills',listText(p.skills),{lines:4,hint:`${(p.skills||[]).length} skills. Paste them any way: one per line, or separated by commas, semicolons or bullets.`})}${field('Projects & experience evidence','evidence',listText(p.evidence),{lines:4,hint:'One factual achievement per line or bullet; commas inside a sentence are kept.'})}
+  ${field('Actual language proficiency','languages',Object.entries(p.languages||{}).map(([k,v])=>k+': '+v).join('\n'),{lines:3,hint:'Language and level, such as English: C1, German - A2 or Norwegian (B1); one per line or comma-separated.'})}${field('Language levels to include in searches','search_languages',Object.entries(p.search_languages||{}).map(([k,v])=>k+': '+v).join('\n'),{lines:3,hint:'Search preferences never change your stated proficiency.'})}</div></section>
+  <section class="panel"><div class="panel-title"><div><h2>What you’re looking for</h2><p>These preferences stay with you when you switch countries.</p></div></div><div class="form-grid">${[['Target roles','target_roles'],['Related roles to explore','related_roles'],['Preferred locations','preferred_locations'],['Terms to exclude','excluded_keywords']].map(([label,key])=>field(label,key,listText(p[key]),{lines:3,hint:'One per line, or separated by commas. Leave locations empty to consider all.'})).join('')}</div></section>
   <section class="panel"><div class="panel-title"><div><h2>Your CV</h2><p>Import a text PDF, DOCX, TXT or Markdown file, or paste its content.</p></div><div class="section-actions">${button('Import CV','import-cv')}${button(icon('spark')+' Suggest profile','suggest-profile','button-icon')}</div></div>${field('CV text','cv_text',p.cv_text,{lines:10})}</section>
   <section class="panel"><div class="panel-title"><div><h2>Your writing style</h2><p>Tell the AI how you want to sound. Examples guide wording, not qualifications.</p></div></div><div class="form-grid">${field('Tone','writing_style.tone',w.tone||'professional and natural')}${field('Language override','writing_style.language',w.language||'',{hint:'Leave blank to use your cover-letter language.'})}${field('Maximum words','writing_style.max_words',w.max_words||180,{type:'number',hint:'20–500 words per answer or letter.'})}${field('Phrases to avoid','writing_style.avoid_phrases',listText(w.avoid_phrases),{lines:4,hint:'One per line, or separated by commas. As many as you like; drafts containing one are rewritten.'})}<div class="span-2">${field('Style instructions','writing_style.instructions',w.instructions||'',{lines:3})}${field('Writing examples','writing_style.examples',listText(w.examples),{lines:4,hint:'Up to five examples, one paragraph per line.'})}</div></div></section>
   <section class="panel"><div class="panel-title"><div><h2>Country-specific facts</h2><p>Record your actual situation. Leave unknown permission blank.</p></div></div><div class="form-grid">${Object.entries(S.boot.countries).map(([code,name])=>field(name+' — work authorization','country_preferences.'+code+'.work_authorization',p.country_preferences?.[code]?.work_authorization??(code==='NO'?p.work_authorization:''),{lines:2})).join('')}</div></section><div class="savebar"><small>${S.profileDirty?'You have unsaved profile edits.':'Profile facts are used only after you save.'}</small>${button('Save profile','save-profile','primary')}</div></div>`);
@@ -810,18 +810,38 @@ function mergeEmails(result) {
   toast(`${result.candidates?.length||0} opportunities found for review.${result.warnings?.length?' Some messages need manual review.':''}`);
 }
 
+// The same reading as the server's profile.split_terms: new lines, commas,
+// semicolons, "|", tabs and bullets separate; commas inside brackets stay.
+function splitList(text, separators) {
+  const parts = [];
+  let current = '',
+    depth = 0;
+  for (const char of text) {
+    if ('([{'.includes(char)) depth++;
+    else if (')]}'.includes(char) && depth) depth--;
+    if (separators.includes(char) && (depth === 0 || char === '\n')) {
+      parts.push(current);
+      current = '';
+      if (char === '\n') depth = 0;
+      continue;
+    }
+    current += char;
+  }
+  parts.push(current);
+  return [...new Map(parts.map(part => part.replace(/\s+/g, ' ').trim().replace(/^(?:[-*+–—]\s+|\(?\d{1,3}[.)]\s+)/, ''))
+    .filter(Boolean).map(item => [item.toLowerCase(), item])).values()];
+}
+const TERM_SEPARATORS = '\n\r,;|\t•·●▪◦‣⁃',
+  LINE_SEPARATORS = '\n\r•●▪◦‣⁃';
+
 function profileValue(el) {
   const key = el.dataset.profile;
   let value = el.value;
-  if (['skills', 'evidence', 'target_roles', 'related_roles', 'preferred_locations', 'excluded_keywords', 'writing_style.examples', 'writing_style.avoid_phrases'].includes(key)) value = value.split('\n').map(v => v.trim()).filter(Boolean);
-  else if (['languages', 'search_languages'].includes(key)) {
-    value = {};
-    for (const line of el.value.split('\n').filter(x => x.trim())) {
-      const at = line.indexOf(':');
-      if (at < 1) throw Error('Write languages as Language: level, one per line.');
-      value[line.slice(0, at).trim()] = line.slice(at + 1).trim();
-    }
-  } else if (key === 'writing_style.max_words') value = Number(value);
+  if (['skills', 'target_roles', 'related_roles', 'preferred_locations', 'excluded_keywords', 'writing_style.avoid_phrases'].includes(key)) value = splitList(value, TERM_SEPARATORS);
+  else if (['evidence', 'writing_style.examples'].includes(key)) value = splitList(value, LINE_SEPARATORS);
+  // Languages accept several formats; the server reads them and reports any it cannot.
+  else if (['languages', 'search_languages'].includes(key)) value = value;
+  else if (key === 'writing_style.max_words') value = Number(value);
   else if (key === 'years_of_experience') {
     value = value.trim() === '' ? null : Number(value);
     if (value !== null && (!Number.isFinite(value) || value < 0 || value > 60)) throw Error('Enter years of experience from 0 to 60, such as 2.5, or leave it blank.');
@@ -1435,7 +1455,8 @@ async function action(name, el) {
     }
     S.boot.profile = result;
     S.details.clear();
-    toast('Profile saved. Updating matches for every collected vacancy in the background…');
+    if (S.view === 'profile' && !S.profileDirty) renderPage();
+    toast(`Profile saved: ${(result.skills||[]).length} skills, ${(result.target_roles||[]).length} target roles. Updating matches in the background…`);
     updateStatus();
     // Stored matches follow the profile; recompute them now, not on the next list.
     task('rematch', {}, async r => {

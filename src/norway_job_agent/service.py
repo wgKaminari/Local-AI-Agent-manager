@@ -551,13 +551,39 @@ def _open_index(data_dir: Path, *, progress=None):
     store = JobStore(Path(data_dir) / "vacancies.db")
     try:
         # Bounded and non-blocking: a refresh or re-match stores the rest.
-        job_index.ensure_matches(store, profile, progress=progress, limit=LIST_MATCH_LIMIT, wait=False)
+        computed = job_index.ensure_matches(store, profile, progress=progress, limit=LIST_MATCH_LIMIT, wait=False)
     except BaseException:
         store.close()
         raise
     finally:
         experience_matching.flush_cache()
+    if computed >= LIST_MATCH_LIMIT:
+        _rematch_in_background(Path(data_dir))
     return store
+
+
+_background_rematches: set[str] = set()
+_background_guard = threading.Lock()
+
+
+def _rematch_in_background(data_dir: Path) -> None:
+    """Finish a large re-match (an upgrade, or a profile changed outside the app) once."""
+    key = str(Path(data_dir).resolve())
+    with _background_guard:
+        if key in _background_rematches:
+            return
+        _background_rematches.add(key)
+
+    def run():
+        try:
+            refresh_matches(data_dir)
+        except Exception:
+            import logging
+            logging.getLogger(__name__).exception("Background re-match failed")
+        finally:
+            with _background_guard:
+                _background_rematches.discard(key)
+    threading.Thread(target=run, name="rematch", daemon=True).start()
 
 
 def refresh_matches(data_dir: Path, *, progress=None) -> dict:
