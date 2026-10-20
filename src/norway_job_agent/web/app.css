@@ -825,6 +825,10 @@ input[type=radio] {
 }
 
 #job-results {
+  /* Positioned, so absolutely placed descendants (such as each card's
+     screen-reader label) stay inside this scroll area instead of
+     stretching the whole window and adding a second scrollbar. */
+  position: relative;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
@@ -842,6 +846,7 @@ input[type=radio] {
 }
 
 .job-card {
+  position: relative;
   display: grid;
   grid-template-columns: 34px minmax(0, 1fr) auto;
   grid-template-rows: auto auto;
@@ -1951,4 +1956,18 @@ dialog::backdrop {
   .market-bar {
     flex-wrap: wrap
   }
+}
+
+/* The install command in Settings: selectable in one click. */
+.evidence code {
+  display: block;
+  margin-top: 6px;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 12px;
+  user-select: all;
+  overflow-wrap: anywhere
 }

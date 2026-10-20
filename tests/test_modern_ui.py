@@ -168,6 +168,38 @@ class ModernInterfaceTests(unittest.TestCase):
         self.select("NO")
         self.expect(self.page.locator(".detail-actions").get_by_role("link", name="On Arbeitsagentur")).to_be_visible()
 
+    def test_updates_panel_checks_github_and_starts_an_update(self):
+        newer = {"current": "0.7.1", "latest": "0.7.2", "tag": "v0.7.2", "newer": True, "notes": "Faster lists.",
+                 "url": "https://github.com/wgKaminari/Local-AI-Agent-manager/releases/tag/v0.7.2", "kind": "installed",
+                 "can_update": True, "reason": "", "install_command": "irm https://example.test/install.ps1 | iex"}
+        with patch("norway_job_agent.updates.check", return_value=newer), \
+                patch("norway_job_agent.updates.start_update", return_value={"started": True}) as start:
+            self.nav("Settings & activity")
+            self.page.get_by_role("button", name="Check for updates").click()
+            panel = self.page.locator("section.panel", has=self.page.get_by_role("heading", name="Updates"))
+            self.expect(panel).to_contain_text("Version 0.7.2 is available; you have 0.7.1.")
+            panel.get_by_role("button", name="Update now").click()
+            self.expect(self.page.locator("#modal")).to_contain_text("installs version 0.7.2 and reopens")
+            self.page.get_by_role("button", name="Update and restart").click()
+            self.expect(self.page.locator("#notifications")).to_contain_text("Updating")
+        start.assert_called_once_with("v0.7.2")
+
+    def test_no_page_scrolls_the_whole_window(self):
+        # Card labels once escaped the list's scroll area and stretched the
+        # window by one card each, adding a second, outer scrollbar.
+        for index in range(40):
+            service.import_vacancy(self.data, {"title": f"Python Developer {index}", "company": f"Window {index}",
+                                               "location": "Oslo, Norway", "source": "manual",
+                                               "source_url": f"https://jobs.example.test/window/{index}"})
+        for width, height in ((1440, 900), (1100, 700)):
+            self.page.set_viewport_size({"width": width, "height": height})
+            self.reload()
+            for view in ("Discover", "For you", "Saved", "Applications", "Profile & writing", "Source library",
+                         "Job alerts", "Settings & activity"):
+                self.nav(view)
+                heights = self.page.evaluate("[document.documentElement.scrollHeight, window.innerHeight]")
+                self.assertLessEqual(heights[0], heights[1], f"{view} at {width}x{height}")
+
     def test_long_lists_load_page_by_page_with_show_more_and_keyboard(self):
         for index in range(90):
             service.import_vacancy(self.data, {"title": f"Analyst {index:02d}", "company": f"Paging {index:02d}",

@@ -748,6 +748,28 @@ function jobSitesPanel(settings) {
   return `<section class="panel"><div class="panel-title"><div><h2>Job sites</h2><p>Whole-market search: every employer on these sites, for your saved searches and target roles. NAV covers Norway and is listed under connected sources.</p></div>${pill(on+' on',on?'green':'')}</div><div class="site-list">${rows}</div><label class="field"><span>Saved searches</span><textarea id="market-searches" rows="3" placeholder="One search per line, for example: Linux DevOps" aria-label="Saved searches">${esc((m.searches||[]).join('\n'))}</textarea><small>Every refresh searches these first, then your target roles${m.include_related_roles?' and related roles':''}. Use the search box on Discover to search all sites once.</small></label><label class="check-row"><input type="checkbox" id="market-related" ${m.include_related_roles?'checked':''}> Also search my related roles</label><label class="check-row"><input type="checkbox" id="market-everything" ${m.collect_everything!==false?'checked':''}> Collect everything in my fields</label><p class="evidence">On: each refresh also browses whole fields (IT, data, engineering, science…) and NAV's entire Norwegian market, and keeps every vacancy in your countries; matching happens in your database. The first refresh per country can take 10–20 minutes. Vacancies closed or unseen for 30 days are removed, except ones you saved, noted or applied to. Changes apply after Save settings, below.</p></section>`;
 }
 
+function updatesPanel() {
+  const u = S.update;
+  const version = S.boot.version || '';
+  const status = !u ? `You have version ${esc(version)}. Updates come from the app's GitHub releases.` :
+    u.newer ? `Version ${esc(u.latest)} is available; you have ${esc(u.current)}.` :
+    `You have version ${esc(u.current)}. ${esc(u.reason || '')}`;
+  const notes = u?.newer && u.notes ? `<details class="evidence"><summary>What's new in ${esc(u.latest)}</summary><div class="prose">${esc(u.notes)}</div></details>` : '';
+  const action = u?.newer ? (u.can_update ? button('Update now', 'apply-update', 'primary') : `<p class="evidence">${esc(u.reason)}</p>`) : '';
+  const install = u?.kind === 'source' ? `<p class="evidence">Install once from PowerShell, then the app updates itself: <code>${esc(u.install_command)}</code></p>` : '';
+  return `<section class="panel"><div class="panel-title"><div><h2>Updates</h2><p>${status}</p></div>${pill('v' + version)}</div>${notes}<div class="section-actions">${button('Check for updates', 'check-updates')}${action}${link('Releases on GitHub', u?.url || 'https://github.com/wgKaminari/Local-AI-Agent-manager/releases')}</div>${install}<p class="evidence">Updating closes the app, installs the new version and reopens it. Your profile, vacancies and drafts are not changed.</p></section>`;
+}
+
+async function autoCheckUpdates() {
+  // Once per start, quietly: only a newer release produces a notice.
+  try {
+    S.update = await api('/updates');
+    if (S.update.newer) toast(`Version ${S.update.latest} is available. Open Settings & activity → Updates.`);
+  } catch {
+    // Offline or GitHub unreachable: try again next start.
+  }
+}
+
 function linkedinNotice() {
   modal('LinkedIn public search', `<div class="notice warning"><strong>Read before enabling</strong><p>LinkedIn shows job listings to visitors without an account, and this search uses only that public view. LinkedIn’s user agreement nevertheless forbids automated access.</p></div><p>How the app keeps this respectful and safe for you:</p><ul class="prose"><li>No login, no cookies: your LinkedIn account is never used or affected.</li><li>It identifies itself honestly and pauses between requests, with a small limit per refresh.</li><li>If LinkedIn asks it to slow down, it stops at once and waits an hour. The worst case is a temporary block of your internet address on LinkedIn.</li></ul><p class="evidence">The fully permitted alternative is LinkedIn job-alert emails, which Job alerts imports from Gmail.</p>`,
     button('Cancel', 'close-modal') + button('I understand, enable it', 'accept-linkedin', 'primary'));
@@ -757,7 +779,7 @@ function renderSettings() {
   const settings = S.settingsDraft || S.boot.settings;
   $('#main').insertAdjacentHTML('beforeend', `<div class="content-width"><section class="panel"><div class="panel-title"><div><h2>Local AI</h2><p>Ollama runs your model on this computer. No cloud AI key is needed.</p></div>${pill('On-device','green')}</div><div class="form-grid">${field('Model name','model',settings.model,{group:'settings',hint:'Save a model name before downloading or generating.'})}<div><label class="field"><span>Available models</span><select id="model-picker"><option value="">Check setup to list installed models</option></select></label></div></div><div class="section-actions">${button('Check setup','check-setup')}${button('Start Ollama','start-ollama')}${button('Download saved model','download-model')}${button('Install PDF support','install-pdf')}${link('Install Ollama','https://ollama.com/download/windows')}</div><div id="setup-result" class="evidence"></div></section>
   ${jobSitesPanel(settings)}<section class="panel"><div class="panel-title"><div><h2>Connected job sources</h2><p>${S.boot.settings.sources.length} configured. The country switch limits each collection to that market.</p></div>${button('Browse library','go-sources')}</div><div class="table-wrap"><table><thead><tr><th>Source</th><th>Countries</th><th>Action</th></tr></thead><tbody>${settings.sources.map((s,i)=>`<tr><td>${esc(s.name||s.board||cap(s.type))}<span class="sub">${esc(s.type)}</span></td><td>${esc(s.countries?.join(', ')||(s.type==='nav'?'NO':'Any'))}</td><td>${button('Remove','remove-source','quiet',`data-source-index="${i}"`)}</td></tr>`).join('')}</tbody></table></div><details class="evidence"><summary>Advanced source configuration</summary><p>Edit the source array for custom boards, locations or limits. Invalid changes are rejected when you save.</p><textarea id="sources-json" rows="10" aria-label="Advanced sources JSON">${esc(S.sourcesText??JSON.stringify(settings.sources,null,2))}</textarea></details><div class="savebar"><small>${S.settingsDirty?'Unsaved settings':'Changes apply after saving.'}</small>${button('Save settings','save-settings','primary')}</div></section>
-  <section class="panel"><div class="panel-title"><div><h2>Collection activity</h2><p>See what was collected and which sources need attention.</p></div>${button('Find opportunities','collect')}</div>${collectionReport()}</section><section class="panel"><div class="panel-title"><div><h2>Desktop app</h2><p>Open Job Agent from the Start menu or desktop like any other program: its own icon, no console window, and only one window at a time.</p></div></div><p class="evidence">The app runs entirely on this computer. Your profile, database, notes and drafts stay in your private data folder.</p><div class="section-actions">${button('Add Start menu & desktop shortcuts','create-shortcuts','primary')}${button('Switch theme','theme')}${button('Keyboard shortcuts','help')}</div></section></div>`);
+  <section class="panel"><div class="panel-title"><div><h2>Collection activity</h2><p>See what was collected and which sources need attention.</p></div>${button('Find opportunities','collect')}</div>${collectionReport()}</section><section class="panel"><div class="panel-title"><div><h2>Desktop app</h2><p>Open Job Agent from the Start menu or desktop like any other program: its own icon, no console window, and only one window at a time.</p></div></div><p class="evidence">The app runs entirely on this computer. Your profile, database, notes and drafts stay in your private data folder.</p><div class="section-actions">${button('Add Start menu & desktop shortcuts','create-shortcuts','primary')}${button('Switch theme','theme')}${button('Keyboard shortcuts','help')}</div></section>${updatesPanel()}</div>`);
 }
 
 function collectionReport() {
@@ -1189,6 +1211,24 @@ async function action(name, el) {
     S.boot.settings = await changeSettings('/settings', 'PUT', draft);
     renderCards();
     toast('Saved. Every refresh now also searches job sites for this.');
+    return;
+  }
+  if (name === 'check-updates') {
+    S.update = await api('/updates');
+    renderPage();
+    toast(S.update.newer ? `Version ${S.update.latest} is available.` : (S.update.reason || 'You have the latest version.'));
+    return;
+  }
+  if (name === 'apply-update') {
+    if (dirty()) throw Error('Save your edits and let running tasks finish first: the app closes to update.');
+    modal('Update Personal Job Agent', `<p>The app closes, installs version ${esc(S.update.latest)} and reopens, usually within a minute. A window shows the progress.</p><p class="evidence">Your profile, vacancies, notes and drafts are not changed. If the update fails, the version you have now opens again.</p>`,
+      button('Cancel', 'close-modal') + button('Update and restart', 'confirm-update', 'primary'));
+    return;
+  }
+  if (name === 'confirm-update') {
+    await api('/updates/apply', {method: 'POST', body: {tag: S.update.tag}});
+    closeModal();
+    toast('Updating… the app closes now and reopens when the new version is ready.');
     return;
   }
   if (name === 'accept-linkedin') {
@@ -1704,6 +1744,7 @@ async function boot() {
     document.body.dataset.theme = S.theme;
     shell();
     await loadJobs();
+    if (S.boot.update_check) setTimeout(autoCheckUpdates, 4000);
   } catch (err) {
     const damaged = err.data?.damaged_file;
     $('#app').innerHTML = `<div class="boot"><span class="brand-mark">J</span><h1>Job Agent could not open</h1><p>${esc(err.message)}</p><div class="section-actions">${damaged?button('Restore last backup','restore-file','primary'):''}${button('Try again','retry-boot',damaged?'':'primary')}</div></div>`;
