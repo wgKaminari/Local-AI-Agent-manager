@@ -357,10 +357,22 @@ class ServiceMarketTests(unittest.TestCase):
         self.assertEqual(jobs[0]["source"], "greenhouse")
         self.assertEqual({item["source"] for item in jobs[0]["also_on"]}, {"linkedin", "arbeitsagentur"})
 
-    def test_two_openings_on_one_site_stay_separate(self):
-        service.import_vacancy(self.folder, board_job("greenhouse", "x:1", title="Data Scientist"))
-        service.import_vacancy(self.folder, board_job("greenhouse", "x:2", title="Data Scientist"))
-        self.assertEqual(len(service.vacancies(self.folder)), 2)
+    def test_reposts_and_other_cities_of_one_role_count_once(self):
+        first = service.import_vacancy(self.folder, board_job("greenhouse", "x:1", title="Data Scientist", location="Berlin"))[0]
+        service.import_vacancy(self.folder, board_job("greenhouse", "x:2", title="Data Scientist", location="Berlin"))
+        service.import_vacancy(self.folder, board_job("greenhouse", "x:3", title="Data Scientist (m/w/d)", location="Munich"))
+        service.import_vacancy(self.folder, board_job("greenhouse", "x:4", title="Data Scientist", location="Seattle, WA",
+                                                      countries=["US"]))
+        germany = service.vacancies(self.folder, country="DE")
+        self.assertEqual(len(germany), 1)
+        places = [germany[0]["location"], *(other["location"] for other in germany[0]["also_on"])]
+        self.assertEqual(sorted(places), ["Berlin", "Berlin", "Munich"])
+        # Another country's opening stays its own job.
+        self.assertEqual(len(service.vacancies(self.folder, country="US")), 1)
+        # A posting you acted on is never hidden behind another.
+        service.update_workflow(self.folder, first, "saved", "")
+        self.assertEqual(len(service.vacancies(self.folder, country="DE")), 1)
+        self.assertEqual(service.vacancies(self.folder, country="DE")[0]["id"], first)
 
     def test_board_adverts_not_seen_for_a_month_leave_discovery_but_saved_ones_stay(self):
         old, saved = service.import_vacancy(self.folder, board_job(identifier="old"))[0], service.import_vacancy(self.folder, board_job(identifier="kept", title="SRE"))[0]

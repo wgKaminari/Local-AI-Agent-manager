@@ -90,13 +90,16 @@ PROVIDERS: dict[str, Provider] = {
                              per_query=False, note="A few hundred verified US company career boards (Greenhouse, Lever, "
                                                    "Ashby, Workday), each read at most once a day."),
     "adzuna": Provider("Adzuna", ("US",), "https://www.adzuna.com/", per_query=False, max_queries=20,
-                       note="Adverts from across US job sites. Needs your free key from developer.adzuna.com "
-                            "(paste it below); at most 40 searches per refresh, within the key's free allowance."),
+                       note="Adverts from across US job sites: your roles, then the newest IT jobs. Needs your free "
+                            "key from developer.adzuna.com (paste it below); about 72 requests a day, so the key's "
+                            "free monthly allowance lasts the whole month."),
     "linkedin": Provider("LinkedIn public search", ("NO", "US", "DE", "UA"), "https://www.linkedin.com/jobs/",
                          opt_in=True, max_queries=6,
                          note="No login. Slow and polite, but LinkedIn's terms forbid automated access; off until you enable it."),
 }
 DEFAULT_ENABLED = {name: not provider.opt_in for name, provider in PROVIDERS.items()}
+# Refreshes keep IT jobs only unless switched off in Settings.
+DEFAULT_IT_ONLY = True
 # Too large for a live "Search job sites" query; refreshes read it.
 REFRESH_ONLY = frozenset({"us_employers"})
 # Lists from these providers carry no advert text; descriptions are loaded
@@ -120,17 +123,23 @@ BROAD_QUERIES = {
     "arbeitsagentur": ["Informatik", "IT", "Software", "Entwickler", "Developer", "Data", "Daten", "Analyst",
                        "Ingenieur", "Engineer", "Mathematik", "Statistik", "Wissenschaftler", "Forschung",
                        "Machine Learning", "Künstliche Intelligenz", "Cloud", "DevOps", "Consultant", "Werkstudent"],
-    "dou": ["category:" + name for name in (
-        "Python", "Data Science", "AI/ML", "Data Engineer", "Big Data", "Analyst", "Java", ".NET", "Front End",
-        "Node.js", "PHP", "Golang", "C++", "Ruby", "Scala", "Rust", "iOS/macOS", "Android", "Flutter", "DevOps",
-        "SysAdmin", "Security", "QA", "Embedded", "Architect", "Product Manager", "Project Manager",
-        "Engineering Manager", "Design", "Technical Writer", "Support", "DBA", "Blockchain", "Unity", "Other")],
     "remotive": ["category:" + slug for slug in (
         "software-dev", "data", "devops", "qa", "product", "project-management", "design", "customer-support",
         "marketing", "sales-business", "finance-legal", "hr", "writing", "all-others")],
     "himalayas": ["software engineer", "data", "machine learning", "devops", "product manager", "designer",
                   "analyst", "python", "frontend", "backend", "mobile", "security", "marketing", "sales",
                   "customer support", "project manager"],
+}
+# The Bundesagentur's own IT occupation fields (berufsfeld): about 23,000
+# vacancies in October 2026, against 816,000 in all fields.
+BA_IT_FIELDS = ("Informatik", "Softwareentwicklung und Programmierung", "IT-Netzwerktechnik, -Administration, -Organisation",
+                "IT-Systemanalyse, -Anwendungsberatung und -Vertrieb")
+# With "IT jobs only", field-wide browsing covers IT fields only.
+IT_BROAD_QUERIES = {
+    "arbeitsagentur": ["berufsfeld:" + name for name in BA_IT_FIELDS],
+    "remotive": ["category:" + slug for slug in ("software-dev", "data", "devops", "qa", "product", "design")],
+    "himalayas": ["software engineer", "data", "machine learning", "devops", "python", "frontend", "backend", "mobile",
+                  "security", "cloud", "qa", "product manager", "designer", "analyst"],
 }
 # Seconds one provider may spend per refresh; the next refresh continues.
 REFRESH_SECONDS = 600
@@ -142,7 +151,7 @@ def validate_market_settings(value) -> dict:
     if value is None:
         value = {}
     if not isinstance(value, dict) or set(value) - {"enabled", "searches", "include_related_roles", "linkedin_terms_accepted",
-                                                    "collect_everything"}:
+                                                    "collect_everything", "it_only"}:
         raise ValueError("Market search settings must contain enabled providers, saved searches and options.")
     enabled = value.get("enabled", {})
     if not isinstance(enabled, dict) or any(name not in PROVIDERS or not isinstance(flag, bool) for name, flag in enabled.items()):
@@ -154,11 +163,13 @@ def validate_market_settings(value) -> dict:
     related = value.get("include_related_roles", True)
     accepted = value.get("linkedin_terms_accepted", False)
     everything = value.get("collect_everything", True)
-    if not all(isinstance(flag, bool) for flag in (related, accepted, everything)):
+    it_only = value.get("it_only", DEFAULT_IT_ONLY)
+    if not all(isinstance(flag, bool) for flag in (related, accepted, everything, it_only)):
         raise ValueError("Market search options must be true or false.")
     result = {"enabled": {**DEFAULT_ENABLED, **enabled},
               "searches": list(dict.fromkeys(" ".join(item.split()) for item in searches)),
-              "include_related_roles": related, "linkedin_terms_accepted": accepted, "collect_everything": everything}
+              "include_related_roles": related, "linkedin_terms_accepted": accepted, "collect_everything": everything,
+              "it_only": it_only}
     if result["enabled"]["linkedin"] and not accepted:
         raise ValueError("Confirm LinkedIn's terms notice before enabling LinkedIn public search.")
     return result
@@ -294,25 +305,36 @@ def _ba_job(item: dict) -> dict | None:
                employment_type="Full-time" if item.get("arbeitszeitVollzeit") else "",
                published_at=(item.get("veroeffentlichungszeitraum") or {}).get("von") or item.get("aktuelleVeroeffentlichungsdatum"))
     _set_location_countries(job, rows or [("Germany", "Germany")])
+    if _plain(item.get("hauptberuf")):
+        job["raw_json"]["occupation"] = _plain(item.get("hauptberuf"))
     return job
 
 
 def _arbeitsagentur(query: str, country: str, limit: int, *, since_days: int = 60, deadline: float = 0.0,
                     **_) -> list[dict]:
-    """One search; at most 100 pages of 100, the API's own ceiling."""
+    """One search; at most 100 pages of 100, the API's own ceiling.
+
+    "berufsfeld:<field>" reads one of the agency's occupation fields instead
+    of searching words; its adverts carry that official classification.
+    """
     jobs = []
+    field_name = query[len("berufsfeld:"):] if query.startswith("berufsfeld:") else ""
+    search = {"berufsfeld": field_name} if field_name else {"was": query}
     for page in range(1, 101):
         if deadline and time.monotonic() > deadline:
             raise _Budget(jobs)
         data = _json(f"{_BA_BASE}/pc/v6/jobs?" + urlencode({
-            "was": query, "angebotsart": 1, "veroeffentlichtseit": since_days, "size": 100, "page": page,
+            **search, "angebotsart": 1, "veroeffentlichtseit": since_days, "size": 100, "page": page,
         }), headers=_BA_HEADERS)
         items = data.get("ergebnisliste") if isinstance(data, dict) else None
         if items is None and isinstance(data, dict) and "maxErgebnisse" in data:
             items = []
         if not isinstance(items, list):
             raise SourceError("Bundesagentur für Arbeit returned an unexpected search response.")
-        jobs.extend(job for item in items if isinstance(item, dict) and (job := _ba_job(item)))
+        found = [job for item in items if isinstance(item, dict) and (job := _ba_job(item))]
+        for job in found if field_name else ():
+            job["raw_json"].update(it_category=field_name in BA_IT_FIELDS, occupation_field=field_name)
+        jobs.extend(found)
         total = data.get("maxErgebnisse") or 0
         if len(jobs) >= limit or len(items) < 100 or page * 100 >= int(total or 0):
             break
@@ -401,7 +423,18 @@ _DJINNI_LEVELS = ("no_exp", "1y", "2y", "3y", "4y", "5y", "6y", "7y", "8y", "9y"
 _DJINNI_REGIONS = ("UKR", "worldwide", "eu", "other")
 
 
-def _djinni_categories() -> list[str]:
+# Djinni's top categories outside IT roles, and those where the title decides.
+_DJINNI_NOT_IT = frozenset({"Marketing", "Sales", "Lead Generation", "SEO", "HR", "Recruiter", "Interviewer", "Finances"})
+_DJINNI_MIXED = frozenset({"Design", "Artist", "Support", "Other", "Hardware", "Engineering / CAD Design", "DefTech",
+                           "Head Chief", "Lead", "Technical Writing"})
+
+
+def _djinni_it_category(top: str):
+    return False if top in _DJINNI_NOT_IT else None if top in _DJINNI_MIXED else True
+
+
+def _djinni_categories() -> list[tuple[str, str]]:
+    """(category, its top-level category), sub-categories included."""
     _, _, body, _ = _fetch("https://djinni.co/jobs/", respect_robots=True, max_response_bytes=MAX_ATS_RESPONSE_BYTES)
     found = re.search(rb'<script type="application/json" class="tms-data">(.*?)</script>', body, re.S)
     try:
@@ -411,15 +444,20 @@ def _djinni_categories() -> list[str]:
     if not isinstance(groups, list):
         raise SourceError("Djinni changed its category list; its keyword searches still ran.")
 
-    def walk(items):
+    def walk(items, top=None):
         for item in items if isinstance(items, list) else []:
             if isinstance(item, dict) and isinstance(item.get("key"), str) and item["key"].strip():
-                yield item["key"]
-                yield from walk(item.get("children"))
-    return list(dict.fromkeys(key for group in groups if isinstance(group, dict) for key in walk(group.get("items"))))
+                yield item["key"], top or item["key"]
+                yield from walk(item.get("children"), top or item["key"])
+    found = {}
+    for group in groups if isinstance(groups, list) else []:
+        for key, top in walk(group.get("items") if isinstance(group, dict) else None):
+            found.setdefault(key, top)
+    return list(found.items())
 
 
-def _djinni_everything(run: "ProviderRun", tags: list[str], state: dict, seen: set, deadline: float, progress=None) -> None:
+def _djinni_everything(run: "ProviderRun", tags: list[str], state: dict, seen: set, deadline: float, progress=None,
+                       it_only: bool = False) -> None:
     """Read all of Djinni once a day; other refreshes read its newest jobs."""
     from datetime import datetime, timezone
     last = state.get("djinni_full_read")
@@ -430,14 +468,19 @@ def _djinni_everything(run: "ProviderRun", tags: list[str], state: dict, seen: s
     if not due:
         _keep(run, _djinni_jobs({}), tags, "UA", seen)
         return
-    categories = _djinni_categories()
-    slices = [{"primary_keyword": key} for key in categories]
+    categories = [(key, top) for key, top in _djinni_categories() if not (it_only and top in _DJINNI_NOT_IT)]
+    tops = dict(categories)
+    slices = [{"primary_keyword": key} for key, _ in categories]
     complete = True
     for index, params in enumerate(slices):
         if time.monotonic() > deadline:
             complete = False
             break
         found = _djinni_jobs(params)
+        category = _djinni_it_category(tops[params["primary_keyword"]])
+        for job in found:
+            job["raw_json"] = {"board_category": params["primary_keyword"],
+                               **({"it_category": category} if category is not None else {})}
         _keep(run, found, tags, "UA", seen)
         if len(found) >= DJINNI_FEED_SIZE:
             # A full feed hides older jobs: narrow it.
@@ -457,9 +500,12 @@ def _djinni_everything(run: "ProviderRun", tags: list[str], state: dict, seen: s
 
 
 def _dou(query: str, country: str, limit: int, **_) -> list[dict]:
+    return _dou_jobs({"category": query[9:]} if query.startswith("category:") else {"search": query})[:limit]
+
+
+def _dou_jobs(params: dict) -> list[dict]:
     jobs = []
-    params = {"category": query[9:]} if query.startswith("category:") else {"search": query}
-    for item in _rss("https://jobs.dou.ua/vacancies/feeds/?" + urlencode(params))[:limit]:
+    for item in _rss("https://jobs.dou.ua/vacancies/feeds/" + ("?" + urlencode(params) if params else "")):
         link = _link(item.get("link"), "https://jobs.dou.ua/").split("?", 1)[0]
         match = re.search(r"/companies/([^/]+)/vacancies/(\d+)", link)
         raw_title = _plain(item.get("title"))
@@ -481,6 +527,87 @@ def _dou(query: str, country: str, limit: int, **_) -> list[dict]:
         job["countries"] = ["UA"]
         jobs.append(job)
     return jobs
+
+
+# DOU's feed returns the newest 25 jobs for any filter and ignores paging, so
+# its 35 category feeds reached 718 of about 5,500 jobs. A crawl reads every
+# category from DOU's own list, splitting a full feed by experience, then by
+# city and remote work: about 1,300 feeds, more than one refresh can read, so
+# the queue carries over to the next refresh. A new pass starts once a day.
+DOU_FEED_SIZE = 25
+DOU_CRAWL_HOURS = 20
+_DOU_LEVELS = ("0-1", "1-3", "3-5", "5plus")
+_DOU_NOT_IT = frozenset({"Account Manager", "Assistant", "Copywriter", "Finance", "HR", "Legal", "Marketing",
+                         "Office Manager", "Procurement", "Sales", "SEO"})
+_DOU_MIXED = frozenset({"Design", "Support", "Other", "Technical Writer", "Hardware", "Animator", "Artist", "C-level",
+                        "Військова справа"})
+
+
+def _dou_it_category(name: str):
+    return False if name in _DOU_NOT_IT else None if name in _DOU_MIXED else True
+
+
+def _dou_filters() -> tuple[list[str], list[str]]:
+    """DOU's own category and city lists, read from its vacancies page."""
+    import html as html_text
+    from urllib.parse import unquote
+    _, _, body, _ = _fetch("https://jobs.dou.ua/vacancies/", respect_robots=True, max_response_bytes=MAX_ATS_RESPONSE_BYTES)
+    page = html_text.unescape(body.decode("utf-8", "replace"))
+    select = re.search(r'<select[^>]*name="category"[^>]*>(.*?)</select>', page, re.S)
+    categories = [value for value in re.findall(r'<option value="([^"]+)"', select.group(1))] if select else []
+    if not categories:
+        raise SourceError("DOU changed its category list; its keyword searches still ran.")
+    cities = list(dict.fromkeys(unquote(city).replace("+", " ") for city in re.findall(r'href="[^"]*/vacancies/\?city=([^"&]+)"', page)))
+    return categories, cities
+
+
+def _dou_everything(run: "ProviderRun", tags: list[str], state: dict, seen: set, deadline: float, progress=None,
+                    it_only: bool = False) -> None:
+    """Read all of DOU across refreshes; between passes read its newest jobs."""
+    from datetime import datetime, timezone
+    crawl = state.get("dou_crawl") if isinstance(state.get("dou_crawl"), dict) else {}
+    last = state.get("dou_full_read")
+    try:
+        due = not last or (datetime.now(timezone.utc) - datetime.fromisoformat(last)).total_seconds() > DOU_CRAWL_HOURS * 3600
+    except (TypeError, ValueError):
+        due = True
+    if not crawl.get("queue") and not due:
+        _keep(run, _dou_jobs({}), tags, "UA", seen)
+        return
+    if not crawl.get("queue"):
+        categories, cities = _dou_filters()
+        crawl = {"queue": [{"category": name} for name in categories if not (it_only and name in _DOU_NOT_IT)],
+                 "cities": cities, "feeds": 0}
+    queue, cities = crawl["queue"], crawl.get("cities") or []
+    read = 0
+    while queue:
+        if time.monotonic() > deadline:
+            break
+        params = queue.pop(0)
+        found = _dou_jobs(params)
+        read += 1
+        category = _dou_it_category(params.get("category", ""))
+        for job in found:
+            job["raw_json"] = {"board_category": params.get("category", ""),
+                               **({"it_category": category} if category is not None else {})}
+        _keep(run, found, tags, "UA", seen)
+        if len(found) >= DOU_FEED_SIZE:
+            if "exp" not in params:
+                queue.extend({**params, "exp": level} for level in _DOU_LEVELS)
+            elif "city" not in params and "remote" not in params:
+                queue.extend([*({**params, "city": city} for city in cities), {**params, "remote": ""}])
+        if progress is not None and read % 100 == 0:
+            progress(f"DOU: {read} category feeds this refresh, {len(queue)} to go, {len(run.jobs):,} vacancies…")
+        time.sleep(REQUEST_PAUSE)
+    crawl["feeds"] = int(crawl.get("feeds", 0)) + read
+    if queue:
+        state["dou_crawl"] = crawl
+        run.has_more = True
+        run.stopped = f"Read {read} DOU category feeds; the next refresh continues with {len(queue)} more."
+    else:
+        state.pop("dou_crawl", None)
+        state["dou_full_read"] = datetime.now(timezone.utc).isoformat()
+        run.summary_note = f"Finished reading all DOU categories ({crawl['feeds']} feeds)."
 
 
 def _remotive(query: str, country: str, limit: int, **_) -> list[dict]:
@@ -619,13 +746,14 @@ def search_provider(name: str, queries: list[str], country: str = "", *, limit_p
                     role_terms: list[str] = (), detail_budget: int = 0, state: dict | None = None,
                     progress=None, broad: bool = False, seconds: float = REFRESH_SECONDS,
                     skip_boards: frozenset[str] = frozenset(), credentials: dict | None = None,
-                    request_budget: int = 0) -> ProviderRun:
+                    request_budget: int = 0, it_only: bool = False) -> ProviderRun:
     """Search one provider for several queries. Network only; never raises.
 
     broad adds the provider's field-wide searches and reads deeper, for a
     refresh that collects everything; incremental positions live in state.
     skip_boards names employer boards already configured as sources;
-    credentials and request_budget serve keyed APIs (Adzuna).
+    credentials and request_budget serve keyed APIs (Adzuna). it_only
+    narrows field-wide browsing to IT; the caller still filters each advert.
     """
     run = ProviderRun(name)
     provider = PROVIDERS[name]
@@ -634,10 +762,11 @@ def search_provider(name: str, queries: list[str], country: str = "", *, limit_p
     tags = list(queries)
     if broad and name in BROAD_QUERIES:
         covered = {query.casefold() for query in queries}
-        queries += [query for query in BROAD_QUERIES[name] if query.casefold() not in covered]
+        extra = IT_BROAD_QUERIES.get(name, BROAD_QUERIES[name]) if it_only else BROAD_QUERIES[name]
+        queries += [query for query in extra if query.casefold() not in covered]
     run.queries = list(queries)
     seen: set = set()
-    if not queries and not (broad and name == "djinni"):
+    if not queries and not (broad and name in {"djinni", "dou"}):
         return run
     deadline = time.monotonic() + seconds
     try:
@@ -651,6 +780,7 @@ def search_provider(name: str, queries: list[str], country: str = "", *, limit_p
                 run.stopped = "Add your free Adzuna key under Settings & activity → Job sites."
             else:
                 adzuna.search(run, queries, credentials, state, budget=request_budget, deadline=deadline, progress=progress,
+                              it_only=it_only,
                               keep=lambda run, jobs, tags: _keep(run, jobs, tags, "US", seen))
         elif name == "us_employers":
             from . import employer_pack
@@ -694,7 +824,9 @@ def search_provider(name: str, queries: list[str], country: str = "", *, limit_p
                 if index + 1 < len(queries):
                     time.sleep(REQUEST_PAUSE)
             if name == "djinni" and broad and not run.has_more:
-                _djinni_everything(run, tags, state, seen, deadline, progress)
+                _djinni_everything(run, tags, state, seen, deadline, progress, it_only=it_only)
+            if name == "dou" and broad and not run.has_more:
+                _dou_everything(run, tags, state, seen, deadline, progress, it_only=it_only)
     except (SourceError, OSError) as exc:
         run.errors.append(str(exc))
     if detail_budget and name in LAZY_DETAILS and role_terms:

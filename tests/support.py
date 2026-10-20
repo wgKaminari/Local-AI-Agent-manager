@@ -19,6 +19,8 @@ def offline_collection():
     """Start module-wide patches; call from setUpModule."""
     patchers = [
         patch.dict("norway_job_agent.market.DEFAULT_ENABLED", {name: False for name in PROVIDERS}),
+        # Older tests use non-IT fixtures; IT-only tests switch it on themselves.
+        patch("norway_job_agent.market.DEFAULT_IT_ONLY", False),
         patch("norway_job_agent.nav_index.sync", side_effect=SourceError("NAV is offline in tests.")),
     ]
     for patcher in patchers:

@@ -204,3 +204,54 @@ between requests, and uses at most 40 per refresh and 2 per live search.
 Searches cover your saved searches and roles in the USA, adverts from the
 last 30 days, newest first, 50 per page. Results carry an excerpt of the
 advert and link to Adzuna, which the terms ask to credit as the source.
+
+## 0.7.7: IT jobs only, and one job counted once
+
+The country totals in 0.7.6 (USA 27,000, Germany 49,000, Norway 9,900,
+Ukraine 3,000) counted every kind of job the sources returned: NAV lists
+nurses and teachers, the Bundesagentur's broad searches ("IT", "Ingenieur")
+returned civil and mechanical engineers, and US employer boards include
+sales and legal roles. Measured by title, only 31% (USA), 35% (Germany), 4%
+(Norway) and 57% (Ukraine) were IT jobs.
+
+* **IT jobs only** (setting, on by default) keeps IT vacancies alone.
+  Official classifications decide where a source has one: NAV's occupation
+  category "IT" or a STYRK-08 code 25xx/35xx/1330 (NAV's feed has no
+  category, so each advert's details are read once; non-IT adverts are
+  remembered and not read again until NAV changes them), the Bundesagentur's
+  four IT occupation fields (now read whole instead of word searches),
+  Djinni's and DOU's categories (Marketing, Sales, HR, Legal and similar are
+  no longer read) and Adzuna's IT category. Otherwise `it_jobs.py` decides
+  from the title in English, German, Norwegian and Ukrainian; a vague title
+  needs three IT technologies in its advert, and known traps
+  ("Projektentwickler", "utvikle deg", CNC programmers) never count.
+* **One job counted once.** The duplicate key is now title, employer and
+  country, without the city: copies on other sites, re-posts on one site and
+  one role posted for several cities of a country show as one vacancy that
+  lists its other postings. A posting you saved or applied to always stays
+  visible; a Berlin and a Seattle opening stay separate. Exact duplicates
+  (same site and advert ID) were already impossible.
+* **DOU** is crawled like Djinni: DOU's own 59 categories (48 IT), each full
+  25-job feed split by experience, then by city and remote work. A pass is
+  about 1,600 feeds, so it continues over two refreshes.
+* **Adzuna** reads your roles, then the newest adverts in its IT category,
+  about 72 requests (3,600 adverts) a day.
+* **Speed.** Deleting a vacancy checks every table that refers to it; the job
+  identity table (275,000 rows on real data) had no index on the job, so
+  removing 50,000 non-IT adverts took hours. With the index it takes 37 s.
+  Identical sources configured twice now download once.
+
+### Measured on a copy of the real data (20 October 2026), without an Adzuna key
+
+| | Before (all jobs) | Unique IT jobs | IT market for comparison |
+|---|---|---|---|
+| USA | 27,286 | 11,011 | over 600,000 active tech postings (CompTIA, June 2026) |
+| Germany | 49,379 | 20,917 | about 23,000 in the Bundesagentur's IT fields |
+| Norway | 9,864 | 502 | 521 adverts in arbeidsplassen.no's IT category (includes FINN) |
+| Ukraine | 3,005 | 5,267 | Djinni and DOU IT categories (many jobs are on both) |
+
+Germany and Norway now hold close to their whole public IT market. The USA
+stays a small share of a much larger market: the big US job sites forbid
+automated collection, so US coverage grows mainly through Adzuna's IT
+category once a key is added. Djinni's feed does not name the employer, so a
+Ukrainian job posted on both Djinni and DOU can still count twice.

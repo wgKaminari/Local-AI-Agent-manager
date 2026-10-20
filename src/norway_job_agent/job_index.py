@@ -22,7 +22,7 @@ from datetime import date, datetime, timedelta, timezone
 from .storage import JobStore, search_terms
 
 # Bump when match_job, fingerprints or stored fields change meaning.
-MATCH_VERSION = "2"
+MATCH_VERSION = "3"
 RETENTION_DAYS = 30
 BOARD_SOURCES = ("arbeitsagentur", "arbeitnow", "djinni", "dou", "remotive", "remoteok", "himalayas", "hackernews", "adzuna",
                  "linkedin")
@@ -55,14 +55,17 @@ def profile_key(profile: dict) -> str:
 
 
 def job_fingerprint(job: dict) -> str | None:
-    """Title, employer and first city with formatting differences removed."""
+    """Title and employer with formatting differences removed: one job.
+
+    The city is left out on purpose: one role posted for several cities, or
+    posted again on the same site, counts as one job. The countries stay in,
+    so a Berlin and a Seattle opening each remain in their country's view.
+    """
     title = " ".join(re.findall(r"\w+", _GENDER_MARKERS.sub(" ", str(job.get("title") or "")).casefold()))
     company = " ".join(re.findall(r"\w+", _LEGAL_SUFFIXES.sub(" ", str(job.get("company") or "")).casefold()))
-    location = re.split(r"[;,/|(\n]", str(job.get("location") or "").casefold())[0]
-    city = " ".join(re.findall(r"\w+", location)[:2])
-    if not title or not company or company.startswith("company on"):
+    if not title or not company or company.startswith(("company on", "employer not named")):
         return None
-    return f"{title}|{company}|{city}"
+    return f"{title}|{company}|{','.join(sorted(job.get('countries') or []))}"
 
 
 def _expired(deadline, today: date | None = None) -> bool:
@@ -131,16 +134,18 @@ def ensure_matches(store: JobStore, profile: dict, *, progress=None, batch: int 
 
 
 def _refresh_duplicates(store: JobStore) -> None:
-    """Group one job listed on several sites; the shown copy carries the others.
+    """Show one job once: its other postings ride along on the shown copy.
 
-    Only copies from different sites merge: two postings on one site are
-    separate openings. The shown copy prefers an active posting, then your
-    workflow stage, then the employer's own posting, then the fuller advert.
+    Copies on other sites, the same advert posted again, and one role posted
+    for several cities merge; the shown copy lists the others with their
+    site and place. It prefers an active posting, then your workflow stage,
+    then the employer's own posting, then the fuller advert. A copy you
+    saved, applied to or otherwise moved past "new" always stays visible.
     """
     connection = store._connection
     rows = connection.execute(
         "SELECT m.job_id, m.fingerprint, j.source, j.status, j.is_active, j.description <> '', j.source_url, "
-        "m.primary_id, m.also_on FROM job_matches m JOIN jobs j ON j.id = m.job_id "
+        "m.primary_id, m.also_on, j.location FROM job_matches m JOIN jobs j ON j.id = m.job_id "
         "WHERE m.fingerprint IS NOT NULL ORDER BY j.discovered_at DESC, j.id DESC").fetchall()
     groups: dict[str, list] = {}
     for row in rows:
@@ -151,20 +156,16 @@ def _refresh_duplicates(store: JobStore) -> None:
             desired = {members[0][0]: (None, "[]")}
         else:
             members.sort(key=lambda row: (not row[4], row[3] == "new", _SOURCE_RANK.get(row[2], 2), not row[5]))
-            cards: list[tuple] = []
-            for row in members:
-                card = next((card for card in cards if row[2] not in card[1]), None)
-                if card is None:
-                    cards.append((row, {row[2]}, []))
-                else:
-                    card[1].add(row[2])
-                    card[2].append(row)
-            desired = {}
-            for primary, _, others in cards:
-                also = [{"source": other[2], "id": other[0], "url": other[6]} for other in others]
-                desired[primary[0]] = (primary[0] if others else None, json.dumps(also))
-                for other in others:
-                    desired[other[0]] = (primary[0], "[]")
+            primary, others, own = members[0], [], []
+            for row in members[1:]:
+                (own if row[3] != "new" else others).append(row)
+            also = [{"source": other[2], "id": other[0], "url": other[6], "location": str(other[9] or "")[:80]}
+                    for other in others]
+            desired = {primary[0]: (primary[0] if others else None, json.dumps(also, ensure_ascii=False))}
+            for other in others:
+                desired[other[0]] = (primary[0], "[]")
+            for row in own:
+                desired[row[0]] = (None, "[]")
         for row in members:
             primary_id, also_on = desired[row[0]]
             if (row[7], row[8]) != (primary_id, also_on):
@@ -323,6 +324,39 @@ def load_full(store: JobStore, ids: list[int]) -> list[dict]:
             job["also_on"] = also_on
         found[job["id"]] = job
     return [found[identifier] for identifier in ids if identifier in found]
+
+
+# Jobs a refresh may remove: from automatic sources, never touched by you.
+_REMOVABLE = """status = 'new' AND notes = '' AND source NOT IN ('manual', 'gmail')
+              AND id NOT IN (SELECT job_id FROM drafts)
+              AND id NOT IN (SELECT job_id FROM application_preparations)
+              AND id NOT IN (SELECT job_id FROM application_deliveries)
+              AND id NOT IN (SELECT job_id FROM job_provenance)"""
+
+
+def prune_outside_it(store: JobStore) -> int:
+    """Remove stored adverts that are not IT jobs ("IT jobs only")."""
+    from .it_jobs import is_it
+    rows = store._connection.execute(
+        f"SELECT id, title, description, raw_json FROM jobs WHERE {_REMOVABLE}").fetchall()
+    doomed = [(row[0],) for row in rows if not is_it({"title": row[1], "description": row[2], "raw_json": row[3]})]
+    if doomed:
+        with store.transaction():
+            for start in range(0, len(doomed), 500):
+                store._connection.executemany("DELETE FROM jobs WHERE id = ?", doomed[start:start + 500])
+        _refresh_duplicates(store)
+    return len(doomed)
+
+
+def discard(store: JobStore, source: str, source_ids: list[str]) -> int:
+    """Remove these adverts unless you touched them (a source now files them outside IT)."""
+    removed = 0
+    for start in range(0, len(source_ids), 500):
+        chunk = source_ids[start:start + 500]
+        marks = ", ".join("?" for _ in chunk)
+        removed += store._connection.execute(
+            f"DELETE FROM jobs WHERE source = ? AND source_id IN ({marks}) AND {_REMOVABLE}", [source, *chunk]).rowcount
+    return removed
 
 
 def cleanup(store: JobStore, *, now: datetime | None = None) -> int:

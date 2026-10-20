@@ -257,13 +257,32 @@ def _normalize(uuid: str, payload: dict) -> dict | None:
     source_url = f"https://arbeidsplassen.nav.no/stillinger/stilling/{uuid}"
     apply_url = (_link(content.get("applicationUrl"), source_url)
                  or _link(content.get("sourceurl"), source_url) or source_url)
-    return _job(
+    job = _job(
         title=title, company=company, location="; ".join(locations),
         description=_plain(content.get("description")), source="nav", source_id=uuid,
         source_url=source_url, apply_url=apply_url,
         employment_type=_plain(content.get("engagementtype")),
         published_at=content.get("published"), deadline=content.get("applicationDue"),
     )
+    job["raw_json"] = _occupation(content)
+    return job
+
+
+# STYRK-08 (Norway's ISCO-08): 25xx ICT professionals, 35xx ICT technicians,
+# 1330 ICT managers.
+_IT_STYRK = ("25", "35", "1330")
+
+
+def _occupation(content: dict) -> dict:
+    """NAV's occupation category and codes; it_category when NAV gives one."""
+    categories = [item for item in content.get("occupationCategories") or [] if isinstance(item, dict)]
+    codes = [str(item.get("code", "")) for item in content.get("categoryList") or []
+             if isinstance(item, dict) and item.get("categoryType") == "STYRK08"]
+    if not categories and not codes:
+        return {}
+    names = [" / ".join(filter(None, (_plain(item.get("level1")), _plain(item.get("level2"))))) for item in categories]
+    it = any(_plain(item.get("level1")) == "IT" for item in categories) or any(code.startswith(_IT_STYRK) for code in codes)
+    return {"occupation": "; ".join(filter(None, names)), "styrk": codes[:5], "it_category": it}
 
 
 def fetch_nav_batch(
