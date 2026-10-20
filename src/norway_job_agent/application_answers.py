@@ -52,6 +52,34 @@ _SCHEMA = {
 }
 
 
+# The whole list is sent to the local model with every draft; beyond this it
+# would crowd out the CV and vacancy in a small model's context.
+AVOID_PHRASES_MAX_CHARS = 20000
+
+
+def _avoid_phrases(value) -> list[str]:
+    """Phrases one per line, or separated by commas or semicolons; no count limit.
+
+    Each phrase is checked on its own: a pasted comma-separated list used to
+    count as one long phrase that no draft could ever contain.
+    """
+    if isinstance(value, str):
+        value = [value]
+    if not isinstance(value, list) or any(not isinstance(item, str) for item in value):
+        raise ValueError("Phrases to avoid must be text, one per line or separated by commas.")
+    phrases, seen = [], set()
+    for item in value:
+        for phrase in re.split(r"[\n\r,;]+", item):
+            phrase = " ".join(phrase.split())
+            if phrase and phrase.casefold() not in seen:
+                seen.add(phrase.casefold())
+                phrases.append(phrase)
+    if sum(len(phrase) for phrase in phrases) > AVOID_PHRASES_MAX_CHARS:
+        raise ValueError(f"Phrases to avoid are too long in total; keep them under {AVOID_PHRASES_MAX_CHARS:,} characters "
+                         "so the local AI still has room for your CV and the vacancy.")
+    return phrases
+
+
 def validate_writing_style(value=None) -> dict:
     """Normalize multiline UI entries without ever treating examples as facts."""
     if value is None:
@@ -61,13 +89,13 @@ def validate_writing_style(value=None) -> dict:
     result = {**DEFAULT_WRITING_STYLE, **value}
     for key, maximum in (("tone", 200), ("language", 80), ("instructions", 3000)):
         result[key] = local_ai._text(result[key], "Writing style " + key, maximum)
-    for key, maximum, length in (("examples", 5, 1500), ("avoid_phrases", 30, 150)):
-        items = result[key]
-        if isinstance(items, str):
-            items = [line.strip() for line in items.splitlines() if line.strip()]
-        if not isinstance(items, list) or len(items) > maximum:
-            raise ValueError(f"Writing style {key} accepts at most {maximum} entries.")
-        result[key] = [local_ai._text(item, "Writing style " + key, length) for item in items]
+    examples = result["examples"]
+    if isinstance(examples, str):
+        examples = [line.strip() for line in examples.splitlines() if line.strip()]
+    if not isinstance(examples, list) or len(examples) > 5:
+        raise ValueError("Writing style examples accepts at most 5 entries.")
+    result["examples"] = [local_ai._text(item, "Writing style examples", 1500) for item in examples]
+    result["avoid_phrases"] = _avoid_phrases(result["avoid_phrases"])
     words = result["max_words"]
     if isinstance(words, bool) or not isinstance(words, int) or not 20 <= words <= 500:
         raise ValueError("Writing style max_words must be a whole number from 20 to 500.")

@@ -53,7 +53,7 @@ class ApplicationPages:
         for key, label, height in (("tone", "Writing tone", 0), ("language", "Writing language override (blank uses profile)", 0),
                                    ("max_words", "Maximum words per answer / cover letter (20–500)", 0),
                                    ("instructions", "Style instructions", 3), ("examples", "Your writing examples — one paragraph per line, up to five", 5),
-                                   ("avoid_phrases", "Phrases to avoid — one per line", 3)):
+                                   ("avoid_phrases", "Phrases to avoid — one per line or comma-separated", 3)):
             ttk.Label(content, text=label, style="Section.TLabel").pack(anchor="w", pady=(16, 4))
             if height:
                 widget = self._editor(content, height=height)
