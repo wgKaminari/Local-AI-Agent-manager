@@ -70,6 +70,11 @@ def _diverse_recommendations(jobs):
     return result
 
 
+# What a vacancy card renders; the detail view fetches the full record.
+_LIST_FIELDS = ("id", "title", "company", "location", "source", "status", "notes", "is_active", "countries",
+                "published_at", "discovered_at", "deadline", "also_on")
+
+
 def _list_match(match):
     """The match summary a vacancy card renders; details come from /api/jobs/<id>."""
     experience = match.get("experience") or {}
@@ -360,10 +365,10 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
         # Descriptions, raw provider JSON and full match evidence are loaded
         # only for the selected vacancy. Cards need just these summary fields;
         # sending everything made a large discovery list several megabytes.
-        for job in jobs:
-            job.pop("description", None)
-            job.pop("raw_json", None)
-            job["match"] = _list_match(job["match"])
+        # The same applies to notes, links and identifiers: with whole-market
+        # job sites a list holds thousands of vacancies.
+        jobs = [{**{key: job.get(key) for key in _LIST_FIELDS if key in job}, "match": _list_match(job["match"])}
+                for job in jobs]
         return jsonify(jobs=jobs, summary=summary)
 
     @app.get("/api/discovery/coverage")

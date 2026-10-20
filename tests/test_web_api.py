@@ -9,6 +9,7 @@ import time
 import unittest
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from urllib.parse import urlencode
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
@@ -309,6 +310,84 @@ class LocalApiTests(unittest.TestCase):
             self.assertEqual(status["message"], "Checking fixture company")
             release.set()
             self.assertEqual(self.finish(response)["result"]["created"], 2)
+
+    def market_run(self, *jobs):
+        from norway_job_agent.market import ProviderRun
+        return ProviderRun("arbeitsagentur", jobs=list(jobs), queries=["Linux DevOps"], fetched=len(jobs))
+
+    def board_job(self, identifier, **changes):
+        return {"title": "DevOps Engineer (m/w/d)", "company": "Board Fixture GmbH", "location": "Berlin",
+                "description": "", "source": "arbeitsagentur", "source_id": identifier, "countries": ["DE"],
+                "source_url": f"https://www.arbeitsagentur.de/jobsuche/jobdetail/{identifier}", **changes}
+
+    def enable_board(self):
+        settings = service.read_settings(self.path)
+        settings["market"]["enabled"]["arbeitsagentur"] = True
+        self.assertEqual(self.request("PUT", "/api/settings", json=settings).status_code, 200)
+
+    def test_live_job_site_search_runs_in_the_background_and_feeds_the_list(self):
+        self.enable_board()
+        with patch("norway_job_agent.market.search_provider", return_value=self.market_run(self.board_job("10001-1-S"))) as search:
+            result = self.finish(self.post("/api/tasks", {"action": "market-search", "query": "Linux DevOps", "country": "DE"}))
+        self.assertEqual(result["status"], "done", result)
+        self.assertEqual((result["result"]["found"], result["result"]["created"]), (1, 1))
+        self.assertEqual(search.call_args.args[:3], ("arbeitsagentur", ["Linux DevOps"], "DE"))
+        jobs = self.request("GET", "/api/jobs?" + urlencode({"query": "linux devops", "country": "DE"})).get_json()["jobs"]
+        self.assertEqual([job["title"] for job in jobs], ["DevOps Engineer (m/w/d)"])
+        self.assertNotIn("raw_json", jobs[0])
+        self.assertNotIn("description", jobs[0])
+
+    def test_live_search_validates_its_query_and_never_overlaps_a_refresh(self):
+        self.assertEqual(self.finish(self.post("/api/tasks", {"action": "market-search", "query": "x"}))["status"], "error")
+        self.assertEqual(self.post("/api/tasks", {"action": "market-search", "query": "a" * 121}).status_code, 400)
+        release = threading.Event()
+        with patch("norway_job_agent.web_api.service.collect", side_effect=lambda *a, **k: release.wait(3) or {}):
+            running = self.post("/api/tasks", {"action": "collect"})
+            blocked = self.post("/api/tasks", {"action": "market-search", "query": "DevOps"})
+            self.assertEqual(blocked.status_code, 400)
+            self.assertIn("already running", blocked.get_json()["error"])
+            release.set()
+            self.finish(running)
+
+    def test_opening_a_board_advert_loads_its_text_in_the_background(self):
+        identifier = service.import_vacancy(self.path, self.board_job("10001-2-S"))[0]
+        details = {"description": "Linux, Kubernetes and Terraform.", "external_apply_url": "https://employer.example/jobs/9"}
+        with patch("norway_job_agent.market.fetch_details", return_value=details):
+            result = self.finish(self.post("/api/tasks", {"action": "load-details", "job_id": identifier}))
+        self.assertEqual(result["status"], "done", result)
+        self.assertTrue(result["result"]["has_description"])
+        job = self.request("GET", f"/api/jobs/{identifier}").get_json()["job"]
+        self.assertEqual(job["description"], "Linux, Kubernetes and Terraform.")
+        self.assertEqual(self.post("/api/tasks", {"action": "load-details", "job_id": "1"}).status_code, 400)
+
+    def test_failed_advert_loading_is_reported_and_keeps_the_vacancy(self):
+        from norway_job_agent.sources import SourceError
+        identifier = service.import_vacancy(self.path, self.board_job("10001-3-S"))[0]
+        with patch("norway_job_agent.market.fetch_details", side_effect=SourceError("LinkedIn asked to slow down")):
+            result = self.finish(self.post("/api/tasks", {"action": "load-details", "job_id": identifier}))
+        self.assertEqual(result["status"], "error")
+        self.assertIn("slow down", result["error"])
+        self.assertEqual(service.get_vacancy(self.path, identifier)["title"], "DevOps Engineer (m/w/d)")
+
+    def test_server_enforces_the_linkedin_notice_and_lists_job_sites(self):
+        settings = service.read_settings(self.path)
+        settings["market"]["enabled"]["linkedin"] = True
+        response = self.request("PUT", "/api/settings", json=settings)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("terms notice", response.get_json()["error"])
+        self.assertFalse(service.read_settings(self.path)["market"]["enabled"]["linkedin"])
+        boot = self.request("GET", "/api/bootstrap").get_json()
+        self.assertIn("linkedin", {site["id"] for site in boot["job_sites"]})
+        self.assertTrue(next(site for site in boot["job_sites"] if site["id"] == "linkedin")["opt_in"])
+
+    def test_list_shows_one_card_for_a_job_on_several_sites(self):
+        service.import_vacancy(self.path, self.board_job("10001-4-S", title="Data Scientist", company="Fixture Employer GmbH",
+                                                         location="Berlin, Germany"))
+        jobs = self.request("GET", "/api/jobs").get_json()["jobs"]
+        merged = [job for job in jobs if job["title"] == "Data Scientist"]
+        self.assertEqual(len(merged), 1)
+        self.assertEqual(merged[0]["source"], "manual")
+        self.assertEqual([item["source"] for item in merged[0]["also_on"]], ["arbeitsagentur"])
 
     def test_background_failure_is_reported_without_discarding_data(self):
         with patch("norway_job_agent.web_api.service.available_models", side_effect=ValueError("Ollama is offline")):

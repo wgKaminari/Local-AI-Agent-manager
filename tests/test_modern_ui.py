@@ -9,6 +9,7 @@ import re
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -115,6 +116,66 @@ class ModernInterfaceTests(unittest.TestCase):
         self.expect(self.page.locator("#notifications")).to_contain_text("Every refresh now also searches job sites")
         self.expect(bar).to_contain_text("Saved search")
         self.assertEqual(service.read_settings(self.data)["market"]["searches"], ["Linux DevOps"])
+
+    def board_job(self, identifier, **changes):
+        return {"title": "Linux DevOps Engineer (m/w/d)", "company": "Board Fixture GmbH", "location": "Berlin, Germany",
+                "description": "", "source": "arbeitsagentur", "source_id": identifier,
+                "source_url": f"https://www.arbeitsagentur.de/jobsuche/jobdetail/{identifier}", **changes}
+
+    def reload(self):
+        self.page.goto(self.workspace.url)
+        self.expect(self.page.locator(".job-card").first).to_be_visible()
+
+    def test_search_job_sites_adds_market_results_to_the_list(self):
+        def market_search(data_dir, query, country="", progress=None):
+            service.import_vacancy(data_dir, self.board_job("10001-1-S"))
+            return {"sources": [{"ok": True}], "found": 1, "created": 1, "updated": 0, "query": query}
+        with patch("norway_job_agent.service.market_search", side_effect=market_search) as search:
+            self.page.locator("#job-search").fill("Linux DevOps")
+            self.expect(self.page.locator(".job-card")).to_have_count(0)
+            self.page.locator(".market-bar").get_by_role("button", name="Search job sites").click()
+            self.expect(self.page.locator("#notifications")).to_contain_text("Searched 1 job site for “Linux DevOps”: 1 relevant adverts, 1 new.")
+        self.expect(self.page.locator(".job-card")).to_have_count(1)
+        self.expect(self.page.locator(".job-card")).to_contain_text("Linux DevOps Engineer")
+        self.assertEqual(search.call_args.args[1:], ("Linux DevOps", ""))
+
+    def test_opening_a_job_site_advert_loads_its_full_text(self):
+        identifier = service.import_vacancy(self.data, self.board_job("10001-2-S"))[0]
+        details = {"description": "We automate Linux servers with Ansible.", "external_apply_url": "https://employer.example/apply/9"}
+        with patch("norway_job_agent.market.fetch_details", return_value=details) as fetch:
+            self.reload()
+            self.page.locator(f'[data-job="{identifier}"]').click()
+            self.expect(self.page.locator("#detail-content .prose")).to_have_text("We automate Linux servers with Ansible.")
+        fetch.assert_called_once()
+        self.expect(self.page.locator(".detail-actions").get_by_role("link", name="Apply on employer site")).to_have_attribute("href", "https://employer.example/apply/9")
+        self.expect(self.page.locator(".detail-actions").get_by_role("link", name="On Arbeitsagentur")).to_be_visible()
+
+    def test_a_failed_advert_load_explains_and_offers_the_site(self):
+        from norway_job_agent.sources import SourceError
+        identifier = service.import_vacancy(self.data, self.board_job("10001-3-S"))[0]
+        with patch("norway_job_agent.market.fetch_details", side_effect=SourceError("The source returned HTTP 503.")):
+            self.reload()
+            self.page.locator(f'[data-job="{identifier}"]').click()
+            self.expect(self.page.locator("#detail-content .prose")).to_contain_text("Arbeitsagentur could not show the full advert: The source returned HTTP 503.")
+        self.expect(self.page.locator("#detail-content")).not_to_contain_text("Loading the full advert")
+
+    def test_a_job_on_two_sites_shows_once_with_a_link_to_the_other(self):
+        service.import_vacancy(self.data, self.board_job("10001-4-S", title="Python Developer", company="Nordic Fixture AS",
+                                                         location="Oslo, Norway", description="Same job"))
+        self.reload()
+        self.expect(self.page.locator(".job-card")).to_have_count(4)
+        self.expect(self.page.locator(f'[data-job="{self.ids["NO"]}"] .also-on')).to_have_text(" · +1 site")
+        self.select("NO")
+        self.expect(self.page.locator(".detail-actions").get_by_role("link", name="On Arbeitsagentur")).to_be_visible()
+
+    def test_leaving_discovery_while_a_search_reload_is_pending_sends_no_bad_request(self):
+        failed = []
+        self.page.on("response", lambda response: failed.append(response.url) if response.status >= 400 else None)
+        self.page.locator("#job-search").fill("Python")
+        self.nav("Settings & activity")
+        self.page.wait_for_timeout(600)  # Past the search box's 250 ms reload delay.
+        self.assertEqual(failed, [])
+        self.assertEqual(self.console_errors, [])
 
     def test_linkedin_needs_its_terms_notice_before_it_can_be_enabled(self):
         self.nav("Settings & activity")
