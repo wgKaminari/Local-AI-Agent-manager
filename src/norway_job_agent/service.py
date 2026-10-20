@@ -233,18 +233,31 @@ def collect(data_dir: Path, settings_override: dict | None = None, *, progress=N
         _collection_lock.release()
 
 
-def _collection_scope(settings: dict) -> list[dict]:
-    """Sources this run will check, already scoped to the active country."""
-    country = settings.get("active_country", "")
+def _collection_scope(settings: dict, countries: list[str]) -> list[dict]:
+    """Employer sources a refresh checks: every one serving your countries.
+
+    A refresh covers all your target countries; the country switch only
+    filters what you see. (It used to refresh the selected country alone, so
+    countries never selected were never collected.)
+    """
     selected = []
     for source in settings["sources"]:
-        if country and ((source.get("type") == "nav" and country != "NO") or
-                        (source.get("countries") and country not in source["countries"])):
+        if source.get("type") == "nav":
+            if "NO" in countries:
+                selected.append(source)
             continue
-        if country and source.get("type") != "nav":
-            source = {**source, "countries": [country]}
-        selected.append(source)
+        if not source.get("countries"):
+            selected.append(source)  # An unscoped board keeps every posting, as before.
+            continue
+        scope = [code for code in source["countries"] if code in countries]
+        if scope:
+            selected.append({**source, "countries": scope})
     return selected
+
+
+def _target_countries(profile: dict) -> list[str]:
+    from .countries import COUNTRIES
+    return [code for code in (profile.get("target_countries") or list(COUNTRIES)) if code in COUNTRIES] or list(COUNTRIES)
 
 
 MARKET_STATE_FILE = "market-state.json"
@@ -335,8 +348,12 @@ def _store_nav(data_dir: Path, source: dict, fetched: dict, store: JobStore, rep
                          f"({fetched.get('matching', 0):,} of the {fetched['candidates']:,} to load match your searches).")
         else:
             coverage += f"{fetched['candidates']} titles matched your searches; {len(fetched['jobs'])} saved."
-        if synced["has_more"]:
+        if synced.get("interrupted"):
+            coverage += " NAV's feed stopped answering partway; the next refresh continues from there."
+        elif synced["has_more"]:
             coverage += " The feed has more updates; the next refresh continues reading."
+        if fetched.get("failed"):
+            coverage += f" {fetched['failed']:,} adverts could not be downloaded ({fetched['failure']})."
         if fetched["remaining"]:
             coverage += f" {fetched['remaining']:,} more adverts load on the next refresh."
         if skipped:
@@ -386,10 +403,17 @@ def _submit_market(data_dir: Path, pool, settings: dict, profile: dict, country:
     state = _market_state(data_dir)
     broad = collection_detail and settings["market"].get("collect_everything", True)
     seconds = market.REFRESH_SECONDS if collection_detail else market.LIVE_SECONDS
+    targets = [country] if country else _target_countries(profile)
     for name in market.providers_for(country, settings["market"]["enabled"]):
+        served = [code for code in market.PROVIDERS[name].countries if code in targets]
+        if not served:
+            continue
+        # A one-country site searches with that country's role preferences;
+        # remote boards and LinkedIn cover all your countries in one run.
+        code = served[0] if len(market.PROVIDERS[name].countries) == 1 else country
         budget = _DETAIL_BUDGET.get(name, 0) if collection_detail else 0
         rows.append(("market", market.PROVIDERS[name].name, pool.submit(
-            market.search_provider, name, queries_for(country), country, role_terms=_role_terms_for(profile, country),
+            market.search_provider, name, queries_for(code), code, role_terms=_role_terms_for(profile, code),
             detail_budget=budget, state=state, progress=progress, broad=broad, seconds=seconds)))
     return rows, state
 
@@ -410,10 +434,11 @@ def _collect(data_dir: Path, settings_override: dict | None = None, *, progress=
     # Command-line overrides may omit job sites; they then use saved defaults.
     settings = {**settings, "market": validate_market_settings(settings.get("market"))}
     profile = read_profile(data_dir)
-    country = settings.get("active_country", "")
-    report = {"created": 0, "updated": 0, "withdrawn": 0, "sources": [],
-              "country": country, "started_at": datetime.now(timezone.utc).isoformat()}
-    selected = _collection_scope(settings)
+    countries = _target_countries(profile)
+    country = ""  # Every target country; the country switch only filters views.
+    report = {"created": 0, "updated": 0, "withdrawn": 0, "sources": [], "country": country,
+              "countries": countries, "started_at": datetime.now(timezone.utc).isoformat()}
+    selected = _collection_scope(settings, countries)
     queries_for = lambda code: search_queries(profile, settings["market"], code)
     with JobStore(data_dir / "vacancies.db") as store:
         pool = ThreadPoolExecutor(max_workers=COLLECTION_WORKERS + 4, thread_name_prefix="collect")
@@ -673,7 +698,7 @@ def list_page(data_dir: Path, *, view: str = "discover", query: str = "", status
         summary["shown_employers"] = len({row["company"] for row in rows})
         if query and sort == "match":
             job_index.relevance_sort(rows, query)
-        rows = job_index.sort_rows(rows, sort)
+        rows = job_index.sort_rows(rows, sort, local_first=bool(country) and country != "unknown")
         if view == "for-you" and sort == "match" and not query:
             rows = job_index.diversify(rows)
         page = job_index.load_full(store, [row["id"] for row in rows[offset:offset + limit]])
@@ -693,8 +718,10 @@ def discovery_coverage(data_dir: Path, country: str = "") -> dict:
         (not source.get("countries") or country in source["countries"]))]
     catalog = company_catalog(country)
     report = read_collection_report(data_dir)
-    # Old reports lack country metadata: don't present them as this market's run.
-    current_report = report if report and report.get("country") == country else None
+    # Old reports lack country metadata: don't present them as this market's
+    # run. A refresh of all countries ("") covers every country view.
+    current_report = report if report and report.get("country") in {"", country} and (
+        not country or country in report.get("countries", [country])) else None
     checked = current_report.get("sources", []) if current_report else []
     from . import market, nav_index
     enabled = settings["market"]["enabled"]

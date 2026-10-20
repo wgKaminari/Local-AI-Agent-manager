@@ -292,6 +292,27 @@ class CollectEverythingTests(Fixture):
         nav_index.mark_hydrated(self.folder, loaded["marks"])
         self.assertEqual(nav_index.find(self.folder, ["Data Scientist"], everything=True, known={U1, U2, U3}), [])
 
+    def test_each_site_searches_with_its_countrys_preferences_in_one_refresh(self):
+        profile = service.read_profile(self.folder)
+        profile["country_preferences"] = {"DE": {"target_roles": ["Datenwissenschaftler"]}}
+        service.save_profile(self.folder, profile)
+        settings = service.read_settings(self.folder)
+        settings.update(active_country="NO", sources=[])
+        for name in ("arbeitsagentur", "djinni", "remotive"):
+            settings["market"]["enabled"][name] = True
+        service.save_settings(self.folder, settings)
+        calls = {}
+
+        def search(name, queries, country, **options):
+            calls[name] = (country, queries)
+            return market.ProviderRun(name)
+        with patch("norway_job_agent.market.search_provider", side_effect=search):
+            service.collect(self.folder)
+        # Norway is the view; Germany and Ukraine are still collected.
+        self.assertEqual(calls["arbeitsagentur"], ("DE", ["Datenwissenschaftler", "Data Engineer"]))
+        self.assertEqual(calls["djinni"][0], "UA")
+        self.assertEqual(calls["remotive"][0], "")
+
     def test_collect_everything_can_be_switched_off(self):
         settings = service.read_settings(self.folder)
         self.assertTrue(settings["market"]["collect_everything"])

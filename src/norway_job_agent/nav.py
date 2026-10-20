@@ -23,9 +23,10 @@ from email.utils import format_datetime
 from urllib.parse import quote, urljoin, urlsplit, urlunsplit
 from uuid import UUID
 
+from . import sources
 from .sources import (
-    MAX_RESPONSE_BYTES, TIMEOUT_SECONDS, USER_AGENT, SourceError,
-    _job, _link, _plain, _public_addresses,
+    MAX_RESPONSE_BYTES, TIMEOUT_SECONDS, TOTAL_SECONDS, USER_AGENT, SourceError,
+    _TransientSourceError, _cut_off, _job, _link, _plain, _public_addresses,
 )
 
 NAV_HOST = "pam-stilling-feed.nav.no"
@@ -68,7 +69,7 @@ def _request_nav_once(url: str, token: str | None, headers: dict[str, str]):
     url = _nav_url(url)  # Must occur before constructing any bearer header.
     parts = urlsplit(url)
     addresses = _public_addresses(NAV_HOST, 443)
-    deadline = time.monotonic() + TIMEOUT_SECONDS
+    deadline = time.monotonic() + TOTAL_SECONDS
 
     def connect(_address, timeout=TIMEOUT_SECONDS, source_address=None):
         last_error = None
@@ -77,7 +78,7 @@ def _request_nav_once(url: str, token: str | None, headers: dict[str, str]):
             if remaining <= 0:
                 raise TimeoutError("NAV request timed out")
             try:
-                return socket.create_connection((address, 443), remaining, source_address)
+                return socket.create_connection((address, 443), min(TIMEOUT_SECONDS, remaining), source_address)
             except OSError as exc:
                 last_error = exc
         raise last_error or OSError("Cannot connect to NAV")
@@ -110,9 +111,9 @@ def _request_nav_once(url: str, token: str | None, headers: dict[str, str]):
         while True:
             remaining = deadline - time.monotonic()
             if remaining <= 0:
-                raise SourceError("NAV request timed out; the checkpoint was not advanced.")
+                raise _TransientSourceError("NAV request timed out; the checkpoint was not advanced.")
             if connection.sock is not None:
-                connection.sock.settimeout(remaining)
+                connection.sock.settimeout(min(TIMEOUT_SECONDS, remaining))
             chunk = response.read1(min(65536, MAX_RESPONSE_BYTES + 1 - total))
             if not chunk:
                 break
@@ -120,20 +121,35 @@ def _request_nav_once(url: str, token: str | None, headers: dict[str, str]):
             if total > MAX_RESPONSE_BYTES:
                 raise SourceError("NAV response exceeds the 2 MB download limit.")
             chunks.append(chunk)
+        if _cut_off(response):
+            raise _TransientSourceError("The download from NAV was cut off; try again later.")
         return response.status, response_headers, b"".join(chunks)
     except SourceError:
         raise
-    except (OSError, ValueError, http.client.HTTPException) as exc:
+    except (OSError, http.client.HTTPException) as exc:
+        raise _TransientSourceError("Could not download from NAV; check connectivity or try again later.") from exc
+    except ValueError as exc:
         raise SourceError("Could not download from NAV; check connectivity or try again later.") from exc
     finally:
         connection.close()
+
+
+def _request_nav_retrying(url: str, token: str | None, headers: dict[str, str]):
+    """NAV GETs are idempotent; a dropped connection is retried like other sources."""
+    for attempt in range(sources.MAX_ATTEMPTS):
+        try:
+            return _request_nav_once(url, token, headers)
+        except _TransientSourceError:
+            if attempt + 1 >= sources.MAX_ATTEMPTS:
+                raise
+            time.sleep(sources.retry_pause(attempt))
 
 
 def _fetch_nav(url: str, token: str | None, headers: dict[str, str] | None = None):
     current = _nav_url(url)
     conditions = dict(headers or {})
     for _ in range(6):
-        status, response_headers, body = _request_nav_once(current, token, conditions)
+        status, response_headers, body = _request_nav_retrying(current, token, conditions)
         if status in {301, 302, 303, 307, 308}:
             current = _nav_url(response_headers.get("location", ""), current)
             conditions = {}  # Validators belong to the original resource.

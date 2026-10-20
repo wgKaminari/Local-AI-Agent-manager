@@ -223,6 +223,55 @@ class NavIndexTests(unittest.TestCase):
             self.assertEqual(index.cursor()["url"], "https://pam-stilling-feed.nav.no/api/v1/feed/p2")
             self.assertEqual(index.counts()["active"], 1)
 
+    def test_a_feed_that_stops_answering_still_loads_adverts_already_indexed(self):
+        # A busy all-country refresh once lost every NAV advert because one
+        # feed page did not arrive.
+        service.initialize(self.folder)
+        first = feed_page([(U1, "ACTIVE", "Data Scientist", "v1")], next_url="/api/v1/feed/p2")
+        dropped = sources._TransientSourceError("Could not download from NAV; check connectivity or try again later.")
+        with patch("norway_job_agent.nav._fetch_nav", side_effect=[first, dropped, nav_detail(U1, "Data Scientist")]):
+            report = service.collect(self.folder)
+        nav = report["sources"][0]
+        self.assertTrue(nav["ok"], nav)
+        self.assertEqual((nav["created"], nav["has_more"]), (1, True))
+        self.assertIn("stopped answering", nav["coverage"])
+        with nav_index.NavIndex(self.folder) as index:
+            self.assertEqual(index.cursor()["url"], "https://pam-stilling-feed.nav.no/api/v1/feed/p2")
+        # With nothing read at all the error is still reported.
+        with patch("norway_job_agent.nav._fetch_nav", side_effect=dropped), \
+                self.assertRaisesRegex(SourceError, "Could not download from NAV"):
+            nav_index.sync(self.folder)
+
+    def test_failed_advert_downloads_are_reported_and_retried_next_refresh(self):
+        page = feed_page([(U1, "ACTIVE", "DevOps Engineer", "v1"), (U2, "ACTIVE", "DevOps Lead", "v1")])
+        with patch("norway_job_agent.nav._fetch_nav", return_value=page):
+            nav_index.sync(self.folder)
+        candidates = nav_index.find(self.folder, ["DevOps"])
+        dropped = sources._TransientSourceError("Could not download from NAV; check connectivity or try again later.")
+
+        def detail(url, token, headers=None):
+            if url.endswith(U2):
+                raise dropped
+            return nav_detail(U1, "DevOps Engineer")
+        with patch("norway_job_agent.nav._fetch_nav", side_effect=detail):
+            loaded = nav_index.hydrate(self.folder, candidates)
+        self.assertEqual([job["source_id"] for job in loaded["jobs"]], [U1])
+        self.assertEqual((loaded["failed"], loaded["remaining"]), (1, 1))
+        self.assertIn("Could not download", loaded["failure"])
+        nav_index.mark_hydrated(self.folder, loaded["marks"])
+        self.assertEqual([item["uuid"] for item in nav_index.find(self.folder, ["DevOps"])], [U2])
+
+    def test_rate_limiting_stops_advert_downloads_for_this_run(self):
+        entries = [(f"{index:08d}-1111-4111-8111-111111111111", "ACTIVE", f"DevOps {index}", "v1") for index in range(300)]
+        with patch("norway_job_agent.nav._fetch_nav", return_value=feed_page(entries)):
+            nav_index.sync(self.folder)
+        candidates = nav_index.find(self.folder, ["DevOps"])
+        limited = SourceError("NAV is rate limiting requests; retry later. The checkpoint was not advanced.")
+        with patch("norway_job_agent.nav._fetch_nav", side_effect=limited) as request:
+            loaded = nav_index.hydrate(self.folder, candidates)
+        self.assertEqual(request.call_count, 120)  # one batch, not all 300
+        self.assertEqual((loaded["failed"], loaded["remaining"]), (120, 300))
+
     def test_any_new_search_matches_all_indexed_titles_and_confirms_in_full_text(self):
         page = feed_page([(U1, "ACTIVE", "DevOps Engineer", "v1"), (U2, "ACTIVE", "Barnehagelærer", "v1"),
                           (U3, "ACTIVE", "Senior DevOps-utvikler", "v1")])
@@ -366,9 +415,57 @@ class RoleMatchingTests(unittest.TestCase):
         for title in ("KI-Entwickler (m/w/d)", "Datenwissenschaftler*in", "ML-Ingenieur"):
             self.assertEqual(match_job({"title": title}, self.profile)["track"], "target", title)
 
+    def test_jobs_in_your_field_count_as_related_roles(self):
+        profile = {"target_roles": ["Machine Learning Engineer", "Data Scientist"], "related_roles": ["Statistician"],
+                   "skills": ["Python"], "years_of_experience": 2.5}
+        cases = {
+            ("Software Engineer, Applied AI Solutions", ""): "horizon",
+            ("PhD Candidate in Maritime AI", "Research"): "horizon",
+            ("Machine Learning Fellow", ""): "horizon",
+            ("Statistikar innan arbeidsmarknad", ""): "horizon",
+            ("Software Engineer", "We train machine learning models with PyTorch and LLMs for NLP."): "horizon",
+            ("Software Engineer", "Java and Spring services."): "other",
+            ("Senior Product Manager, AI Studio", ""): "other",
+            ("AI Sales Director", "machine learning"): "other",
+            ("Jurist innen kunstig intelligens", ""): "other",
+        }
+        for (title, text), track in cases.items():
+            with self.subTest(title=title):
+                self.assertEqual(match_job({"title": title, "description": text}, profile)["track"], track)
+
+    def test_related_roles_get_role_credit_instead_of_a_41_percent_ceiling(self):
+        profile = {"target_roles": ["Data Scientist"], "related_roles": ["Data Analyst"], "skills": ["Python", "SQL"]}
+        result = match_job({"title": "Data Analyst", "description": "Python and SQL"}, profile)
+        self.assertEqual(result["track"], "horizon")
+        self.assertGreaterEqual(result["score"], 80)
+
+    def test_ambiguous_skills_need_supporting_context(self):
+        profile = {"skills": ["PPO", "R", "Regression"]}
+        benefits = match_job({"title": "Engineer", "description": "Medical PPO plan. Regression testing of R&D builds."}, profile)
+        self.assertEqual(benefits["matched_skills"], [])
+        research = match_job({"title": "Engineer", "description": "Reinforcement learning with PPO; statistics in R; regression models."}, profile)
+        self.assertEqual(research["matched_skills"], ["PPO", "R", "Regression"])
+
+    def test_country_views_put_local_jobs_before_remote_anywhere_ones(self):
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        folder = Path(temporary.name)
+        service.initialize(folder)
+        profile = service.read_profile(folder)
+        profile.update(target_roles=["Data Scientist"], skills=["Python"])
+        service.save_profile(folder, profile)
+        service.import_vacancy(folder, board_job("remotive", "r1", title="Data Scientist", location="Remote (Worldwide)",
+                                                 description="Python", countries=["NO", "DE"]))
+        service.import_vacancy(folder, board_job("manual", "l1", title="Data Scientist", company="Local AS", location="Oslo, Norway",
+                                                 description="", countries=["NO"]))
+        titles = [job["location"] for job in service.list_page(folder, view="for-you", country="NO")["jobs"]]
+        self.assertEqual(titles, ["Oslo, Norway", "Remote (Worldwide)"])
+
     def test_long_skill_lists_do_not_dilute_the_score(self):
-        skills = ["Python", "SQL", "Docker", "Git", "Linux"] + [f"Skill {index}" for index in range(12)]
-        result = match_job({"title": "Engineer", "description": "Python, SQL, Docker, Git and Linux"}, {"skills": skills})
+        skills = ["Python", "SQL", "Docker", "Git", "Linux", "AWS", "pandas", "PyTorch"] + [f"Skill {index}" for index in range(98)]
+        result = match_job({"title": "Engineer", "description": "Python, SQL, Docker, Git, Linux, AWS, pandas and PyTorch"},
+                           {"skills": skills})
+        # Eight of 106 skills is full skill credit.
         self.assertEqual(result["score"], 100)
 
 

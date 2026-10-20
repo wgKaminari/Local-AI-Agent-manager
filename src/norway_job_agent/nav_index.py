@@ -18,6 +18,7 @@ from __future__ import annotations
 import json
 import sqlite3
 import time
+from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 from email.utils import format_datetime
@@ -25,7 +26,7 @@ from pathlib import Path
 
 from . import nav
 from .profile import _role_terms, _role_text, contains_phrase
-from .sources import SourceError
+from .sources import SourceError, _TransientSourceError
 
 INDEX_FILE = "market-index.db"
 LOOKBACK_DAYS = 90
@@ -119,14 +120,22 @@ def sync(data_dir: Path, *, token: str | None = None, progress=None,
                   "last_modified": nav._header(state.get("last_modified", "") or ("" if state.get("url") else initial)),
                   "initial_since": nav._header(initial)}
         pages = events = 0
-        has_more, visited = False, set()
+        has_more, visited, interrupted = False, set(), ""
         for _ in range(max_pages):
             current = cursor["url"]
             if current in visited:
                 raise SourceError("NAV repeated a feed page; the saved position was kept.")
             visited.add(current)
             conditions = {key: cursor[field] for key, field in (("If-None-Match", "etag"), ("If-Modified-Since", "last_modified")) if cursor[field]}
-            status, headers, body, final_url = nav._fetch_nav(current, access_token, conditions)
+            try:
+                status, headers, body, final_url = nav._fetch_nav(current, access_token, conditions)
+            except _TransientSourceError as exc:
+                if not pages:
+                    raise
+                # Pages read so far are saved; the next refresh resumes here
+                # and this one still loads adverts from the index.
+                has_more, interrupted = True, str(exc)
+                break
             pages += 1
             if status == 304:
                 for field, header in (("etag", "etag"), ("last_modified", "last-modified")):
@@ -165,7 +174,8 @@ def sync(data_dir: Path, *, token: str | None = None, progress=None,
             if not has_more or time.monotonic() - started > seconds:
                 break
         counts = index.counts()
-    return {"pages": pages, "events": events, "has_more": has_more, "experimental_token": experimental, **counts}
+    return {"pages": pages, "events": events, "has_more": has_more, "interrupted": interrupted,
+            "experimental_token": experimental, **counts}
 
 
 def _title_candidate(folded_title: str, query: str, tokens: list[str]) -> bool:
@@ -220,8 +230,12 @@ def hydrate(data_dir: Path, candidates: list[dict], *, token: str | None = None,
     """Download full adverts for candidates. Network only; nothing is marked.
 
     Every downloaded active advert is kept; the searches it answers become
-    its tags. Returns jobs, withdrawn ids, the remaining candidate count and
-    the marks to record with mark_hydrated once the jobs are safely stored.
+    its tags. Returns jobs, withdrawn ids, the remaining candidate count, the
+    marks to record with mark_hydrated once the jobs are safely stored, and
+    how many downloads failed with the most common reason. Failed adverts
+    stay unmarked and load on the next refresh. If NAV rate-limits or rejects
+    the token, the run stops instead of repeating the request thousands of
+    times.
     """
     from .market import matches_query
     access_token, _ = nav._get_token(token)
@@ -238,14 +252,18 @@ def hydrate(data_dir: Path, candidates: list[dict], *, token: str | None = None,
             return candidate, None, str(exc)
 
     jobs, withdrawn, hydrated = [], [], []
+    failures: Counter = Counter()
     done = 0
     with ThreadPoolExecutor(max_workers=DETAIL_WORKERS, thread_name_prefix="nav-detail") as pool:
         for start in range(0, len(selected), 120):
-            if time.monotonic() - started > seconds:
+            if time.monotonic() - started > seconds or _stops_run(failures):
                 break
             for candidate, job, error in pool.map(load, selected[start:start + 120]):
                 done += 1
-                if error == "missing" or (error is None and job is None):
+                if error not in {None, "missing"}:
+                    failures[error] += 1
+                    continue
+                if error == "missing" or job is None:
                     withdrawn.append(candidate["uuid"])
                 elif job is not None:
                     # Multi-word searches are confirmed against the full advert.
@@ -255,7 +273,13 @@ def hydrate(data_dir: Path, candidates: list[dict], *, token: str | None = None,
                     hydrated.append((candidate["modified"], json.dumps(candidate["checked"][-50:]), candidate["uuid"]))
             if progress is not None:
                 progress(f"Loading NAV adverts… {done:,} of {len(selected):,}.")
-    return {"jobs": jobs, "withdrawn": withdrawn, "remaining": max(0, len(candidates) - done), "marks": hydrated}
+    failed = sum(failures.values())
+    return {"jobs": jobs, "withdrawn": withdrawn, "remaining": max(0, len(candidates) - done) + failed,
+            "marks": hydrated, "failed": failed, "failure": failures.most_common(1)[0][0] if failures else ""}
+
+
+def _stops_run(failures: Counter) -> bool:
+    return any("rate limiting" in reason or "access token" in reason for reason in failures)
 
 
 def mark_hydrated(data_dir: Path, marks: list[tuple[str, str, str]]) -> None:

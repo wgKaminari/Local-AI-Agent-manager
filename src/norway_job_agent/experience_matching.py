@@ -109,6 +109,8 @@ def _clauses(value):
     return parts
 
 
+# A stated minimum this many years above yours is a stretch, not a mismatch.
+STRETCH_YEARS = 1.0
 _REQUIREMENT_CACHE: OrderedDict[bytes, tuple[dict, ...]] = OrderedDict()
 _REQUIREMENT_CACHE_LIMIT = 20000
 _requirement_cache_lock = threading.Lock()
@@ -282,9 +284,14 @@ def assess_experience(job, candidate_years=None):
     requirements = experience_requirements(str(job.get("description") or ""))
     required = [item["years"] for item in requirements if item["kind"] == "required"]
     minimum = max(required) if required else None
-    reasons, mismatch = [], False
+    reasons, mismatch, stretch = [], False, False
     if candidate_years is None:
         reasons.append("Add your years of professional experience to screen experience requirements; nothing was inferred from your CV.")
+    elif minimum is not None and candidate_years < minimum and minimum - candidate_years <= STRETCH_YEARS:
+        # A small gap is commonly worth applying for when the rest fits.
+        stretch = True
+        reasons.append(f"The posting asks for {minimum:g} years; you recorded {candidate_years:g}. A stretch of "
+                       f"{minimum - candidate_years:g} year{'' if minimum - candidate_years == 1 else 's'}: worth applying if the rest fits.")
     elif minimum is not None and candidate_years < minimum:
         mismatch = True
         reasons.append(f"The posting asks for at least {minimum:g} years of experience; you recorded {candidate_years:g}.")
@@ -295,7 +302,7 @@ def assess_experience(job, candidate_years=None):
     if title_match and guideline is not None:
         if mixed_level:
             reasons.append("The title includes more than one experience level; review which opening applies to you.")
-        elif candidate_years is not None and candidate_years < guideline and (minimum is None or candidate_years < minimum):
+        elif candidate_years is not None and candidate_years < guideline and (minimum is None or (candidate_years < minimum and not stretch)):
             mismatch = True
             reasons.append(f"The title signals {level} scope ('{title_match.group(0)}'), usually beyond {candidate_years:g} years. This is a title-screening guideline, not an employer-stated minimum.")
         else:
@@ -304,7 +311,7 @@ def assess_experience(job, candidate_years=None):
         reasons.append("Preferred experience is shown for review and does not create a hard exclusion.")
     if any(item["kind"] == "alternative" for item in requirements):
         reasons.append("Alternative or ambiguous experience requirements need review; equivalent qualifications were not inferred.")
-    status = "mismatch" if mismatch else "no_conflict" if candidate_years is not None and minimum is not None and not mixed_level and not any(item["kind"] == "alternative" for item in requirements) and guideline is None else "review"
+    status = "mismatch" if mismatch else "stretch" if stretch else "no_conflict" if candidate_years is not None and minimum is not None and not mixed_level and not any(item["kind"] == "alternative" for item in requirements) and guideline is None else "review"
     return {"status": status, "candidate_years": candidate_years, "minimum_years": minimum,
             "seniority": level, "title_experience_guideline": guideline,
             "requirements": requirements, "reasons": reasons}

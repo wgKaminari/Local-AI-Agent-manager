@@ -26,9 +26,15 @@ from .countries import country_code
 
 MAX_RESPONSE_BYTES = 2 * 1024 * 1024
 MAX_ATS_RESPONSE_BYTES = 20 * 1024 * 1024
-TIMEOUT_SECONDS = 15
+# TIMEOUT_SECONDS bounds connecting and any silence while a response
+# arrives; TOTAL_SECONDS bounds a whole download. A refresh runs many
+# downloads at once, so a large board can take longer than 15 seconds in
+# total while data keeps arriving; that is slow, not broken.
+TIMEOUT_SECONDS = 20
+TOTAL_SECONDS = 120
 MAX_REDIRECTS = 5
 RETRY_PAUSE_SECONDS = 1.0
+MAX_ATTEMPTS = 3
 USER_AGENT = "PersonalJobAgent/0.5"
 _BOARD = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,99}\Z")
 _BLOCKED_HOSTS = ("linkedin.com", "finn.no")
@@ -73,7 +79,9 @@ def _public_addresses(host: str, port: int) -> list[str]:
             result[4][0] for result in socket.getaddrinfo(host, port, type=socket.SOCK_STREAM)
         ))
     except OSError as exc:
-        raise SourceError(f"Cannot resolve {host}; check the URL and internet connection.") from exc
+        # A busy refresh can make the system resolver fail briefly; a GET
+        # retries it like a dropped connection.
+        raise _TransientSourceError(f"Cannot resolve {host}; check the URL and internet connection.") from exc
     if not addresses:
         raise SourceError(f"No network address was found for {host}.")
     for address in addresses:
@@ -107,7 +115,7 @@ def _request_once(url: str, *, method: str = "GET", body: bytes | None = None,
     budget_label = f"{max_response_bytes / (1024 * 1024):g} MB"
     parts, host, port = _url_parts(url, allow_restricted=allow_restricted)
     addresses = _public_addresses(host, port)
-    deadline = time.monotonic() + TIMEOUT_SECONDS
+    deadline = time.monotonic() + TOTAL_SECONDS
 
     def connect(_address, timeout=TIMEOUT_SECONDS, source_address=None):
         last_error = None
@@ -116,7 +124,7 @@ def _request_once(url: str, *, method: str = "GET", body: bytes | None = None,
             if remaining <= 0:
                 raise TimeoutError("Source request timed out")
             try:
-                return socket.create_connection((address, port), remaining, source_address)
+                return socket.create_connection((address, port), min(TIMEOUT_SECONDS, remaining), source_address)
             except OSError as exc:
                 last_error = exc
         raise last_error or OSError("Unable to connect")
@@ -153,7 +161,7 @@ def _request_once(url: str, *, method: str = "GET", body: bytes | None = None,
             if remaining <= 0:
                 raise _TransientSourceError("The source request timed out; try again later.")
             if connection.sock is not None:
-                connection.sock.settimeout(remaining)
+                connection.sock.settimeout(min(TIMEOUT_SECONDS, remaining))
             chunk = response.read1(min(65536, max_response_bytes + 1 - total))
             if not chunk:
                 break
@@ -161,6 +169,8 @@ def _request_once(url: str, *, method: str = "GET", body: bytes | None = None,
             if total > max_response_bytes:
                 raise SourceError(f"The source response exceeds the {budget_label} download limit.")
             chunks.append(chunk)
+        if _cut_off(response):
+            raise _TransientSourceError(f"The download from {host} was cut off; try again later.")
         return response.status, headers, b"".join(chunks)
     except SourceError:
         raise
@@ -170,6 +180,17 @@ def _request_once(url: str, *, method: str = "GET", body: bytes | None = None,
         raise SourceError(f"Could not download from {host}; check connectivity or try again later.") from exc
     finally:
         connection.close()
+
+
+def _cut_off(response) -> bool:
+    """True when the server closed before sending its whole Content-Length.
+
+    http.client's read1 then returns b"" instead of raising, so a busy refresh
+    once saved half of a 10 MB board and reported invalid JSON. A cut-off
+    chunked body raises IncompleteRead and is handled as a dropped connection.
+    """
+    remaining = getattr(response, "length", None)
+    return isinstance(remaining, int) and not isinstance(remaining, bool) and remaining > 0
 
 
 def _check_robots(url: str, cache: dict[str, RobotFileParser | None]) -> None:
@@ -200,13 +221,15 @@ def _check_robots(url: str, cache: dict[str, RobotFileParser | None]) -> None:
 
 def _request_retrying(url: str, method: str, body: bytes | None, max_response_bytes: int,
                       headers: dict[str, str] | None = None, allow_restricted: bool = False):
-    """One request; a GET that failed at the connection level is retried once.
+    """One request; a GET that failed at the connection level is retried.
 
     A single dropped connection previously failed a whole multi-page career
-    scan. HTTP status responses, including 429 and 5xx, are never retried, and
-    neither are POST listing searches.
+    scan, and a busy refresh drops more than one. A GET gets MAX_ATTEMPTS
+    tries with growing pauses (1 s, then 4 s). HTTP status responses,
+    including 429 and 5xx, are never retried, and neither are POST listing
+    searches.
     """
-    for attempt in range(2):
+    for attempt in range(MAX_ATTEMPTS):
         try:
             if headers or allow_restricted:
                 return _request_once(url, method=method, body=body, max_response_bytes=max_response_bytes,
@@ -217,9 +240,14 @@ def _request_retrying(url: str, method: str, body: bytes | None, max_response_by
                 return _request_once(url)
             return _request_once(url, method=method, body=body)
         except _TransientSourceError:
-            if attempt or method != "GET":
+            if attempt + 1 >= MAX_ATTEMPTS or method != "GET":
                 raise
-            time.sleep(RETRY_PAUSE_SECONDS)
+            time.sleep(retry_pause(attempt))
+
+
+def retry_pause(attempt: int) -> float:
+    """Pause before retry number attempt + 1: 1 s, then 4 s."""
+    return RETRY_PAUSE_SECONDS * (1 + 3 * attempt)
 
 
 def _fetch(url: str, *, respect_robots: bool = False, allow_missing: bool = False,

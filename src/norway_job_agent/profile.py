@@ -24,9 +24,9 @@ _ROLE_ALIASES = (
      "ml інженер", "інженер з машинного навчання", "ai/ml engineer", "ai / ml engineer", "ai and ml engineer", "ai & ml engineer"),
     ("applied scientist", "applied ai scientist", "applied machine learning scientist"),
     ("data engineer", "dataingeniør", "data ingeniør", "dateningenieur", "інженер даних"),
-    ("data analyst", "dataanalytiker", "data analytiker", "datenanalyst", "datenanalystin", "аналітик даних"),
-    ("mathematician", "matematiker", "mathematiker", "mathematikerin", "математик"),
-    ("statistician", "statistiker", "statistikerin", "статистик"),
+    ("data analyst", "dataanalytiker", "dataanalytikar", "data analytiker", "datenanalyst", "datenanalystin", "аналітик даних"),
+    ("mathematician", "matematiker", "matematikar", "mathematiker", "mathematikerin", "математик"),
+    ("statistician", "statistiker", "statistikar", "statistikerin", "статистик"),
 )
 # Titles close to a target field: recommended as related roles, never claimed
 # as the target itself. Each group applies only when the profile targets one
@@ -51,7 +51,60 @@ _ROLE_NEIGHBOURS = (
 )
 # A skill score counts at most this many skills, so a long skill list does not
 # make every advert look like a weak fit.
-_SKILL_SCORE_CAP = 5
+_SKILL_SCORE_CAP = 8
+# Your field, from your target roles. A title naming it ("Software Engineer,
+# Applied AI") or an advert centred on it counts as a related role even when
+# no target title matches. Acronyms match only as written, in capitals.
+_FIELDS = (
+    (("machine learning engineer", "ml engineer", "ai engineer", "artificial intelligence", "maskinlæring",
+      "kunstig intelligens", "data scientist", "data science"),
+     ("machine learning", "maskinlæring", "maschinelles lernen", "machine-learning", "deep learning", "dyp læring",
+      "artificial intelligence", "kunstig intelligens", "künstliche intelligenz", "штучний інтелект", "машинне навчання",
+      "generative ai", "large language model", "large language models", "natural language processing",
+      "computer vision", "reinforcement learning", "neural network", "neural networks", "nevrale nettverk",
+      "ai agents", "ai agent", "agentic", "retrieval-augmented", "pytorch", "tensorflow", "scikit-learn", "mlops"),
+     ("AI", "KI", "ML", "LLM", "LLMs", "NLP", "RAG", "GenAI", "ШІ"), "machine learning and AI"),
+    (("data scientist", "data science", "dataviter", "data analyst", "statistician", "quantitative analyst"),
+     ("data science", "data scientist", "dataviter", "datenwissenschaft", "data analysis", "dataanalyse", "datenanalyse",
+      "statistical modelling", "statistical modeling", "statistisk modellering", "predictive modelling",
+      "predictive modeling", "statistics", "statistikk", "statistik", "статистика", "forecasting", "prognoser",
+      "econometrics", "causal inference", "a/b testing", "experimentation", "bayesian", "analytics", "dataanalytiker",
+      "аналіз даних", "time series"),
+     (), "data science and statistics"),
+    (("mathematician", "matematiker", "statistician"),
+     ("mathematical modelling", "mathematical modeling", "matematisk modellering", "mathematik", "mathematics",
+      "matematikk", "математика", "operations research", "numerical", "stochastic", "stokastisk", "quantitative",
+      "kvantitativ", "actuarial", "aktuar", "optimization", "optimisation", "optimering"),
+     (), "mathematics"),
+)
+# Words that make a title a hands-on technical role, and titles that are not
+# one even when they mention AI or data (product, sales, legal, management…).
+_TECHNICAL_TITLE = re.compile(
+    r"engineer|ingeniør|ingenieur|scientist|forsker|forskar|research|utvikler|utviklar|developer|entwickler|programmer|programmerer|"
+    r"analyst|analytiker|analytikar|specialist|spesialist|spezialist|architect|arkitekt|consultant|konsulent|berater|rådgiver|rådgjevar|"
+    r"expert|ekspert|statistician|statistiker|statistikar|mathematician|matematiker|matematikar|modell?er|stipendiat|\bphd\b|postdoc|fellow|"
+    r"werkstudent|trainee|graduate|intern\b|praktikant|інженер|розробник|аналітик|науковець|дослідник|"
+    r"инженер|разработчик|аналитик", re.I)
+_NON_TECHNICAL_TITLE = re.compile(
+    r"product (?:manager|owner|lead|marketing)|project manager|program(?:me)? manager|\bsales\b|account (?:manager|executive)|"
+    r"marketing|recruit|talent|\bhr\b|people partner|legal|jurist|lawyer|counsel|advokat|finance|controller|accountant|"
+    r"regnskap|designer|\bdesign\b|customer success|support|community|communications|kommunikasjon|journalist|"
+    r"\bmanager\b|director|\bhead of\b|\bvp\b|vice president|chief|leder\b|teacher|lærer|nurse|sykepleier", re.I)
+# Skills whose words mean something else in many adverts ("PPO plan",
+# "regression testing", a stray "R"): they count only with supporting context.
+_SKILL_CONTEXT = {
+    "ppo": ("reinforcement", "policy optimization"), "sac": ("reinforcement", "actor-critic", "actor critic"),
+    "td3": ("reinforcement",), "a2c": ("reinforcement", "actor-critic", "actor critic"),
+    "r": ("rstudio", "tidyverse", "cran", "ggplot", "statistic", "programming", "python", " sas", "spss"),
+    "stan": ("bayesian", "probabilistic", "mcmc", "pymc"),
+    "regression": ("model", "statistic", "machine learning", "linear", "logistic", "forecast"),
+    "classification": ("model", "machine learning", "classifier", "supervised", "neural"),
+    "optimization": ("mathematical", "numerical", "convex", "algorithm", "solver", "operations research", "model"),
+    "clustering": ("model", "machine learning", "unsupervised", "k-means", "statistic"),
+    "logging": ("software", "observability", "monitoring", "devops", "metrics"),
+}
+_ROLE_FIT = {"target": 1.0, "close": 0.8, "related": 0.7, "title_field": 0.6, "advert_field": 0.45}
+_EXPERIENCE_FIT = {"no_conflict": 1.0, "review": 0.8, "stretch": 0.6, "mismatch": 0.1}
 
 
 _ROLE_SEPARATORS = re.compile(r"[-‐‑‒–—_,:]+")
@@ -281,6 +334,38 @@ def _neighbour_labels(normalized_title: str, folded_title: str, profile: dict) -
             if any(contains_phrase(normalized_title, title, folded_text=folded_title) for title in titles)]
 
 
+@lru_cache(maxsize=256)
+def _active_fields(targets: tuple[str, ...]) -> tuple[tuple[tuple[str, ...], tuple[str, ...], str], ...]:
+    folded = {term for role in targets for term in _role_terms(role)}
+    return tuple((phrases, acronyms, label) for fields, phrases, acronyms, label in _FIELDS if folded.intersection(fields))
+
+
+@lru_cache(maxsize=512)
+def _acronym_pattern(acronym: str):
+    return re.compile(r"(?<![\w])" + re.escape(acronym) + r"(?![\w])")
+
+
+def _field_terms(text: str, folded: str, fields) -> list[str]:
+    found = []
+    for phrases, acronyms, _ in fields:
+        found += [phrase for phrase in phrases if _phrase_hint(phrase) in folded and contains_phrase(text, phrase, folded_text=folded)]
+        found += [acronym for acronym in acronyms if acronym in text and _acronym_pattern(acronym).search(text)]
+    return list(dict.fromkeys(found))
+
+
+def _skill_found(skill: str, body: str, folded: str) -> bool:
+    if not contains_phrase(body, skill, folded_text=folded):
+        return False
+    context = _SKILL_CONTEXT.get(skill.strip().casefold())
+    if context is None:
+        return True
+    if skill.strip().casefold() == "r":
+        # A single capital R beside other tools, not a stray initial or "R&D".
+        if not re.search(r"(?<![\w&])R(?![\w&])", body):
+            return False
+    return any(term in folded for term in context)
+
+
 def match_job(job: dict, profile: dict, today: date | None = None, *, recommendations_only: bool = False) -> dict | None:
     """Return matching evidence, or skip an unrelated title when requested.
 
@@ -315,25 +400,57 @@ def match_job(job: dict, profile: dict, today: date | None = None, *, recommenda
     if academic_title and research_overlap:
         related_roles = list(dict.fromkeys([*related_roles, "Research in a related field"]))
         matched_roles = []
-    if not matched_roles:
-        related_roles = list(dict.fromkeys([*related_roles, *_neighbour_labels(normalized_title, folded_title, profile)]))
+    close_roles = _neighbour_labels(normalized_title, folded_title, profile) if not matched_roles else []
+    # Your field in the title, or an advert centred on it, for hands-on roles.
+    fields = _active_fields(tuple(profile.get("target_roles", [])))
+    field_in_title, field_in_advert = [], []
+    if fields and not matched_roles and not related_roles and not close_roles and _TECHNICAL_TITLE.search(title) \
+            and not _NON_TECHNICAL_TITLE.search(title):
+        field_in_title = _field_terms(title, _search_hint(title), fields)
+        if not field_in_title:
+            description = str(job.get("description") or "")
+            field_in_advert = _field_terms(description, _search_hint(description), fields)
+            if len(field_in_advert) < 3:
+                field_in_advert = []
+    if matched_roles:
+        role_kind = "target"
+    elif close_roles:
+        role_kind = "close"
+    elif related_roles:
+        role_kind = "related"
+    elif field_in_title:
+        role_kind = "title_field"
+    elif field_in_advert:
+        role_kind = "advert_field"
+    else:
+        role_kind = None
+    if close_roles:
+        related_roles = list(dict.fromkeys([*related_roles, *close_roles]))
+    if field_in_title:
+        related_roles.append("Your field in the title: " + ", ".join(field_in_title[:3]))
+    elif field_in_advert:
+        related_roles.append("The advert centres on your field: " + ", ".join(field_in_advert[:4]))
     if recommendations_only and not (matched_roles or related_roles):
         return None
     search_body = _search_hint(body)
-    matched_skills = [x for x in profile.get("skills", []) if contains_phrase(body, x, folded_text=search_body)]
+    matched_skills = [x for x in profile.get("skills", []) if _skill_found(x, body, search_body)]
     matched_locations = [x for x in profile.get("preferred_locations", []) if contains_phrase(location, x)]
     exclusions = [x for x in profile.get("excluded_keywords", []) if contains_phrase(body, x, folded_text=search_body)]
-    if profile.get("target_roles"):
-        configured.append((50, 1.0 if matched_roles else 0.0))
-    if profile.get("skills"):
-        configured.append((35, min(1.0, len(matched_skills) / min(len(profile["skills"]), _SKILL_SCORE_CAP))))
-    if profile.get("preferred_locations"):
-        configured.append((15, 1.0 if matched_locations else 0.0))
-    score = round(100 * sum(weight * ratio for weight, ratio in configured) / sum(weight for weight, _ in configured)) if configured else None
     warnings = []
     from .experience_matching import assess_experience
     experience = assess_experience(job, profile.get("years_of_experience"))
     warnings.extend(experience["reasons"])
+    # Role fit carries half the score, so related roles and adverts in your
+    # field rank well instead of scoring at most 41%.
+    if profile.get("target_roles") or profile.get("related_roles"):
+        configured.append((50, _ROLE_FIT.get(role_kind, 0.0)))
+    if profile.get("skills"):
+        configured.append((30, min(1.0, len(matched_skills) / min(len(profile["skills"]), _SKILL_SCORE_CAP))))
+    if experience["candidate_years"] is not None:
+        configured.append((20, _EXPERIENCE_FIT.get(experience["status"], 0.8)))
+    if profile.get("preferred_locations"):
+        configured.append((10, 1.0 if matched_locations else 0.0))
+    score = round(100 * sum(weight * ratio for weight, ratio in configured) / sum(weight for weight, _ in configured)) if configured else None
     countries = job_countries(job)
     if not countries:
         warnings.append("Country is unknown; a remote label does not establish where you can work.")
@@ -369,11 +486,13 @@ def match_job(job: dict, profile: dict, today: date | None = None, *, recommenda
     reasons = []
     if matched_roles:
         reasons.append("Target title: " + ", ".join(matched_roles))
-    if related_roles and not matched_roles:
+    if role_kind in {"title_field", "advert_field"}:
+        reasons.append(related_roles[-1])
+    elif related_roles and not matched_roles:
         reasons.append("Related to your target fields: " + ", ".join(related_roles))
     if matched_skills:
         reasons.append("Skill terms: " + ", ".join(matched_skills))
-    return {"score": score, "method": "keyword_overlap", "matched_roles": matched_roles,
+    return {"score": score, "method": "role_skill_experience_fit", "role_fit": role_kind or "none", "matched_roles": matched_roles,
             "matched_skills": matched_skills, "matched_locations": matched_locations,
             "excluded_terms": exclusions, "expired": expired, "warnings": warnings,
             "track": track, "reasons": reasons, "related_roles": related_roles,

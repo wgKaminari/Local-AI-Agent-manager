@@ -249,6 +249,54 @@ class NavTransportTests(unittest.TestCase):
         self.assertEqual(connect.call_args.args[0], ("93.184.216.34", 443))
         self.assertEqual(connection.request.call_args.kwargs["headers"]["Authorization"], "Bearer " + TOKEN)
 
+    def test_dropped_nav_connections_are_retried_but_errors_are_not(self):
+        from norway_job_agent import sources
+        dropped = sources._TransientSourceError("Could not download from NAV; check connectivity or try again later.")
+        with patch.object(sources, "RETRY_PAUSE_SECONDS", 0), \
+                patch.object(nav, "_request_nav_once", side_effect=[dropped, dropped, (200, {}, b"{}")]) as request:
+            self.assertEqual(nav._fetch_nav(nav.FEED_URL, TOKEN)[0], 200)
+        self.assertEqual(request.call_count, 3)
+        with patch.object(sources, "RETRY_PAUSE_SECONDS", 0), \
+                patch.object(nav, "_request_nav_once", side_effect=[dropped] * 3) as request, \
+                self.assertRaisesRegex(SourceError, "Could not download from NAV"):
+            nav._fetch_nav(nav.FEED_URL, TOKEN)
+        self.assertEqual(request.call_count, 3)
+        with patch.object(nav, "_request_nav_once", return_value=(429, {}, b"")) as request, \
+                self.assertRaisesRegex(SourceError, "rate limiting"):
+            nav._fetch_nav(nav.FEED_URL, TOKEN)
+        self.assertEqual(request.call_count, 1)
+
+    def test_a_nav_advert_cut_off_mid_body_counts_as_a_dropped_connection(self):
+        from norway_job_agent import sources
+
+        class Wire:
+            def makefile(self, mode):
+                return io.BytesIO(b"HTTP/1.1 200 OK\r\nContent-Length: 50\r\n\r\n" + b'{"uuid": ')
+        response = nav.http.client.HTTPResponse(Wire())
+        response.begin()
+        connection = Mock()
+        connection.getresponse.return_value = response
+        with patch.object(nav, "_public_addresses", return_value=["93.184.216.34"]), \
+                patch.object(nav.http.client, "HTTPSConnection", return_value=connection), \
+                self.assertRaisesRegex(sources._TransientSourceError, "cut off"):
+            nav._request_nav_once(nav.FEED_URL, TOKEN, {})
+
+    def test_a_slow_download_that_keeps_arriving_is_not_cut_off(self):
+        # Only silence ends a download early; the whole body may take longer
+        # than the idle timeout while chunks keep coming.
+        clock = iter(range(0, 1000, 10))
+        fake_response = Mock(status=200)
+        fake_response.getheaders.return_value = []
+        fake_response.read1.side_effect = [b"{", b'"a"', b":1}", b""]
+        connection = Mock()
+        connection.getresponse.return_value = fake_response
+        with patch.object(nav, "_public_addresses", return_value=["93.184.216.34"]), \
+                patch.object(nav.http.client, "HTTPSConnection", return_value=connection), \
+                patch.object(nav.time, "monotonic", side_effect=lambda: next(clock)):
+            self.assertEqual(nav._request_nav_once(nav.FEED_URL, TOKEN, {})[2], b'{"a":1}')
+        timeouts = [call.args[0] for call in connection.sock.settimeout.call_args_list]
+        self.assertTrue(timeouts and all(value <= nav.TIMEOUT_SECONDS for value in timeouts))
+
     def test_transport_enforces_body_limit(self):
         fake_response = Mock(status=200)
         fake_response.getheaders.return_value = []

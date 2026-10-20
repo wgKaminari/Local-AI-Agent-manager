@@ -130,6 +130,23 @@ class FetchSafetyTests(unittest.TestCase):
                 with self.assertRaisesRegex(sources.SourceError, "destinations"):
                     sources._public_addresses("example.com", 443)
 
+    def test_a_failed_dns_lookup_is_retried_but_a_private_answer_is_not(self):
+        answers = [(2, 1, 6, "", ("93.184.216.34", 443))]
+        with patch.object(sources, "RETRY_PAUSE_SECONDS", 0), \
+                patch.object(sources.socket, "getaddrinfo", side_effect=[OSError("busy"), answers]) as lookup, \
+                patch.object(sources.http.client, "HTTPSConnection") as https:
+            https.return_value.getresponse.return_value.getheaders.return_value = []
+            https.return_value.getresponse.return_value.status = 200
+            https.return_value.getresponse.return_value.read1.return_value = b""
+            self.assertEqual(sources._fetch("https://example.com/jobs")[0], 200)
+        self.assertEqual(lookup.call_count, 2)
+        private = [(2, 1, 6, "", ("10.0.0.1", 443))]
+        with patch.object(sources, "RETRY_PAUSE_SECONDS", 0), \
+                patch.object(sources.socket, "getaddrinfo", return_value=private) as lookup, \
+                self.assertRaisesRegex(sources.SourceError, "destinations"):
+            sources._fetch("https://example.com/jobs")
+        self.assertEqual(lookup.call_count, 1)
+
     def test_redirect_to_private_destination_is_revalidated(self):
         original_request = sources._request_once
 
@@ -181,6 +198,30 @@ class FetchSafetyTests(unittest.TestCase):
                 with self.assertRaisesRegex(sources.SourceError, "2 MB"):
                     sources._request_once("https://example.com/job")
                 connection.close.assert_called_once()
+
+    def test_a_download_cut_off_mid_body_is_retried_not_saved(self):
+        # http.client returns b"" when the server closes early, so a busy
+        # refresh once stored half of a 10 MB board as "invalid JSON".
+        class Wire:
+            def __init__(self, raw):
+                self.raw = raw
+
+            def makefile(self, mode):
+                return io.BytesIO(self.raw)
+
+        def reply(raw):
+            response = sources.http.client.HTTPResponse(Wire(raw))
+            response.begin()
+            return response
+        cut = reply(b"HTTP/1.1 200 OK\r\nContent-Length: 40\r\n\r\n" + b'{"jobs": [')
+        whole = reply(b"HTTP/1.1 200 OK\r\nContent-Length: 12\r\n\r\n" + b'{"jobs": []}')
+        connection = Mock()
+        connection.getresponse.side_effect = [cut, whole]
+        with patch.object(sources, "RETRY_PAUSE_SECONDS", 0), \
+                patch.object(sources, "_public_addresses", return_value=["93.184.216.34"]), \
+                patch.object(sources.http.client, "HTTPSConnection", return_value=connection):
+            self.assertEqual(sources._fetch("https://example.com/jobs")[2], b'{"jobs": []}')
+        self.assertEqual(connection.getresponse.call_count, 2)
 
     def test_connection_is_pinned_to_validated_ip_with_original_tls_host(self):
         fake_response = Mock(status=200)
