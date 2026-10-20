@@ -147,6 +147,11 @@ def launch(data_dir: Path, *, preview: bool = False):
         import waitress
     except ImportError as exc:
         raise RuntimeError("Modern desktop dependencies are missing. Run python -m pip install -r requirements.txt. The previous interface is available with python run.py gui --classic.") from exc
+    from . import windows_integration as windows
+    if not preview:
+        windows.set_app_id()
+        if not windows.claim_single_instance(data_dir):
+            return  # The open window was brought to the front instead.
     workspace = LocalWorkspace(data_dir)
     try:
         workspace.start()
@@ -156,7 +161,8 @@ def launch(data_dir: Path, *, preview: bool = False):
         title = "Personal Job Agent" + (" — Fictional design preview" if preview else "")
         from .web_api import _appearance
         # Match the page background so the window does not flash before loading.
-        background = "#0e0f11" if _appearance(Path(data_dir))["theme"] == "dark" else "#fafaf9"
+        dark = _appearance(Path(data_dir))["theme"] == "dark"
+        background = "#0e0f11" if dark else "#fafaf9"
         close_state = NativeCloseState(workspace.app.config["LOCAL_TOKEN"])
         try:
             bounds = _window_bounds(webview.screens)
@@ -179,9 +185,12 @@ def launch(data_dir: Path, *, preview: bool = False):
             return True
 
         window.events.closing += closing
+        # pywebview follows the Windows theme; follow the app's theme instead.
+        window.events.shown += lambda: windows.set_title_bar_theme(dark)
+        workspace.app.config["THEME_CHANGED"] = lambda theme: windows.set_title_bar_theme(theme == "dark")
         # Explicit Chromium renderer: never silently fall back to Internet Explorer.
         webview.start(gui="edgechromium" if sys.platform == "win32" else None,
-                      debug=False, private_mode=True)
+                      debug=False, private_mode=True, icon=str(windows.icon_path()))
     except Exception as exc:
         hint = " Check that Microsoft Edge WebView2 Runtime is installed." if sys.platform == "win32" else ""
         raise RuntimeError(f"The desktop window could not start.{hint}\n{exc}") from exc

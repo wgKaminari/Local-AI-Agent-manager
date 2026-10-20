@@ -19,4 +19,4 @@ norway-jobs = "norway_job_agent.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-norway_job_agent = ["data/*.json", "web/*.html", "web/*.css", "web/*.js", "web/fonts/*.woff2", "web/fonts/*.txt"]
+norway_job_agent = ["data/*.json", "web/*.html", "web/*.css", "web/*.js", "web/fonts/*.woff2", "web/fonts/*.txt", "assets/*.ico"]

@@ -288,7 +288,7 @@ function refreshCard() {
   const when = r?.completed_at || r?.started_at;
   const status = when ? `Refreshed ${ago(when)} ago` : 'Not refreshed yet';
   const detail = r ? `${r.sources?.length||0} sources checked${failed?` · ${failed} need attention`:''}` : 'Choose a country, then find opportunities.';
-  return `<div class="refresh-card"><strong title="${esc(status)}"><span class="dot ${failed?'amber':''}"></span><span>${esc(status)}</span></strong><small>${esc(detail)}</small>${button(icon('spark')+'Find opportunities','collect','','title="Find opportunities"')}</div>`;
+  return `<div class="refresh-card"><strong title="${esc(status)}"><span class="dot ${failed||!when?'amber':''}"></span><span>${esc(status)}</span></strong><small>${esc(detail)}</small>${button(icon('spark')+'Find opportunities','collect','','title="Find opportunities"')}</div>`;
 }
 
 function renderPage() {
@@ -641,7 +641,7 @@ function renderSettings() {
   const settings = S.settingsDraft || S.boot.settings;
   $('#main').insertAdjacentHTML('beforeend', `<div class="content-width"><section class="panel"><div class="panel-title"><div><h2>Local AI</h2><p>Ollama runs your model on this computer. No cloud AI key is needed.</p></div>${pill('On-device','green')}</div><div class="form-grid">${field('Model name','model',settings.model,{group:'settings',hint:'Save a model name before downloading or generating.'})}<div><label class="field"><span>Available models</span><select id="model-picker"><option value="">Check setup to list installed models</option></select></label></div></div><div class="section-actions">${button('Check setup','check-setup')}${button('Start Ollama','start-ollama')}${button('Download saved model','download-model')}${button('Install PDF support','install-pdf')}${link('Install Ollama','https://ollama.com/download/windows')}</div><div id="setup-result" class="evidence"></div></section>
   <section class="panel"><div class="panel-title"><div><h2>Connected job sources</h2><p>${S.boot.settings.sources.length} configured. The country switch limits each collection to that market.</p></div>${button('Browse library','go-sources')}</div><div class="table-wrap"><table><thead><tr><th>Source</th><th>Countries</th><th>Action</th></tr></thead><tbody>${settings.sources.map((s,i)=>`<tr><td>${esc(s.name||s.board||cap(s.type))}<span class="sub">${esc(s.type)}</span></td><td>${esc(s.countries?.join(', ')||(s.type==='nav'?'NO':'Any'))}</td><td>${button('Remove','remove-source','quiet',`data-source-index="${i}"`)}</td></tr>`).join('')}</tbody></table></div><details class="evidence"><summary>Advanced source configuration</summary><p>Edit the source array for custom boards, locations or limits. Invalid changes are rejected when you save.</p><textarea id="sources-json" rows="10" aria-label="Advanced sources JSON">${esc(S.sourcesText??JSON.stringify(settings.sources,null,2))}</textarea></details><div class="savebar"><small>${S.settingsDirty?'Unsaved settings':'Changes apply after saving.'}</small>${button('Save settings','save-settings','primary')}</div></section>
-  <section class="panel"><div class="panel-title"><div><h2>Collection activity</h2><p>See what was collected and which sources need attention.</p></div>${button('Find opportunities','collect')}</div>${collectionReport()}</section><section class="panel"><h2>Desktop workspace</h2><p class="evidence">This is a native desktop window. Your Python service listens only on this computer. Your existing profile, SQLite database, notes and drafts stay in the same private data folder.</p><div class="section-actions">${button('Switch theme','theme')}${button('Keyboard shortcuts','help')}</div></section></div>`);
+  <section class="panel"><div class="panel-title"><div><h2>Collection activity</h2><p>See what was collected and which sources need attention.</p></div>${button('Find opportunities','collect')}</div>${collectionReport()}</section><section class="panel"><div class="panel-title"><div><h2>Desktop app</h2><p>Open Job Agent from the Start menu or desktop like any other program: its own icon, no console window, and only one window at a time.</p></div></div><p class="evidence">The app runs entirely on this computer. Your profile, database, notes and drafts stay in your private data folder.</p><div class="section-actions">${button('Add Start menu & desktop shortcuts','create-shortcuts','primary')}${button('Switch theme','theme')}${button('Keyboard shortcuts','help')}</div></section></div>`);
 }
 
 function collectionReport() {
@@ -1006,6 +1006,10 @@ async function action(name, el) {
   }
   if (name === 'theme') {
     toggleTheme();
+    return;
+  }
+  if (name === 'create-shortcuts') {
+    await task('shortcuts', {}, result => toast(result.message));
     return;
   }
   if (name === 'back-list') {
