@@ -23,7 +23,7 @@ from norway_job_agent.countries import (
 )
 from norway_job_agent.profile import match_job, validate_profile
 from norway_job_agent.storage import JobStore
-from support import nav_fetch, offline_collection
+from support import offline_collection
 
 
 def setUpModule():
@@ -378,7 +378,7 @@ class CountryMigrationTests(unittest.TestCase):
                         self.assertFalse(created)
                         self.assertEqual(store.get_job(7)["notes"], "Preserve my reviewed notes.")
                     with closing(sqlite3.connect(path)) as connection:
-                        self.assertEqual(connection.execute("PRAGMA user_version").fetchone()[0], 3)
+                        self.assertEqual(connection.execute("PRAGMA user_version").fetchone()[0], 4)
                     # The upgrade is repeatable and does not create more jobs.
                     with JobStore(path) as store:
                         self.assertEqual(len(store.list_jobs()), 1)

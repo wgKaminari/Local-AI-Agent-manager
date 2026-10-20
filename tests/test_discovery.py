@@ -95,11 +95,11 @@ class DiscoveryTests(unittest.TestCase):
         self.assertIsNone(result["last_run"])
 
     def test_recommendations_offer_employer_variety_without_dropping_jobs(self):
-        from norway_job_agent.web_api import _diverse_recommendations
-        jobs = [{"id": number, "company": company, "match": {"track": track, "experience": {"status": "review"}}}
+        from norway_job_agent.job_index import diversify
+        jobs = [{"id": number, "company": company, "track": track, "mismatch": 0}
                 for number, company, track in [(1, "A", "target"), (2, "A", "target"),
                     (3, "A", "target"), (4, "B", "target"), (5, "C", "target"), (6, "D", "horizon")]]
-        result = _diverse_recommendations(jobs)
+        result = diversify(jobs)
         self.assertEqual([row["id"] for row in result], [1, 2, 4, 5, 3, 6])
 
     def test_early_role_gate_preserves_full_search_results_counts_and_order(self):

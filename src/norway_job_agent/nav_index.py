@@ -31,8 +31,10 @@ INDEX_FILE = "market-index.db"
 LOOKBACK_DAYS = 90
 MAX_PAGES_PER_RUN = 400
 SYNC_SECONDS = 420
-DETAIL_WORKERS = 4
-MAX_DETAILS_PER_RUN = 800
+DETAIL_WORKERS = 6
+MAX_DETAILS_PER_RUN = 20000
+# Seconds a refresh spends downloading full adverts; the rest continue next time.
+HYDRATE_SECONDS = 480
 
 
 class NavIndex:
@@ -178,46 +180,53 @@ def _title_candidate(folded_title: str, query: str, tokens: list[str]) -> bool:
     return any(token not in GENERIC_WORDS for token in present)
 
 
-def find(data_dir: Path, queries: list[str], *, known: set[str] | frozenset[str] = frozenset()) -> list[dict]:
-    """Active ads whose titles answer a query and still need their full advert.
+def find(data_dir: Path, queries: list[str], *, known: set[str] | frozenset[str] = frozenset(),
+         everything: bool = False) -> list[dict]:
+    """Active ads that still need their full advert, search matches first.
 
-    Saved vacancies are refreshed when NAV changes them; other adverts are
-    downloaded once per version for each query that has not checked them yet.
+    Stored vacancies are refreshed when NAV changes them. With everything,
+    every other active advert not stored yet follows, so the database holds
+    the whole Norwegian market; otherwise an advert is downloaded once per
+    version for each search that has not checked it yet.
     """
     from .market import query_tokens
     prepared = [(query, query_tokens(query)) for query in queries if query.strip()]
-    if not prepared:
+    if not prepared and not everything:
         return []
     # A cheap substring screen avoids word-boundary checks on 40,000 titles.
     hints = {hint for query, tokens in prepared for hint in [*(_role_terms(query)), *tokens] if hint}
-    results = []
+    results, rest = [], []
     with NavIndex(data_dir) as index:
         for uuid, title, employer, municipal, modified, detail_url, hydrated, checked in index.active():
             folded = _role_text(title)
-            if not any(hint in folded for hint in hints):
+            matched = [query for query, tokens in prepared if _title_candidate(folded, query, tokens)] \
+                if any(hint in folded for hint in hints) else []
+            current = hydrated == modified
+            if everything:
+                if current and uuid in known:
+                    continue
+            elif not matched or (current and (uuid in known or set(matched) <= set(json.loads(checked or "[]")))):
                 continue
-            matched = [query for query, tokens in prepared if _title_candidate(folded, query, tokens)]
-            if not matched:
-                continue
-            if hydrated == modified and (uuid in known or set(matched) <= set(json.loads(checked or "[]"))):
-                continue
-            previous = json.loads(checked or "[]") if hydrated == modified else []
-            results.append({"uuid": uuid, "title": title, "employer": employer, "municipal": municipal,
-                            "modified": modified, "detail_url": detail_url, "queries": matched,
-                            "checked": list(dict.fromkeys([*previous, *matched]))})
-    return results
+            previous = json.loads(checked or "[]") if current else []
+            (results if matched else rest).append({
+                "uuid": uuid, "title": title, "employer": employer, "municipal": municipal,
+                "modified": modified, "detail_url": detail_url, "queries": matched,
+                "checked": list(dict.fromkeys([*previous, *matched]))})
+    return results + rest
 
 
 def hydrate(data_dir: Path, candidates: list[dict], *, token: str | None = None, progress=None,
-            limit: int = MAX_DETAILS_PER_RUN) -> dict:
+            limit: int = MAX_DETAILS_PER_RUN, seconds: float = HYDRATE_SECONDS) -> dict:
     """Download full adverts for candidates. Network only; nothing is marked.
 
-    Returns jobs, withdrawn ids, the remaining candidate count and the marks
-    to record with mark_hydrated once the jobs are safely stored.
+    Every downloaded active advert is kept; the searches it answers become
+    its tags. Returns jobs, withdrawn ids, the remaining candidate count and
+    the marks to record with mark_hydrated once the jobs are safely stored.
     """
     from .market import matches_query
     access_token, _ = nav._get_token(token)
     selected = candidates[:limit]
+    started = time.monotonic()
 
     def load(candidate):
         try:
@@ -229,21 +238,24 @@ def hydrate(data_dir: Path, candidates: list[dict], *, token: str | None = None,
             return candidate, None, str(exc)
 
     jobs, withdrawn, hydrated = [], [], []
+    done = 0
     with ThreadPoolExecutor(max_workers=DETAIL_WORKERS, thread_name_prefix="nav-detail") as pool:
-        for done, (candidate, job, error) in enumerate(pool.map(load, selected), 1):
-            if error == "missing" or (error is None and job is None):
-                withdrawn.append(candidate["uuid"])
-            elif job is not None:
-                # Multi-word searches are confirmed against the full advert.
-                matched = [query for query in candidate["queries"] if matches_query(job, query)]
-                if matched:
-                    job["raw_json"] = {"matched_queries": matched[:5]}
+        for start in range(0, len(selected), 120):
+            if time.monotonic() - started > seconds:
+                break
+            for candidate, job, error in pool.map(load, selected[start:start + 120]):
+                done += 1
+                if error == "missing" or (error is None and job is None):
+                    withdrawn.append(candidate["uuid"])
+                elif job is not None:
+                    # Multi-word searches are confirmed against the full advert.
+                    job["raw_json"] = {"matched_queries": [query for query in candidate["queries"] if matches_query(job, query)][:5]}
                     jobs.append(job)
-            if error is None:
-                hydrated.append((candidate["modified"], json.dumps(candidate["checked"][-50:]), candidate["uuid"]))
-            if progress is not None and done % 50 == 0:
-                progress(f"Loading NAV adverts… {done} of {len(selected)}.")
-    return {"jobs": jobs, "withdrawn": withdrawn, "remaining": max(0, len(candidates) - len(selected)), "marks": hydrated}
+                if error is None:
+                    hydrated.append((candidate["modified"], json.dumps(candidate["checked"][-50:]), candidate["uuid"]))
+            if progress is not None:
+                progress(f"Loading NAV adverts… {done:,} of {len(selected):,}.")
+    return {"jobs": jobs, "withdrawn": withdrawn, "remaining": max(0, len(candidates) - done), "marks": hydrated}
 
 
 def mark_hydrated(data_dir: Path, marks: list[tuple[str, str, str]]) -> None:

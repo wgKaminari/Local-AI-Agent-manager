@@ -16,7 +16,7 @@ from norway_job_agent import service
 from norway_job_agent.experience_matching import experience_requirements
 from norway_job_agent.storage import JobStore
 from norway_job_agent.web_api import close_resources, create_app
-from support import nav_fetch, offline_collection
+from support import offline_collection
 
 
 def setUpModule():
@@ -60,17 +60,23 @@ class ListingTests(unittest.TestCase):
         self.assertIn("warnings", detail)
         self.assertTrue(detail["experience"]["requirements"])
 
-    def test_stage_views_match_only_their_stages_and_keep_scope_counts(self):
+    def test_stage_views_keep_scope_counts_and_each_job_is_matched_once(self):
         saved = self.job("saved", "saved")
         applied = self.job("applied", "applied")
         self.job("plain-one")
         self.job("plain-two")
         from norway_job_agent import profile as profile_module
-        with patch.object(profile_module, "match_job", wraps=profile_module.match_job) as matcher, \
-                patch("norway_job_agent.service.match_job", new=matcher):
+        with patch.object(profile_module, "match_job", wraps=profile_module.match_job) as matcher:
             data = self.get("/api/jobs?view=saved").get_json()
+            self.assertEqual(matcher.call_count, 4)
+            # Matches are stored: later lists match nothing while nothing changes.
+            self.get("/api/jobs?view=applications")
+            self.get("/api/jobs?view=discover")
+            self.assertEqual(matcher.call_count, 4)
+            service.update_workflow(self.data, applied, "interview", "")
+            self.get("/api/jobs?view=applications")
+            self.assertEqual(matcher.call_count, 5)
         self.assertEqual([row["id"] for row in data["jobs"]], [saved])
-        self.assertEqual(matcher.call_count, 1)
         self.assertEqual(data["summary"]["in_scope"], 4)
         self.assertEqual(data["summary"]["employers"], 4)
         data = self.get("/api/jobs?view=applications").get_json()

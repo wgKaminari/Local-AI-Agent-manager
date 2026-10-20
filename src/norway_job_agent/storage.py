@@ -30,8 +30,62 @@ _GENERIC_PATH_PARTS = frozenset(
 _SCHEMA_OBJECTS = frozenset({
     "jobs", "jobs_source_identity", "jobs_source_url", "jobs_status", "job_identities", "drafts",
     "drafts_job", "job_provenance", "application_preparations", "application_preparations_job",
-    "application_deliveries",
+    "application_deliveries", "job_matches", "job_matches_fingerprint", "job_matches_profile", "jobs_fts",
+    "jobs_fts_insert", "jobs_fts_delete", "jobs_fts_update", "job_matches_stale", "jobs_last_seen",
 })
+SCHEMA_VERSION = 4
+# Version 4 adds derived data, so lists stay fast with tens of thousands of
+# collected vacancies: a full-text index kept in sync by triggers, and stored
+# match results that a trigger discards whenever a vacancy's content, stage
+# or activity really changes (a refresh that merely sees a job again does
+# not). Both are rebuildable from the jobs table.
+_DERIVED_SCHEMA = """
+    CREATE INDEX IF NOT EXISTS jobs_last_seen ON jobs(last_seen_at);
+    CREATE TABLE IF NOT EXISTS job_matches (
+        job_id INTEGER PRIMARY KEY REFERENCES jobs(id) ON DELETE CASCADE,
+        profile_hash TEXT NOT NULL,
+        track TEXT NOT NULL,
+        track_rank INTEGER NOT NULL,
+        score INTEGER,
+        mismatch INTEGER NOT NULL,
+        excluded INTEGER NOT NULL,
+        countries TEXT NOT NULL,
+        fingerprint TEXT,
+        primary_id INTEGER,
+        also_on TEXT NOT NULL DEFAULT '[]',
+        match_json TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS job_matches_fingerprint ON job_matches(fingerprint);
+    CREATE INDEX IF NOT EXISTS job_matches_profile ON job_matches(profile_hash);
+    CREATE VIRTUAL TABLE IF NOT EXISTS jobs_fts USING fts5(
+        title, company, location, description,
+        content='jobs', content_rowid='id', tokenize='unicode61 remove_diacritics 2'
+    );
+    CREATE TRIGGER IF NOT EXISTS jobs_fts_insert AFTER INSERT ON jobs BEGIN
+        INSERT INTO jobs_fts(rowid, title, company, location, description)
+        VALUES (new.id, new.title, new.company, new.location, new.description);
+    END;
+    CREATE TRIGGER IF NOT EXISTS jobs_fts_delete AFTER DELETE ON jobs BEGIN
+        INSERT INTO jobs_fts(jobs_fts, rowid, title, company, location, description)
+        VALUES ('delete', old.id, old.title, old.company, old.location, old.description);
+    END;
+    CREATE TRIGGER IF NOT EXISTS jobs_fts_update AFTER UPDATE OF title, company, location, description ON jobs
+    WHEN old.title IS NOT new.title OR old.company IS NOT new.company
+      OR old.location IS NOT new.location OR old.description IS NOT new.description BEGIN
+        INSERT INTO jobs_fts(jobs_fts, rowid, title, company, location, description)
+        VALUES ('delete', old.id, old.title, old.company, old.location, old.description);
+        INSERT INTO jobs_fts(rowid, title, company, location, description)
+        VALUES (new.id, new.title, new.company, new.location, new.description);
+    END;
+    CREATE TRIGGER IF NOT EXISTS job_matches_stale AFTER UPDATE ON jobs
+    WHEN old.title IS NOT new.title OR old.company IS NOT new.company OR old.location IS NOT new.location
+      OR old.description IS NOT new.description OR old.deadline IS NOT new.deadline
+      OR old.countries IS NOT new.countries OR old.status IS NOT new.status
+      OR old.is_active IS NOT new.is_active OR old.source IS NOT new.source
+      OR old.employment_type IS NOT new.employment_type BEGIN
+        DELETE FROM job_matches WHERE job_id = new.id;
+    END;
+"""
 _METADATA_FIELDS = (
     "source", "source_id", "source_url", "apply_url", "title", "company", "location",
     "description", "employment_type", "published_at", "deadline", "raw_json", "countries",
@@ -134,10 +188,10 @@ class JobStore:
         self._connection.row_factory = sqlite3.Row
         self._connection.execute("PRAGMA foreign_keys = ON")
         version = self._connection.execute("PRAGMA user_version").fetchone()[0]
-        if version > 3:
+        if version > SCHEMA_VERSION:
             self.close()
-            raise ValueError(f"Database schema version {version} is newer than supported version 3")
-        if version == 3 and self._schema_complete():
+            raise ValueError(f"Database schema version {version} is newer than supported version {SCHEMA_VERSION}")
+        if version == SCHEMA_VERSION and self._schema_complete():
             # Every request opens a store. Skipping redundant DDL keeps reads
             # from taking a write lock and syncing the file each time.
             return
@@ -222,7 +276,12 @@ class JobStore:
                 created_at TEXT NOT NULL
             );
         """)
-        self._connection.execute("PRAGMA user_version = 3")
+        fts_existed = self._connection.execute("SELECT 1 FROM sqlite_master WHERE name = 'jobs_fts'").fetchone()
+        self._connection.executescript(_DERIVED_SCHEMA)
+        if not fts_existed:
+            # Index vacancies stored before the search index existed.
+            self._connection.execute("INSERT INTO jobs_fts(jobs_fts) VALUES ('rebuild')")
+        self._connection.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
         self._connection.commit()
 
     def _schema_complete(self) -> bool:
