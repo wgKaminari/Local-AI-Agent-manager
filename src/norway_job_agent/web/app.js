@@ -79,14 +79,14 @@ const S = {
   theme: 'light'
 };
 const titles = {
-  discover: ['Discover', 'A little less searching. A lot more possibility.'],
-  'for-you': ['For you', 'Opportunities connected to your skills and interests.'],
-  saved: ['Saved', 'Good opportunities, ready when you are.'],
-  applications: ['Applications', 'Keep your next steps in one place.'],
-  profile: ['Profile & writing', 'Your experience. Your preferences. Your voice.'],
-  sources: ['Source library', 'Go straight to the employers and places that matter.'],
-  mail: ['Job alerts', 'Turn your inbox into a reviewed shortlist.'],
-  settings: ['Settings & activity', 'Keep your sources and local AI working for you.']
+  discover: ['Discover', 'Every collected vacancy in your search.'],
+  'for-you': ['For you', 'Target and related roles that fit your experience.'],
+  saved: ['Saved', 'Opportunities you bookmarked.'],
+  applications: ['Applications', 'Everything you are preparing or have sent.'],
+  profile: ['Profile & writing', 'The facts and voice your local AI writes from. Used only after you save.'],
+  sources: ['Source library', 'Employers and job boards you can collect from.'],
+  mail: ['Job alerts', 'Turn job-alert emails into a reviewed shortlist.'],
+  settings: ['Settings & activity', 'Local AI, configured sources and collection results.']
 };
 const token = $('meta[name=session-token]').content;
 async function api(path, {
@@ -247,7 +247,7 @@ $('#modal').addEventListener('close', () => {
 
 function heading() {
   const [title, sub] = titles[S.view];
-  return `<div class="page-heading"><div><div class="eyebrow">${['discover','for-you','saved','applications'].includes(S.view)?'YOUR NEXT CHAPTER':'YOUR WORKSPACE'}</div><h1>${title}</h1><p>${sub}</p></div><div class="heading-actions">${['discover','for-you','saved','applications'].includes(S.view)?button(icon('plus')+' Add opportunity','add-job','button-icon')+button(icon('spark')+' Find opportunities','collect','primary button-icon'):S.view==='profile'?button('Save profile','save-profile','primary'):S.view==='sources'?pill(`${S.boot.catalog.length} directory employers · ${S.boot.catalog.filter(e=>e.source).length} collectors`):''}</div></div>`;
+  return `<div class="page-heading"><div><h1>${title}</h1><p>${sub}</p></div><div class="heading-actions">${S.view==='profile'?button('Save profile','save-profile','primary'):S.view==='sources'?pill(`${S.boot.catalog.length} directory employers · ${S.boot.catalog.filter(e=>e.source).length} collectors`):''}</div></div>`;
 }
 
 function shell() {
@@ -261,32 +261,44 @@ function shell() {
     ['mail', 'Job alerts', 'mail'],
     ['settings', 'Settings & activity', 'settings']
   ];
-  $('#app').innerHTML = `<div class="shell"><aside class="sidebar"><div class="brand"><span class="brand-mark">j.</span><div class="brand-copy"><strong>Job agent</strong><small>Your next chapter</small></div></div><nav aria-label="Main navigation"><div class="nav-label">WORKSPACE</div>${nav.map(([id,label,i],n)=>`${n===4?'<div class="nav-label">PERSONALIZE</div>':''}<button class="nav-item ${id===S.view?'active':''}" data-view="${id}" title="${label}" aria-label="${label}" ${id===S.view?'aria-current="page"':''}>${icon(i)}<span>${label}</span></button>`).join('')}</nav><div class="sidebar-bottom"><div class="local-card"><strong><span class="dot"></span> Made for you. Kept local.</strong><span class="muted">Your profile and drafts stay on this computer.</span></div><div class="user"><div class="avatar">${esc((S.profile.name||'You').slice(0,1).toUpperCase())}</div><div class="user-copy"><strong>${esc(S.profile.name||'Your workspace')}</strong><small>Personal account</small></div></div></div></aside><div class="workspace"><header class="topbar"><div class="breadcrumb">Workspace <span>/</span> <b>${titles[S.view][0]}</b></div><div class="top-actions">${button(icon('search')+' Quick actions <kbd>Ctrl K</kbd>','commands','command-trigger button-icon')}<label class="country-control">${icon('globe')}<span>Searching in</span><select id="country" aria-label="Search country" ${S.settingsBusy?'disabled':''}>${options(Object.entries(S.boot.countries),S.country,'All countries')}</select></label>${button(icon('sun'),'theme','icon-only quiet','aria-label="Switch light or dark theme" title="Switch theme"')}${button(icon('help'),'help','icon-only quiet','aria-label="Help and shortcuts"')}</div></header><main id="main" tabindex="-1" class="page ${['discover','for-you','saved','applications'].includes(S.view)?'discovery':''}"></main><footer class="statusbar"><div id="task-status" class="task-indicator" role="status" aria-live="polite"></div><span class="right">Local AI · You review every application</span></footer></div></div>`;
+  $('#app').innerHTML = `<div class="shell"><aside class="sidebar"><div class="brand"><span class="brand-mark">J</span><span class="brand-copy">Job Agent</span>${button(icon('sun'),'theme','icon-only quiet','aria-label="Switch light or dark theme" title="Switch theme (Ctrl Shift L)"')}${button(icon('help'),'help','icon-only quiet','aria-label="Help and shortcuts" title="Help and shortcuts"')}</div>${button(icon('search')+'<span>Quick actions</span><kbd>Ctrl K</kbd>','commands','command-trigger','aria-label="Quick actions" title="Quick actions (Ctrl K)"')}<label class="country-control" title="Search country">${icon('globe')}<select id="country" aria-label="Search country" ${S.settingsBusy?'disabled':''}>${options(Object.entries(S.boot.countries),S.country,'All countries')}</select></label><nav aria-label="Main navigation">${nav.map(([id,label,i],n)=>`${n===4?'<div class="nav-label">You</div>':''}<button class="nav-item ${id===S.view?'active':''}" data-view="${id}" title="${label}" aria-label="${label}" ${id===S.view?'aria-current="page"':''}>${icon(i)}<span>${label}</span></button>`).join('')}</nav><div class="sidebar-bottom">${refreshCard()}</div></aside><div class="workspace"><main id="main" tabindex="-1" class="page ${isDiscovery()?'discovery':''}"></main><footer class="statusbar"><div id="task-status" class="task-indicator" role="status" aria-live="polite"></div><div class="hints" aria-hidden="true"><span><kbd>J</kbd><kbd>K</kbd>move</span><span><kbd>/</kbd>search</span><span><kbd>Ctrl K</kbd>actions</span><span><kbd>Ctrl S</kbd>save</span></div><span class="right">Local AI · you review every application</span></footer></div></div>`;
   renderPage();
   updateStatus();
 }
 
+function isDiscovery(view = S.view) {
+  return ['discover', 'for-you', 'saved', 'applications'].includes(view);
+}
+
+function ago(value) {
+  const time = Date.parse(value || '');
+  if (!time) return '';
+  const minutes = Math.max(0, (Date.now() - time) / 60000);
+  if (minutes < 1) return 'now';
+  if (minutes < 60) return Math.round(minutes) + 'm';
+  if (minutes < 1440) return Math.round(minutes / 60) + 'h';
+  if (minutes < 10080) return Math.round(minutes / 1440) + 'd';
+  if (minutes < 525600) return Math.round(minutes / 10080) + 'w';
+  return Math.round(minutes / 525600) + 'y';
+}
+
+function refreshCard() {
+  const r = S.boot.collection;
+  const failed = r?.sources?.filter(s => !s.ok).length || 0;
+  const when = r?.completed_at || r?.started_at;
+  const status = when ? `Refreshed ${ago(when)} ago` : 'Not refreshed yet';
+  const detail = r ? `${r.sources?.length||0} sources checked${failed?` · ${failed} need attention`:''}` : 'Choose a country, then find opportunities.';
+  return `<div class="refresh-card"><strong title="${esc(status)}"><span class="dot ${failed?'amber':''}"></span><span>${esc(status)}</span></strong><small>${esc(detail)}</small>${button(icon('spark')+'Find opportunities','collect','','title="Find opportunities"')}</div>`;
+}
+
 function renderPage() {
   const main = $('#main');
-  main.innerHTML = heading();
-  if (['discover', 'for-you', 'saved', 'applications'].includes(S.view)) renderDiscovery();
+  main.innerHTML = isDiscovery() ? '' : heading();
+  if (isDiscovery()) renderDiscovery();
   else if (S.view === 'profile') renderProfile();
   else if (S.view === 'sources') renderSources();
   else if (S.view === 'settings') renderSettings();
   else renderMail();
-}
-
-function summaryStat(number, label, i) {
-  return `<div class="stat"><div class="stat-icon">${icon(i)}</div><div><strong>${number}</strong><small>${label}</small></div></div>`;
-}
-
-function experiencePill(job) {
-  const e = job.match?.experience;
-  if (!e) return '';
-  if (e.status === 'mismatch') return pill('Above your experience', 'amber');
-  if (e.candidate_years == null) return pill('Set your experience', 'amber');
-  if (e.status === 'review') return pill('Experience needs review');
-  return pill(e.minimum_years == null ? 'Check requirements' : `${e.minimum_years}+ years requested`, 'green');
 }
 
 function coverageNotice() {
@@ -297,20 +309,57 @@ function coverageNotice() {
   const experience = S.profile.years_of_experience == null ? 'Add your years of experience in Profile & writing to screen seniority.' : `Screening against ${S.profile.years_of_experience} years of experience.`;
   const filtered = S.view === 'for-you' && s ? `${s.role_matches} role matches · ${s.experience_mismatches} above your experience. ` : '';
   const run = c.last_run ? `${c.checked} sources checked in the last run${c.failed?`, ${c.failed} failed`:''}${c.limited?`, ${c.limited} reached a scan limit`:''}.` : 'Run a fresh collection to check coverage for this country.';
-  return `<div class="coverage-notice"><div><strong>${c.configured_collectors} configured collectors · ${c.available_collectors} available employer collectors</strong><p>${esc(search)} ${esc(filtered)}${esc(experience)} ${esc(run)}</p></div>${button('Manage sources','go-sources','quiet')}</div>`;
+  // One quiet line; the full explanation stays one click away.
+  const line = [isDiscovery() && s ? `${s.in_scope.toLocaleString()} vacancies · ${s.employers} employers` : `${c.configured_collectors} of ${c.available_collectors} collectors configured`,
+    S.view === 'for-you' && s ? `${s.experience_mismatches} above your experience` : '',
+    c.last_run ? `${c.checked} sources checked${c.failed?`, ${c.failed} failed`:''}` : 'not collected yet'
+  ].filter(Boolean).join(' · ');
+  return `<details class="coverage-notice" ${S.coverageOpen?'open':''}><summary><span class="dot ${c.failed||!c.last_run?'amber':''}"></span><span class="line">${esc(line)}</span><span class="more">Details</span></summary><div class="coverage-body"><strong>${c.configured_collectors} configured collectors · ${c.available_collectors} available employer collectors</strong><p>${esc(search)} ${esc(filtered)}${esc(experience)} ${esc(run)}</p>${button('Manage sources','go-sources','quiet')}</div></details>`;
 }
+document.addEventListener('toggle', e => {
+  if (e.target.matches?.('.coverage-notice')) S.coverageOpen = e.target.open;
+}, true);
 
 function renderDiscovery() {
-  const js = S.jobs;
-  $('#main').insertAdjacentHTML('beforeend', `<div class="stats">${summaryStat(js.length,'Opportunities in view','discover')}${summaryStat(js.filter(j=>j.match?.track==='target').length,'Target role matches','spark')}${summaryStat(js.filter(j=>j.status==='saved').length,'Saved for later','saved')}${summaryStat(js.filter(j=>['preparing','ready','applied','interview'].includes(j.status)).length,'Applications in progress','applications')}</div>${coverageNotice()}<div class="filterbar"><div class="search">${icon('search')}<input id="job-search" type="search" aria-label="Search opportunities" placeholder="Search a role, company or skill…" value="${esc(S.query)}"></div><select id="status-filter" aria-label="Filter by stage">${options(orderedStatuses,S.status,'All stages')}</select>${['discover','for-you'].includes(S.view)?`<select id="experience-filter" aria-label="Experience level">${options([['relevant','My experience or unspecified'],['all','All experience levels'],['mismatch','Above my experience']],S.experience)}</select>`:''}<select id="sort" aria-label="Sort opportunities">${options([['match','Recommended first'],['newest','Recently found'],['company','Company A–Z']],S.sort)}</select>${button('Reset','reset-filters','quiet')}</div><div class="results-layout ${S.selected?'has-selection':''}"><section class="results-panel" aria-label="Opportunities"><div id="job-results"></div></section><section id="job-detail" class="detail" aria-label="Opportunity details"></section></div>`);
+  const filtered = S.query || S.status || S.sort !== 'match' || (['discover', 'for-you'].includes(S.view) && S.experience !== 'relevant');
+  const select = (id, label, items, value, on) => `<select id="${id}" aria-label="${label}" class="${on?'on':''}">${items}</select>`;
+  $('#main').insertAdjacentHTML('beforeend', `<div class="results-layout ${S.selected&&S.showDetail?'has-selection':''}"><section class="results-panel" aria-label="Opportunities"><div class="list-head"><div class="list-title"><h1>${titles[S.view][0]}</h1><span class="count">${listCount()}</span><div class="heading-actions">${button(icon('plus'),'add-job','icon-only quiet','aria-label="Add opportunity" title="Add an opportunity you found"')}</div></div><div class="filterbar"><div class="search">${icon('search')}<input id="job-search" type="search" aria-label="Search opportunities" placeholder="Search roles, companies, skills" value="${esc(S.query)}"><kbd>/</kbd></div>${['discover','for-you'].includes(S.view)?select('experience-filter','Experience level',options([['relevant','Fits my experience'],['all','All levels'],['mismatch','Above my experience']],S.experience),S.experience,S.experience!=='relevant'):''}${select('status-filter','Filter by stage',options(orderedStatuses,S.status,'Any stage'),S.status,Boolean(S.status))}${select('sort','Sort opportunities',options([['match','Best match'],['newest','Newest'],['company','Company A–Z']],S.sort),S.sort,S.sort!=='match')}${filtered?button('Reset','reset-filters','quiet'):''}</div></div>${coverageNotice()}<div id="job-results"></div></section><section id="job-detail" class="detail" aria-label="Opportunity details"></section></div>`);
   renderCards();
   renderDetail();
+}
+
+function listCount() {
+  const n = S.jobs.length;
+  const where = S.country ? ' in ' + esc(S.boot.countries[S.country]) : '';
+  return S.view === 'for-you' ? `${n} fit you${where} · ${S.summary?.shown_employers||0} employers` : `${n.toLocaleString()} shown${where}`;
+}
+
+const stageTones = {
+  saved: 'blue',
+  preparing: 'amber',
+  ready: 'violet',
+  applied: 'green',
+  interview: 'green'
+};
+
+function jobTags(j) {
+  const e = j.match?.experience || {};
+  const tags = [];
+  if (j.status !== 'new') tags.push(pill(cap(j.status), stageTones[j.status] || ''));
+  if (e.status === 'mismatch') tags.push(pill(e.minimum_years != null ? `${e.minimum_years}+ yrs asked` : 'Above your level', 'amber'));
+  else if (j.match?.track === 'horizon' && S.view !== 'for-you') tags.push(pill('Related role'));
+  return tags.join('');
 }
 
 function renderCards() {
   const root = $('#job-results');
   if (!root) return;
-  root.innerHTML = `<div class="result-summary"><span>${S.jobs.length} opportunit${S.jobs.length===1?'y':'ies'}${S.country?' in '+esc(S.boot.countries[S.country]):''}</span><span>${S.view==='for-you'?`${S.summary?.shown_employers||0} employers · balanced by employer`:'Role, experience & skill evidence'}</span></div>` + (S.jobs.length ? S.jobs.slice(0, S.limit).map(j => `<button type="button" class="job-card ${S.selected===j.id?'selected':''}" data-job="${j.id}" aria-pressed="${S.selected===j.id}"><div class="job-top"><div class="company-mark">${esc((j.company||'Co').slice(0,2).toUpperCase())}</div><span class="job-company">${esc(j.company||'Employer not listed')}</span></div><h3>${esc(j.title)}</h3><div class="job-location">${esc(j.location||'Location to confirm')}</div><div class="job-bottom">${pill(cap(j.status),statusTone(j.status))}${experiencePill(j)}${pill(j.match?.track==='target'?'Target role':j.match?.track==='horizon'?'Related role':'Other role')}</div></button>`).join('') + (S.jobs.length > S.limit ? button('Show more opportunities', 'more-jobs', 'quiet') : '') : `<div class="empty"><div class="empty-icon">${icon('discover')}</div><h2>${S.query||S.status?'Nothing matches these filters':'A fresh start for your search'}</h2><p>${S.query||S.status?'Try another search or reset the filters. Your saved work stays in your workspace.':'Choose a country and find opportunities, or add a vacancy you have already found.'}</p>${button(S.query||S.status?'Reset filters':'Find opportunities',S.query||S.status?'reset-filters':'collect','primary')}</div>`);
+  root.innerHTML = S.jobs.length ? S.jobs.slice(0, S.limit).map(j => {
+    const score = j.match?.score,
+      tier = score == null ? '' : score >= 70 ? 'high' : score >= 45 ? 'mid' : '';
+    const selected = S.selected === j.id;
+    return `<button type="button" class="job-card ${selected?'selected':''}" data-job="${j.id}" aria-pressed="${selected}"><span class="score ${tier}" title="Keyword overlap with your profile">${score??'–'}</span><span class="title-line"><span class="sr-only">${score==null?'No match score. ':score+'% keyword match. '}</span>${esc(j.title)}</span><span class="age" title="${esc(j.published_at||j.discovered_at||'')}">${ago(j.published_at||j.discovered_at)}</span><span class="job-sub">${esc(j.company||'Employer not listed')} · ${esc(j.location||'Location to confirm')}</span><span class="job-tags">${jobTags(j)}</span></button>`;
+  }).join('') + (S.jobs.length > S.limit ? `<div class="empty">${button(`Show ${Math.min(80,S.jobs.length-S.limit)} more`, 'more-jobs', 'quiet')}</div>` : '') : `<div class="empty"><div class="empty-icon">${icon('discover')}</div><h2>${S.query||S.status?'Nothing matches these filters':'No opportunities yet'}</h2><p>${S.query||S.status?'Try another search or reset the filters. Your saved work is unaffected.':'Choose a country and find opportunities, or add a vacancy you found yourself.'}</p>${button(S.query||S.status?'Reset filters':'Find opportunities',S.query||S.status?'reset-filters':'collect','primary')}</div>`;
 }
 async function loadJobs() {
   const version = ++S.generation;
@@ -372,10 +421,22 @@ async function selectJob(id, render = true) {
     });
   }
   if (render) {
+    // On narrow windows an explicit choice shows the detail instead of the list.
+    S.showDetail = true;
     renderCards();
     renderDetail();
     $('.results-layout')?.classList.add('has-selection');
   }
+}
+
+async function moveSelection(step) {
+  const index = S.jobs.findIndex(j => j.id === S.selected);
+  const next = Math.min(S.jobs.length - 1, Math.max(0, index < 0 ? 0 : index + step));
+  if (next >= S.limit) S.limit += 80;
+  await selectJob(S.jobs[next].id);
+  const row = $(`[data-job="${S.jobs[next].id}"]`);
+  row?.scrollIntoView({block: 'nearest'});
+  row?.focus({preventScroll: true});
 }
 
 function current() {
@@ -397,11 +458,11 @@ function renderDetail() {
   const data = S.details.get(S.selected),
     b = current();
   if (!data || !b) {
-    root.innerHTML = `<div class="empty"><div class="empty-icon">${icon('file')}</div><h2>Make room for the right opportunity.</h2><p>Select a vacancy to explore the role, save notes and prepare a thoughtful application.</p></div>`;
+    root.innerHTML = `<div class="empty"><div class="empty-icon">${icon('file')}</div><h2>Select an opportunity</h2><p>Its details, your notes, cover letter and application answers open here. Use J and K to move through the list.</p></div>`;
     return;
   }
   const j = data.job;
-  root.innerHTML = `<div class="detail-head">${button(icon('back')+' All opportunities','back-list','quiet back-list button-icon')}<div class="detail-company"><span class="company-mark">${esc((j.company||'Co').slice(0,2).toUpperCase())}</span>${esc(j.company||'Employer')}</div><h2>${esc(j.title)}</h2><div class="detail-meta"><span>${esc(j.location||'Location to confirm')}</span>${j.employment_type?`<span>${esc(j.employment_type)}</span>`:''}${j.deadline?`<span>Closes ${esc(j.deadline.slice(0,10))}</span>`:''}</div><div class="detail-actions">${button(icon('saved')+' '+(b.status==='saved'?'Saved':['new','saved'].includes(b.status)?'Save opportunity':cap(b.status)),'bookmark','button-icon',['new','saved'].includes(b.status)?'':'disabled title="Change stage in Notes & stage"')}${link('Original posting',j.source_url)}${link('Apply on site',j.apply_url||j.source_url)}</div><div class="tabs" role="tablist" aria-label="Opportunity workspace">${[['overview','Overview'],['notes','Notes & stage'],['letter','Cover letter'],['answers','Application']].map(([id,label])=>`<button role="tab" aria-label="${label}" id="tab-${id}" aria-selected="${S.tab===id}" aria-controls="detail-content" class="tab ${S.tab===id?'active':''}" data-tab="${id}">${label}${b.dirty.has(id==='answers'?'app':id)?' •':''}</button>`).join('')}</div></div><div id="detail-content" class="detail-body" role="tabpanel" aria-labelledby="tab-${S.tab}"></div>`;
+  root.innerHTML = `<div class="detail-head">${button(icon('back')+' All opportunities','back-list','quiet back-list button-icon')}<div class="detail-company"><span class="company-mark">${esc((j.company||'Co').slice(0,2).toUpperCase())}</span>${esc(j.company||'Employer')}</div><h2>${esc(j.title)}</h2><div class="detail-meta"><span>${esc(j.location||'Location to confirm')}</span>${j.employment_type?`<span>${esc(j.employment_type)}</span>`:''}${j.deadline?`<span>Closes ${esc(j.deadline.slice(0,10))}</span>`:''}</div><div class="detail-actions">${S.tab!=='letter'&&j.is_active?button(icon('spark')+' Write cover letter','','primary button-icon','data-tab="letter"'):''}${button(icon('saved')+' '+(b.status==='saved'?'Saved':['new','saved'].includes(b.status)?'Save':cap(b.status)),'bookmark','button-icon',['new','saved'].includes(b.status)?'':'disabled title="Change stage in Notes & stage"')}${link('Original posting',j.source_url)}${link('Apply on site',j.apply_url||j.source_url)}</div><div class="tabs" role="tablist" aria-label="Opportunity workspace">${[['overview','Overview'],['notes','Notes & stage'],['letter','Cover letter'],['answers','Application']].map(([id,label])=>`<button role="tab" aria-label="${label}" id="tab-${id}" aria-selected="${S.tab===id}" aria-controls="detail-content" class="tab ${S.tab===id?'active':''}" data-tab="${id}">${label}${b.dirty.has(id==='answers'?'app':id)?' •':''}</button>`).join('')}</div></div><div id="detail-content" class="detail-body" role="tabpanel" aria-labelledby="tab-${S.tab}"></div>`;
   const body = $('#detail-content');
   if (!j.is_active || j.match?.expired) body.innerHTML = '<div class="notice warning">This posting is withdrawn or past its deadline. Your notes and drafts are still available.</div>';
   if (!S.jobs.some(item => item.id === j.id)) body.insertAdjacentHTML('beforeend', '<div class="notice">This opportunity is outside the current filters. Your editor stays open so you can finish your work.</div>');
@@ -411,11 +472,30 @@ function renderDetail() {
   else body.insertAdjacentHTML('beforeend', answers(b, data));
 }
 
+function fitTiles(j) {
+  const m = j.match || {},
+    e = m.experience || {},
+    skills = S.profile.skills || [],
+    matched = m.matched_skills || [];
+  const tile = (label, [tone, headline, detail]) => `<div class="fit"><small>${label}</small><strong class="${tone}">${esc(headline)}</strong><span>${esc(detail)}</span></div>`;
+  const role = m.track === 'target' ? ['good', 'Target role', 'Matches ' + (m.matched_roles || []).join(', ')] :
+    m.track === 'horizon' ? ['warn', 'Related role', (m.related_roles || []).join(', ') || 'Close to your target fields'] :
+    ['', 'Other role', 'Not one of your target or related roles'];
+  const years = e.candidate_years;
+  const experience = e.status === 'mismatch' ? ['bad', 'Experience mismatch', `${e.minimum_years!=null?`Asks for ${e.minimum_years}+ years`:`${cap(e.seniority)} title`} · you have ${years}`] :
+    years == null ? ['warn', 'Not screened', 'Add your years of experience in Profile & writing'] :
+    e.status === 'no_conflict' ? ['good', `${e.minimum_years}+ years asked`, `You have ${years}`] :
+    ['warn', 'Needs review', e.minimum_years != null ? `Asks for ${e.minimum_years}+ years · you have ${years}` : 'No clear minimum stated'];
+  const skill = skills.length ? [matched.length * 2 >= skills.length ? 'good' : 'warn', `${matched.length} of ${skills.length} skills`, matched.join(', ') || 'None of your skills are mentioned'] :
+    ['', 'Skills not set', 'Add skills in Profile & writing'];
+  return `<div class="fit-grid">${tile('Role', role)}${tile('Experience', experience)}${tile('Skills', skill)}</div>`;
+}
+
 function overview(j) {
   const m = j.match || {},
     e = m.experience;
-  const experience = e ? `<div class="notice ${e.status==='mismatch'?'warning':''}"><strong>${e.status==='mismatch'?'Experience mismatch':e.status==='review'?'Experience needs review':'Experience screening'}</strong>${e.reasons.map(reason=>`<p>${esc(reason)}</p>`).join('')}${e.requirements?.length?`<details class="evidence"><summary>Experience evidence from this posting</summary>${e.requirements.map(r=>`<p>${esc(cap(r.kind))}: ${esc(r.evidence)}</p>`).join('')}</details>`:''}</div>` : '';
-  return `${experience}${m.reasons?.length?`<div class="match-box"><strong>Role & skill overlap</strong><p>${m.reasons.map(esc).join('<br>')}</p></div>`:''}<div class="section-label">About this opportunity</div><div class="prose">${esc(j.description||'No full description was imported. Read the original posting for details.')}</div><details class="evidence"><summary>Match details & things to check</summary>${(m.warnings||[]).map(w=>`<p>${esc(w)}</p>`).join('')}<p>${m.score==null?'No keyword score.':`${m.score}% keyword overlap.`} This measures text overlap, not eligibility or hiring probability.</p></details>`;
+  const experience = e ? `<details class="evidence"><summary>How experience was screened</summary>${e.reasons.map(reason=>`<p>${esc(reason)}</p>`).join('')}${(e.requirements||[]).map(r=>`<p>${esc(cap(r.kind))}: ${esc(r.evidence)}</p>`).join('')}</details>` : '';
+  return `${fitTiles(j)}<div class="prose">${esc(j.description||'No full description was imported. Read the original posting for details.')}</div>${experience}<details class="evidence"><summary>Things to check before applying</summary>${(m.warnings||[]).map(w=>`<p>${esc(w)}</p>`).join('')}<p>${m.score==null?'No keyword score.':`${m.score}% keyword overlap.`} This measures text overlap, not eligibility or hiring probability.</p></details>`;
 }
 
 function notes(b) {
@@ -731,6 +811,7 @@ document.addEventListener('change', async e => {
 });
 async function navigate(view) {
   S.view = view;
+  S.showDetail = false;
   shell();
   if (['discover', 'for-you', 'saved', 'applications'].includes(view)) await loadJobs();
   $('#main').focus({
@@ -802,7 +883,7 @@ function commands() {
 }
 
 function help() {
-  modal('Make yourself at home', `<p class="notice">A desktop workspace for your job search. Your country changes the search context; your profile and writing style stay shared.</p><div class="keyboard-help"><span>Quick actions</span><kbd>Ctrl K</kbd><span>Save current editor</span><kbd>Ctrl S</kbd><span>Focus opportunity search</span><kbd>Ctrl F</kbd><span>Switch theme</span><kbd>Ctrl Shift L</kbd><span>Move through fields</span><kbd>Tab / Shift Tab</kbd><span>Close dialog</span><kbd>Escape</kbd></div><br><h3>Applications are always your decision</h3><p class="evidence">Drafts are editable and saved as versions. Review & send opens a complete review before one explicit send action. Complex employer forms still need manual completion.</p><h3>Working locally</h3><p class="evidence">Source collection and Gmail need internet access. Writing uses your installed Ollama model. Your desktop interface uses bundled assets and does not require hosting.</p>`);
+  modal('Keyboard shortcuts & help', `<p class="notice">Your country changes the search context; your profile and writing style stay shared.</p><div class="keyboard-help"><span>Next / previous opportunity</span><kbd>J / K</kbd><span>Move in the list</span><kbd>↓ / ↑</kbd><span>Search opportunities</span><kbd>/</kbd><span>Quick actions</span><kbd>Ctrl K</kbd><span>Save current editor</span><kbd>Ctrl S</kbd><span>Focus opportunity search</span><kbd>Ctrl F</kbd><span>Switch theme</span><kbd>Ctrl Shift L</kbd><span>Move through fields</span><kbd>Tab / Shift Tab</kbd><span>Close dialog</span><kbd>Escape</kbd></div><br><h3>Applications are always your decision</h3><p class="evidence">Drafts are editable and saved as versions. Review & send opens a complete review before one explicit send action. Complex employer forms still need manual completion.</p><h3>Working locally</h3><p class="evidence">Source collection and Gmail need internet access. Writing uses your installed Ollama model. Your desktop interface uses bundled assets and does not require hosting.</p>`);
 }
 
 function ensureAnswers(payload) {
@@ -928,6 +1009,7 @@ async function action(name, el) {
     return;
   }
   if (name === 'back-list') {
+    S.showDetail = false;
     $('.results-layout').classList.remove('has-selection');
     return;
   }
@@ -949,6 +1031,7 @@ async function action(name, el) {
     if ($('#modal').open) closeModal();
     await task('collect', {}, async result => {
       S.boot.collection = result;
+      if ($('.sidebar-bottom')) $('.sidebar-bottom').innerHTML = refreshCard();
       await refreshCoverage();
       if (['discover', 'for-you', 'saved', 'applications'].includes(S.view)) await loadJobs();
       else if (S.view === 'settings') renderPage();
@@ -1364,6 +1447,23 @@ document.addEventListener('keydown', e => {
     }
     return;
   }
+  if (!e.ctrlKey && !e.metaKey && !e.altKey && isDiscovery() && !e.target.closest('input,textarea,select,[contenteditable],[role=tab]')) {
+    // Physical codes keep J, K and / working on Cyrillic and other layouts.
+    const key = {KeyJ: 'j', KeyK: 'k', Slash: '/'}[e.code] || e.key;
+    if (key === '/') {
+      e.preventDefault();
+      $('#job-search')?.focus();
+      return;
+    }
+    // Arrows still scroll the detail pane; they move the selection only in the list.
+    const inList = Boolean(e.target.closest('#job-results'));
+    const step = {j: 1, k: -1, ...(inList ? {ArrowDown: 1, ArrowUp: -1} : {})}[key];
+    if (step && S.jobs.length) {
+      e.preventDefault();
+      moveSelection(step).catch(err => toast(err.message, true));
+      return;
+    }
+  }
   if (e.ctrlKey || e.metaKey) {
     const logicalKey = e.key.toLowerCase();
     // Non-Latin layouts change key, while code keeps the physical shortcut key.
@@ -1404,7 +1504,7 @@ async function boot() {
     shell();
     await loadJobs();
   } catch (err) {
-    $('#app').innerHTML = `<div class="boot"><span class="brand-mark">j.</span><h1>Let’s get you back to work.</h1><p>${esc(err.message)}</p>${button('Try again','retry-boot','primary')}</div>`;
+    $('#app').innerHTML = `<div class="boot"><span class="brand-mark">J</span><h1>Job Agent could not open</h1><p>${esc(err.message)}</p>${button('Try again','retry-boot','primary')}</div>`;
     $('[data-action=retry-boot]').addEventListener('click', boot);
   }
 }

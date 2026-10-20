@@ -290,6 +290,8 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
     @app.get("/")
     def index():
         html = (assets / "index.html").read_text(encoding="utf-8")
+        # The saved theme is applied before scripts run, avoiding a light flash.
+        html = html.replace("__THEME__", _appearance(data_dir)["theme"])
         return html.replace("__SESSION_TOKEN__", app.config["LOCAL_TOKEN"]), 200, {"Content-Type": "text/html; charset=utf-8"}
 
     @app.get("/assets/<path:filename>")

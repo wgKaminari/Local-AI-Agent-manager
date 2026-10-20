@@ -154,6 +154,9 @@ def launch(data_dir: Path, *, preview: bool = False):
         webview.settings["ALLOW_DOWNLOADS"] = True
         webview.settings["OPEN_EXTERNAL_LINKS_IN_BROWSER"] = True
         title = "Personal Job Agent" + (" — Fictional design preview" if preview else "")
+        from .web_api import _appearance
+        # Match the page background so the window does not flash before loading.
+        background = "#0e0f11" if _appearance(Path(data_dir))["theme"] == "dark" else "#fafaf9"
         close_state = NativeCloseState(workspace.app.config["LOCAL_TOKEN"])
         try:
             bounds = _window_bounds(webview.screens)
@@ -163,7 +166,7 @@ def launch(data_dir: Path, *, preview: bool = False):
             raise RuntimeError("Microsoft Edge WebView2 Runtime is required for this desktop interface.")
         window = webview.create_window(title, workspace.url, **bounds,
                                        text_select=True, zoomable=True,
-                                       background_color="#f5f6f8", js_api=close_state,
+                                       background_color=background, js_api=close_state,
                                        confirm_close=True, localization={
                                            "global.quitConfirmation": "There may be unsaved edits or tasks still running. Close anyway?"
                                        })
