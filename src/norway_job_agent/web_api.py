@@ -138,7 +138,7 @@ class _State:
             except Exception:
                 self.app.logger.exception("Local action failed")
                 with self.lock:
-                    self.tasks[identifier].update(status="error", message="Action needs attention", error="The action could not finish. Review its status and the application log before retrying.")
+                    self.tasks[identifier].update(status="error", message="Action needs attention", error="The action could not finish. Details were written to logs/job-agent.log in your private data folder; retry, and include that file if you report the problem.")
             finally:
                 with self.lock:
                     self.active_actions.discard(key)
@@ -269,6 +269,17 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
     def invalid(exc):
         return jsonify(error=str(exc)), 400
 
+    @app.errorhandler(service.SettingsFileError)
+    def damaged(exc):
+        # The interface offers a one-click restore instead of a dead end.
+        return jsonify(error=str(exc), damaged_file=exc.file), 409
+
+    @app.post("/api/recover")
+    def recover():
+        from .maintenance import restore_settings_file
+        with state.lock:
+            return jsonify(message=restore_settings_file(data_dir, _text(body().get("file"), "File", 40)))
+
     @app.errorhandler(HTTPException)
     def http_error(exc):
         return jsonify(error=exc.description), exc.code
@@ -303,7 +314,7 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
 
     @app.get("/api/bootstrap")
     def bootstrap():
-        from .cli import STATUSES
+        from .storage import STATUS_ORDER as STATUSES
         return jsonify(profile=service.read_profile(data_dir), settings=service.read_settings(data_dir),
                        appearance=_appearance(data_dir),
                        countries=COUNTRIES, statuses=STATUSES, catalog=company_catalog(), boards=job_board_catalog(),
@@ -458,7 +469,7 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
         elif action == "letter":
             revision = state.edit_revision("letter", identifier)
             def callback(progress):
-                result = service.write_letter(data_dir, identifier, persist=False)
+                result = service.write_letter(data_dir, identifier, persist=False, progress=progress)
                 with state.lock:
                     metadata = result.pop("draft_metadata")
                     with JobStore(data_dir / "vacancies.db") as store:
@@ -481,15 +492,19 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
             validate_form(form)
             revision = state.edit_revision("application", identifier)
             def callback(progress):
-                result = service.prepare_application(data_dir, identifier, form, persist=False)
+                result = service.prepare_application(data_dir, identifier, form, persist=False, progress=progress)
+                note = result.pop("performance_note", None)  # Advice, not application data.
                 with state.lock:
                     service.save_application(data_dir, identifier, result)
                     state.preserve_newer_edit("application", identifier, revision)
                     state.changed(identifier)
-                return state.expose(result, identifier)
+                exposed = state.expose(result, identifier)
+                if note:
+                    exposed["performance_note"] = note
+                return exposed
         elif action == "suggest-profile":
             cv_text = _text(value.get("cv_text"), "CV")
-            callback = lambda progress: service.suggest_profile(data_dir, cv_text)
+            callback = lambda progress: service.suggest_profile(data_dir, cv_text, progress=progress)
         elif action == "models":
             callback = lambda progress: {"models": service.available_models()}
         elif action == "setup-status":

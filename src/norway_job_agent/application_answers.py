@@ -1,7 +1,6 @@
 """Grounded, locally generated answer drafts; no browser or submission capability."""
 from __future__ import annotations
 
-import json
 import re
 
 from . import local_ai
@@ -157,7 +156,7 @@ def _validated_answers(result, fields, facts, style):
 
 
 def generate_application_answers(job: dict, profile: dict, form: dict, writing_style=None,
-                                 model: str = local_ai.DEFAULT_MODEL) -> dict:
+                                 model: str = local_ai.DEFAULT_MODEL, *, progress=None) -> dict:
     """Return one reviewable response per field using bounded local AI batches."""
     local_ai.validate_model_name(model)
     if not isinstance(job, dict) or not isinstance(profile, dict):
@@ -192,7 +191,7 @@ def generate_application_answers(job: dict, profile: dict, form: dict, writing_s
         data = {"candidate_facts": facts, "vacancy": vacancy, "writing_style": style, "questions": fields}
 
         def attempt(feedback, number, fields=fields, data=data):
-            result = local_ai._chat(model, _INSTRUCTIONS, data, _SCHEMA, feedback=feedback, attempt=number)
+            result = local_ai._chat(model, _INSTRUCTIONS, data, _SCHEMA, feedback=feedback, attempt=number, progress=progress)
             return _validated_answers(result, fields, facts, style)
 
         # A rejected batch is retried alone; accepted batches are kept.

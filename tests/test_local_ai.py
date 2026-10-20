@@ -20,7 +20,9 @@ def response(body, status=200):
     result = MagicMock()
     result.status = status
     data = body if isinstance(body, bytes) else json.dumps(body).encode("utf-8")
-    result.read.side_effect = io.BytesIO(data).read
+    stream = io.BytesIO(data)
+    result.read.side_effect = stream.read
+    result.readline.side_effect = stream.readline  # Streamed chat replies are NDJSON lines.
     return result
 
 
@@ -63,11 +65,11 @@ class LocalAITests(unittest.TestCase):
         self.assertNotIn("candidate", json.dumps(requests[0][2]))
         payload = requests[1][2]
         self.assertEqual(payload["model"], "qwen3:4b")
-        self.assertFalse(payload["stream"])
+        self.assertTrue(payload["stream"])
         self.assertFalse(payload["think"])
         self.assertEqual(payload["options"]["temperature"], 0.2)
         self.assertLessEqual(payload["options"]["num_predict"], 2000)
-        self.assertEqual(self.http.call_args.kwargs["timeout"], 240)
+        self.assertEqual(self.http.call_args.kwargs["timeout"], local_ai._FIRST_TOKEN_TIMEOUT)
         facts = json.loads(payload["messages"][1]["content"])["candidate_facts"]
         self.assertNotIn("target_roles", facts)
         self.assertNotIn("search_languages", facts)
@@ -166,6 +168,44 @@ class LocalAITests(unittest.TestCase):
         self.assertGreater(long, short)
         self.assertLessEqual(long, 24576)
         self.assertEqual(long % 2048, 0)
+
+    def test_streamed_reply_is_assembled_and_reports_progress(self):
+        content = json.dumps(self.draft)
+        chunks = [content[i:i + 7] for i in range(0, len(content), 7)]
+        lines = b"".join(json.dumps({"message": {"role": "assistant", "content": piece}, "done": False}).encode() + b"\n"
+                         for piece in chunks)
+        lines += json.dumps({"done": True, "done_reason": "stop", "message": {"role": "assistant", "content": ""}}).encode() + b"\n"
+        self.replies(LOCAL_DETAILS, lines)
+        updates = []
+        clock = iter(range(1000))
+        with patch("time.monotonic", side_effect=lambda: next(clock)):
+            result = local_ai.generate_cover_letter(self.job, self.profile, progress=updates.append)
+        self.assertEqual(result["cover_letter"], self.draft["cover_letter"])
+        self.assertTrue(updates[0].startswith("Loading your local model"))
+        self.assertTrue(any(update.startswith("Writing with your local model") for update in updates))
+        self.assertIsNotNone(local_ai.last_tokens_per_second())
+
+    def test_stream_that_stops_before_done_is_never_accepted(self):
+        partial = json.dumps({"message": {"role": "assistant", "content": '{"cover_letter": "Dear'}, "done": False}).encode() + b"\n"
+        self.rejected(LOCAL_DETAILS, partial)
+        with self.assertRaisesRegex(local_ai.LocalAIError, "did not finish"):
+            local_ai.generate_cover_letter(self.job, self.profile)
+
+    def test_silent_stream_times_out_with_actionable_advice(self):
+        self.replies(LOCAL_DETAILS)
+        stalled = response(b"")
+        stalled.readline.side_effect = TimeoutError
+        self.connection.getresponse.side_effect = [response(LOCAL_DETAILS), stalled]
+        with self.assertRaisesRegex(local_ai.LocalAIError, "stopped responding"):
+            local_ai.generate_cover_letter(self.job, self.profile)
+
+    def test_letter_admitting_missing_work_permission_is_retried(self):
+        harmful = {**self.draft, "cover_letter": "Dear hiring team, I built Python services. While I do not currently have work authorization in Norway, I am keen."}
+        self.replies(LOCAL_DETAILS, chat_result(harmful), LOCAL_DETAILS, chat_result(self.draft))
+        result = local_ai.generate_cover_letter(self.job, self.profile)
+        self.assertEqual(result["cover_letter"], self.draft["cover_letter"])
+        retry = [row[2] for row in self.requests() if row[1] == "/api/chat"][1]
+        self.assertIn("missing permission or qualification", retry["messages"][0]["content"])
 
     def empty_suggestion(self):
         return {**{key: [] for key in LIST_FIELDS}, **{key: "" for key in TEXT_FIELDS}, "languages": {}}

@@ -112,7 +112,11 @@ async function api(path, {
   } catch {
     throw Error('The local service returned an unreadable response. Reopen the app if this continues.');
   }
-  if (!response.ok) throw Error(data.error || `This action failed (${response.status}).`);
+  if (!response.ok) {
+    const error = Error(data.error || `This action failed (${response.status}).`);
+    error.data = data;
+    throw error;
+  }
   return data;
 }
 
@@ -503,12 +507,20 @@ function notes(b) {
 }
 
 function letter(b) {
-  return `<div class="answers-toolbar">${button(icon('spark')+' Draft with local AI','generate-letter','primary button-icon')}${button('Version history','letter-history')}${button('Export text','export-letter')}</div><label class="field"><span>Your cover letter</span><textarea id="letter-text" class="editor" placeholder="Write in your own words, or start a draft with your local AI model.">${esc(b.letter)}</textarea></label><div class="editor-meta"><span id="word-count">${b.letter.trim().split(/\s+/).filter(Boolean).length} words</span><span>Style: ${esc(S.profile.writing_style?.tone||'Professional and natural')}</span></div><div class="notice">Review the facts and the employer’s requirements before using this letter. Your writing preferences are in Profile & writing.</div><div class="savebar"><small>${b.dirty.has('letter')?'Unsaved edits':'Saved versions remain in history.'}</small>${button('Save version','save-letter','primary')}</div>`;
+  return `<div class="answers-toolbar">${button(icon('spark')+' Draft with local AI','generate-letter','primary button-icon')}${button('Version history','letter-history')}${button('Export text','export-letter')}</div><label class="field"><span>Your cover letter</span><textarea id="letter-text" class="editor" placeholder="Write in your own words, or start a draft with your local AI model.">${esc(b.letter)}</textarea></label><div class="editor-meta"><span id="word-count">${b.letter.trim().split(/\s+/).filter(Boolean).length} words</span><span>Style: ${esc(S.profile.writing_style?.tone||'Professional and natural')}</span></div>${b.letterNotes?.length?`<div class="notice warning"><strong>Check before using this draft</strong>${b.letterNotes.map(n=>`<p>${esc(n)}</p>`).join('')}${b.letterEvidence?.length?`<details class="evidence"><summary>Profile facts the draft relies on</summary>${b.letterEvidence.map(e=>`<p>${esc(e)}</p>`).join('')}</details>`:''}</div>`:'<div class="notice">Review the facts and the employer’s requirements before using this letter. Your writing preferences are in Profile & writing.</div>'}<div class="savebar"><small>${b.dirty.has('letter')?'Unsaved edits':'Saved versions remain in history.'}</small>${button('Save version','save-letter','primary')}</div>`;
 }
 
 function answers(b, data) {
   const p = b.app;
-  return `<div class="answers-toolbar">${button('Read questions','read-questions')}${button('Paste questions','paste-questions')}${p?button(icon('spark')+' Draft answers','generate-answers','primary button-icon'):''}</div>${!p?`<div class="empty"><div class="empty-icon">${icon('applications')}</div><h2>A thoughtful application starts here.</h2><p>Read the employer’s public questions or paste them in. Your local AI prepares drafts for you to review and edit.</p></div>`:`<div class="notice">${p.form.fields.length} questions · ${esc(p.form.coverage||'partial')} coverage. Check the original form for missing or conditional questions.<details class="evidence"><summary>Source details and limitations</summary>${(p.form.warnings||[]).map(w=>`<p>${esc(w)}</p>`).join('')}<p>${esc(p.form.source_url||'Manually supplied questions')}</p></details></div><div class="ready-line">${icon('check')} ${p.form.fields.filter(f=>hasAnswer(p,f)).length} of ${p.form.fields.length} questions completed</div><br>${p.form.fields.map((f,i)=>question(p,f,i)).join('')}<div class="savebar"><div class="section-actions">${button('Save version','save-answers')}${button('History','answers-history')}${button('Export','export-answers')}</div>${button('Review & send','review-application','primary')}</div><p class="evidence">Sending supports standard public forms. Login, CAPTCHA and dynamic applications are completed on the employer site.</p>`}${data.deliveries.length?`<div class="notice">Last delivery: ${esc(cap(data.deliveries[0].status))}. Check the employer’s confirmation before updating your stage.</div>`:''}`;
+  return `<div class="answers-toolbar">${button('Read questions','read-questions')}${button('Paste questions','paste-questions')}${p?button(icon('spark')+' Draft answers','generate-answers','primary button-icon'):''}</div>${!p?`<div class="empty"><div class="empty-icon">${icon('applications')}</div><h2>A thoughtful application starts here.</h2><p>Read the employer’s public questions or paste them in. Your local AI prepares drafts for you to review and edit.</p></div>`:`<div class="notice">${p.form.fields.length} questions · ${esc(p.form.coverage||'partial')} coverage. Check the original form for missing or conditional questions.<details class="evidence"><summary>Source details and limitations</summary>${(p.form.warnings||[]).map(w=>`<p>${esc(w)}</p>`).join('')}<p>${esc(p.form.source_url||'Manually supplied questions')}</p></details></div><div class="ready-line">${icon('check')} ${p.form.fields.filter(f=>hasAnswer(p,f)).length} of ${p.form.fields.length} questions completed</div><br>${p.form.fields.map((f,i)=>question(p,f,i)).join('')}<div class="savebar"><div class="section-actions">${button('Save version','save-answers')}${button('History','answers-history')}${button('Export','export-answers')}</div>${sendable(p)?button('Review & send','review-application','primary'):button('Copy answers & open application','copy-apply','primary')}</div><p class="evidence">${sendable(p)?'This is a standard public form: Review & send fills it in a browser for your final check before one explicit send.':'This employer’s form needs its own website (it uses JavaScript, a login or a hosted applicant system). Copy your reviewed answers, paste them into the form, and attach your files there.'}</p>`}${data.deliveries.length?`<div class="notice">Last delivery: ${esc(cap(data.deliveries[0].status))}. Check the employer’s confirmation before updating your stage.</div>`:''}`;
+}
+
+// Only native HTML forms can be filled and sent from the app; Greenhouse,
+// pasted questions and other hosted forms are completed on the employer site.
+const sendable = p => p.form.provider === 'html' && Boolean(p.form.delivery);
+
+function answersText(p) {
+  return p.form.fields.map(f => `${f.label}\n${p.answers.find(a=>a.field_id===f.id)?.answer||'[Your input needed]'}`).join('\n\n');
 }
 
 function hasAnswer(p, f) {
@@ -576,14 +588,20 @@ async function generate(kind) {
       form: clone(b.app.form)
     } : {})
   }, async result => {
-    if (b.revision === rev) {
+    if (kind === 'letter') {
+      // Shown with the fresh draft only; saved versions keep just the text.
+      b.letterNotes = result.review_notes || [];
+      b.letterEvidence = result.used_evidence || [];
+    }
+    const kept = b.revision !== rev;
+    if (!kept) {
       if (kind === 'letter') b.letter = result.cover_letter;
       else b.app = result;
       b.dirty.delete(part);
-    } else toast('Your newer edits were kept. The AI draft is available in version history.');
+    }
     await refreshJob(id);
     if (S.selected === id) renderDetail();
-    toast('Draft ready. Review every fact before using it.');
+    toast((kept ? 'Your newer edits were kept; the AI draft is in version history. ' : 'Draft ready. Review every fact before using it. ') + (result.performance_note || ''));
   });
 }
 
@@ -1094,8 +1112,28 @@ async function action(name, el) {
     return;
   }
   if (name === 'export-answers') {
-    const p = current().app;
-    exportText('application-answers.txt', p.form.fields.map(f => `${f.label}\n${p.answers.find(a=>a.field_id===f.id)?.answer||'[Your input needed]'}`).join('\n\n'));
+    exportText('application-answers.txt', answersText(current().app));
+    return;
+  }
+  if (name === 'copy-apply') {
+    const b = current(),
+      j = S.details.get(S.selected)?.job;
+    if (b.dirty.has('app')) await savePart('app');
+    try {
+      await navigator.clipboard.writeText(answersText(b.app));
+    } catch {
+      exportText('application-answers.txt', answersText(b.app));
+      toast('Copying was blocked, so the answers were saved as a text file instead.');
+    }
+    const url = safeUrl(j?.apply_url || j?.source_url || '');
+    if (url) {
+      const a = document.createElement('a');
+      a.href = url;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.click();
+    }
+    toast('Answers copied. Paste them into the employer’s form, attach your files there, then set the stage to Applied in Notes & stage.');
     return;
   }
   if (name === 'read-questions') {
@@ -1508,8 +1546,20 @@ async function boot() {
     shell();
     await loadJobs();
   } catch (err) {
-    $('#app').innerHTML = `<div class="boot"><span class="brand-mark">J</span><h1>Job Agent could not open</h1><p>${esc(err.message)}</p>${button('Try again','retry-boot','primary')}</div>`;
+    const damaged = err.data?.damaged_file;
+    $('#app').innerHTML = `<div class="boot"><span class="brand-mark">J</span><h1>Job Agent could not open</h1><p>${esc(err.message)}</p><div class="section-actions">${damaged?button('Restore last backup','restore-file','primary'):''}${button('Try again','retry-boot',damaged?'':'primary')}</div></div>`;
     $('[data-action=retry-boot]').addEventListener('click', boot);
+    $('[data-action=restore-file]')?.addEventListener('click', async e => {
+      e.target.disabled = true;
+      try {
+        const {message} = await api('/recover', {method: 'POST', body: {file: damaged}});
+        await boot();
+        toast(message);
+      } catch (failure) {
+        e.target.disabled = false;
+        toast(failure.message, true);
+      }
+    });
   }
 }
 boot();

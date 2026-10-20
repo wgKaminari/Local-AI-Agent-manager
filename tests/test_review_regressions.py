@@ -11,6 +11,14 @@ from norway_job_agent import local_ai, runtime_setup, service
 from norway_job_agent.profile import LIST_FIELDS, TEXT_FIELDS
 
 
+
+def setUpModule():
+    # Drafting starts an installed Ollama; tests use mocked generation and
+    # must never launch the real local AI server.
+    patcher = patch("norway_job_agent.runtime_setup.ensure_ollama")
+    patcher.start()
+    unittest.addModuleCleanup(patcher.stop)
+
 class SetupDiscoveryTests(unittest.TestCase):
     def test_embedding_model_does_not_hide_installed_chat_model(self):
         responses = [

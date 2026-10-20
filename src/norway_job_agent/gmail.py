@@ -77,7 +77,7 @@ def _request_json(url: str, *, form: dict | None = None, access_token: str = "")
     is_message_read = parts.netloc == "gmail.googleapis.com" and re.fullmatch(r"/gmail/v1/users/me/messages(?:/[A-Za-z0-9_-]{1,200})?", parts.path)
     if not ((is_token_request and form is not None and not access_token) or (is_message_read and form is None)):
         raise GmailError("Only read-only Gmail message requests and OAuth token exchange are supported.")
-    headers = {"Accept": "application/json", "User-Agent": "NorwayJobAgent/0.1"}
+    headers = {"Accept": "application/json", "User-Agent": "PersonalJobAgent/0.5"}
     data = None
     if form is not None:
         data = urlencode(form).encode("ascii")
@@ -250,7 +250,7 @@ def connect(data_dir: Path, credentials_path: Path, *, timeout_seconds: float = 
                     raise GmailError("Unexpected OAuth callback host.")
                 code, error = _callback_result(self.path, state)
                 result.update(code=code, error=error)
-                status, body = 200, b"Sign-in response received. Return to Norway Job Agent to finish connecting. You can close this tab."
+                status, body = 200, b"Sign-in response received. Return to Personal Job Agent to finish connecting. You can close this tab."
             except GmailError:
                 status, body = 400, b"This sign-in response was not accepted. Return to the app."
             self.send_response(status)

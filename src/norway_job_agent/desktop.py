@@ -26,7 +26,6 @@ from .theme import palette_for
 from .text_interactions import install_text_actions
 
 
-STATUSES = ("new", "saved", "preparing", "ready", "applied", "interview", "rejected", "archived")
 TRACKS = {"All vacancies": "", "Target roles": "target", "Related suggestions": "horizon", "Other roles": "other"}
 TRACK_LABELS = {"target": "Target", "horizon": "Related", "other": "Other"}
 LIST_FIELDS = {"target_roles", "related_roles", "skills", "preferred_locations", "excluded_keywords", "evidence"}
@@ -129,7 +128,7 @@ class Desktop(DesktopLayout, ConnectionPages, AppearanceControls, ApplicationPag
             self._show_ai_setup()
             self.model_status.set(str(error))
         self.status_message.set("Action could not be completed. Your saved data remains available.")
-        messagebox.showerror("Norway Job Agent", str(error), parent=self.root)
+        messagebox.showerror("Personal Job Agent", str(error), parent=self.root)
 
     def _run(self, label, work, on_success):
         if self.busy:

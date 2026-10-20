@@ -63,6 +63,8 @@ The configuration limit is 250 sources. Country/source additions that exceed it 
 
 AI runs through **Ollama** at `127.0.0.1:11434` with a downloaded local text model. Remote endpoints and cloud model aliases are rejected. No paid AI API or cloud model account is required.
 
+Drafting starts an installed Ollama automatically when it is not running, shows live progress while the model writes, and only gives up if Ollama stops responding, so a slow computer is never cut off mid-draft. If drafting is slow, close memory-heavy programs (browsers with many tabs, games): with little free memory Windows swaps the model to disk. The app tells you when that happened.
+
 1. Install and open [Ollama for Windows](https://ollama.com/download/windows).
 2. Under **Settings & activity**, choose **Start Ollama**, then **Download saved model**. The default is `qwen3:4b`, downloaded separately from Ollama itself. Save a different model name before downloading it.
 3. Use **Check setup** to list installed models, select one and save settings.
@@ -152,4 +154,4 @@ Interface tests exercise the bundled UI against an isolated local Python service
 
 `python scripts/preview-ui.py` previews the **classic Tkinter** interface with fictional data. The default `gui` command opens the new desktop application against your selected private data folder.
 
-Existing databases migrate through the storage layer while retaining vacancies, notes, stages, letters and identities. Close the app before backing up the whole private folder. The database uses SQLite's WAL mode, so copy any `vacancies.db-wal` and `vacancies.db-shm` files together with `vacancies.db`. Avoid running both interfaces against it while editing shared profile/settings files. Personal data, credentials, model downloads and generated application materials are excluded from Git. See [requirements](docs/requirements.md) for the agreed scope.
+Existing databases migrate through the storage layer while retaining vacancies, notes, stages, letters and identities. The app keeps an automatic daily backup of the database and settings in `backups/automatic` (the newest ten; Gmail credentials and attachment files are not included). If the profile or source settings file is ever damaged, the app offers **Restore last backup** when it opens and keeps the damaged copy. Unexpected errors are written to `logs/job-agent.log`, which records error details but not your profile, CV, vacancy or letter text. Close the app before backing up the whole private folder. The database uses SQLite's WAL mode, so copy any `vacancies.db-wal` and `vacancies.db-shm` files together with `vacancies.db`. Avoid running both interfaces against it while editing shared profile/settings files. Personal data, credentials, model downloads and generated application materials are excluded from Git. See [requirements](docs/requirements.md) for the agreed scope.

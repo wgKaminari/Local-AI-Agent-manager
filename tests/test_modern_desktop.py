@@ -47,6 +47,9 @@ class NativeDesktopTests(unittest.TestCase):
         from norway_job_agent import windows_integration
         self.app_id = patch.object(windows_integration, "set_app_id").start()
         self.single = patch.object(windows_integration, "claim_single_instance", return_value=True).start()
+        from norway_job_agent import maintenance
+        patch.object(maintenance, "configure_logging").start()
+        self.backup = patch.object(maintenance, "automatic_backup").start()
 
     def test_native_window_uses_loopback_and_explicit_windows_renderer(self):
         with patch.object(modern_desktop.sys, "platform", "win32"):

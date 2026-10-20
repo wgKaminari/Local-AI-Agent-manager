@@ -26,7 +26,7 @@ MAX_ATS_RESPONSE_BYTES = 20 * 1024 * 1024
 TIMEOUT_SECONDS = 15
 MAX_REDIRECTS = 5
 RETRY_PAUSE_SECONDS = 1.0
-USER_AGENT = "NorwayJobAgent/0.4"
+USER_AGENT = "PersonalJobAgent/0.5"
 _BOARD = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,99}\Z")
 _BLOCKED_HOSTS = ("linkedin.com", "finn.no")
 
@@ -389,21 +389,60 @@ def fetch_greenhouse(board: str) -> list[dict]:
         if identifier in seen:
             raise SourceError("Greenhouse repeated a job in its board snapshot; retry later.")
         seen.add(identifier)
-        location = item.get("location") or {}
-        locations = [_plain(location.get("name")) if isinstance(location, dict) else _plain(location)]
-        offices = item.get("offices") or []
-        if isinstance(offices, list):
-            locations.extend(_plain(office.get("location")) for office in offices if isinstance(office, dict))
-        link = _link(item.get("absolute_url"), base)
-        jobs.append(_job(
-            title=_plain(item.get("title")), company=company,
-            location="; ".join(dict.fromkeys(filter(None, locations))),
-            description=_plain(item.get("content")), source="greenhouse",
-            source_id=f"{board}:{item['id']}", source_url=link, apply_url=link,
-            published_at=item.get("first_published") or item.get("published_at"),
-            deadline=_date(item.get("application_deadline")),
-        ))
+        jobs.append(_greenhouse_job(item, board, company, base))
     return jobs
+
+
+def _greenhouse_job(item: dict, board: str, company: str, base: str) -> dict:
+    location = item.get("location") or {}
+    locations = [_plain(location.get("name")) if isinstance(location, dict) else _plain(location)]
+    offices = item.get("offices") or []
+    if isinstance(offices, list):
+        locations.extend(_plain(office.get("location")) for office in offices if isinstance(office, dict))
+    link = _link(item.get("absolute_url"), base)
+    return _job(
+        title=_plain(item.get("title")), company=company,
+        location="; ".join(dict.fromkeys(filter(None, locations))),
+        description=_plain(item.get("content")), source="greenhouse",
+        source_id=f"{board}:{item['id']}", source_url=link, apply_url=link,
+        published_at=item.get("first_published") or item.get("published_at"),
+        deadline=_date(item.get("application_deadline")),
+    )
+
+
+_GREENHOUSE_HOSTS = frozenset({"boards.greenhouse.io", "job-boards.greenhouse.io", "boards.eu.greenhouse.io", "job-boards.eu.greenhouse.io"})
+
+
+def fetch_greenhouse_job(board: str, job_id: str) -> dict:
+    """Read one posting through Greenhouse's public API.
+
+    Greenhouse job pages carry no JobPosting data, so pasted Greenhouse links
+    previously failed to import. The record matches board collection exactly,
+    so a later board scan updates it instead of creating a duplicate.
+    """
+    board = _board(board)
+    if not isinstance(job_id, str) or not job_id.isdecimal():
+        raise SourceError("Use a Greenhouse job link ending in /jobs/<number>.")
+    base = f"https://boards-api.greenhouse.io/v1/boards/{board}"
+    metadata = _json(base)
+    item = _json(f"{base}/jobs/{job_id}")
+    if not isinstance(metadata, dict) or not isinstance(item, dict) or str(item.get("id")) != job_id or not _plain(item.get("title")):
+        raise SourceError("Greenhouse did not return this job; it may have closed.")
+    return _greenhouse_job(item, board, _plain(metadata.get("name")) or board, base)
+
+
+def _ats_job_link(url: str):
+    """(provider, board, identifier) for a direct ATS job link, else None."""
+    parts, host, _ = _url_parts(url)
+    if host in _GREENHOUSE_HOSTS:
+        match = re.fullmatch(r"/([A-Za-z0-9_-]+)/jobs/(\d+)/?", parts.path)
+        if match:
+            return "greenhouse", match[1], match[2]
+    if host == "jobs.ashbyhq.com":
+        match = re.fullmatch(r"/([A-Za-z0-9_.-]+)/([0-9a-f-]{36})(?:/application)?/?", parts.path)
+        if match:
+            return "ashby", match[1], match[2]
+    return None
 
 
 def _date(value) -> str:
@@ -589,7 +628,17 @@ def fetch_job_url(url: str) -> list[dict]:
 
     No JavaScript is executed, links are not crawled, and access restrictions
     are not bypassed. If structured data is absent, use manual text import.
+    Direct Greenhouse and Ashby job links are read through their public APIs.
     """
+    ats = _ats_job_link(url)
+    if ats and ats[0] == "greenhouse":
+        return [fetch_greenhouse_job(ats[1], ats[2])]
+    if ats and ats[0] == "ashby":
+        wanted = ats[2].lower()
+        matches = [job for job in fetch_ashby(ats[1]) if job["source_url"].rstrip("/").lower().endswith(wanted)]
+        if not matches:
+            raise SourceError("Ashby did not list this job; it may have closed.")
+        return matches
     _, _, body, final_url = _fetch(url, respect_robots=True)
     parser = _LinkedData()
     parser.feed(body.decode("utf-8-sig", errors="replace"))

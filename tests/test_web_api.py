@@ -25,6 +25,14 @@ FORM = parse_html_form('''<form action="/applications" method="post" enctype="mu
 <label>Resume<input name="resume" type="file"></label><button>Apply</button></form>''', FORM_URL)
 
 
+
+def setUpModule():
+    # Drafting starts an installed Ollama; tests use mocked generation and
+    # must never launch the real local AI server.
+    patcher = patch("norway_job_agent.runtime_setup.ensure_ollama")
+    patcher.start()
+    unittest.addModuleCleanup(patcher.stop)
+
 class FakeBrowser:
     def __init__(self):
         self.calls = []

@@ -6,9 +6,17 @@ import unittest
 from unittest.mock import patch
 
 from norway_job_agent import application_answers, application_forms, local_ai
-from norway_job_agent.experience_matching import assess_experience, experience_requirements
+from norway_job_agent.experience_matching import assess_experience
 from norway_job_agent.profile import match_job, preparation_brief, validate_profile
 
+
+
+def setUpModule():
+    # Drafting starts an installed Ollama; tests use mocked generation and
+    # must never launch the real local AI server.
+    patcher = patch("norway_job_agent.runtime_setup.ensure_ollama")
+    patcher.start()
+    unittest.addModuleCleanup(patcher.stop)
 
 class ExperienceProfileTests(unittest.TestCase):
     def test_explicit_fractional_zero_and_unknown_experience_round_trip(self):

@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import re
+import threading
 from http.client import HTTPConnection, HTTPException
 
 from .profile import LIST_FIELDS, TEXT_FIELDS
@@ -22,7 +23,12 @@ MAX_JOB_CHARS = 14_000
 MAX_INPUT_CHARS = 30_000
 MAX_RESPONSE_BYTES = 1_000_000
 MAX_OUTPUT_CHARS = 16_000
-_GENERATION_TIMEOUT = 240
+# Generation streams, so time limits measure silence rather than total time:
+# a slow but working model (CPU, low memory) is never cut off mid-draft.
+_FIRST_TOKEN_TIMEOUT = 600  # Includes loading the model from disk.
+_IDLE_TIMEOUT = 180
+_TOTAL_TIMEOUT = 1800
+_MAX_STREAM_LINE = 65536
 # Small local models regularly produce one unusable draft (a paraphrased
 # citation, an overlong letter). Each rejected attempt is retried with the
 # reason; connection, setup and timeout failures are never retried.
@@ -108,6 +114,15 @@ Preserve actual language levels literally. If Norwegian is A1-A2, never
 claim B1, fluent or professional Norwegian. A willingness to consider a B1 vacancy
 does not establish B1 proficiency. Do not turn goals into completed achievements.
 Omit unsupported claims and put material gaps or uncertainty in review_notes.
+The letter argues for the candidate. Never state in the letter that the
+candidate lacks work authorization, a required skill, a language level or
+experience, and never apologise for a gap; record each such gap in
+review_notes instead so the candidate can decide how to address it.
+Mention work authorization in the letter only if it is a positive verified
+fact. Open with "Dear Hiring Team" (or the requested language's equivalent),
+use 3-4 short paragraphs, and close with a sign-off and the candidate's name.
+review_notes are actionable checks for the candidate (requirements they may
+not meet, claims to verify, things to tailor), not a summary of the letter.
 used_evidence must contain exact, verbatim excerpts from candidate facts supporting
 the letter, with no invented citations. A human must check all claims before use.
 Follow writing_style for tone, phrasing and length only. Its examples are not
@@ -271,7 +286,81 @@ def _context_size(encoded: str, instructions: str) -> int:
     return min(24576, max(8192, -(-estimate // 2048) * 2048))
 
 
-def _chat(model: str, instructions: str, data: dict, schema: dict, *, feedback: str | None = None, attempt: int = 0) -> dict:
+def _stream_chat(payload: dict, model: str, progress=None) -> dict:
+    """POST /api/chat with streaming; return the same shape as a non-streamed reply.
+
+    Progress reports tokens and speed so a slow model visibly works. Partial
+    output is never returned: an interrupted stream raises LocalAIError.
+    """
+    import time
+    data = json.dumps({**payload, "stream": True}, ensure_ascii=False).encode("utf-8")
+    connection = HTTPConnection(_LOCAL_HOST, _LOCAL_PORT, timeout=_FIRST_TOKEN_TIMEOUT)
+    started = time.monotonic()
+    parts, final, tokens, first, reported = [], None, 0, None, 0.0
+    size = 0
+    try:
+        connection.request("POST", "/api/chat", body=data,
+                           headers={"Content-Type": "application/json", "Accept": "application/x-ndjson"})
+        response = connection.getresponse()
+        if 300 <= response.status < 400:
+            raise LocalAIError("Ollama returned a redirect. Local AI requests never follow redirects; check the local Ollama service.")
+        if response.status == 404:
+            raise LocalAIError("The local model or Ollama API is unavailable. " + _setup_hint(model))
+        if response.status != 200:
+            raise LocalAIError("Ollama could not complete the request. Check that the selected model is installed and fits available memory. " + _setup_hint(model))
+        while True:
+            if time.monotonic() - started > _TOTAL_TIMEOUT:
+                raise TimeoutError
+            line = response.readline(_MAX_STREAM_LINE + 1)
+            if not line:
+                break
+            size += len(line)
+            if len(line) > _MAX_STREAM_LINE or size > MAX_RESPONSE_BYTES:
+                raise LocalAIError("Ollama returned an oversized response. Restart Ollama and retry with a smaller local model.")
+            if not line.strip():
+                continue
+            try:
+                item = json.loads(line.decode("utf-8"))
+            except (UnicodeError, ValueError, RecursionError):
+                raise LocalAIError("Ollama returned invalid JSON. Update or restart Ollama and retry.") from None
+            if not isinstance(item, dict):
+                raise LocalAIError("Ollama returned an unexpected response. Update or restart Ollama and retry.")
+            if item.get("error"):
+                raise LocalAIError("Ollama reported an error. Check the installed local model and retry. " + _setup_hint(model))
+            if _has_remote_metadata(item):
+                raise LocalAIError("Ollama reported remote execution despite local verification. Disable cloud access in Ollama before retrying.")
+            message = item.get("message")
+            piece = message.get("content") if isinstance(message, dict) else None
+            if isinstance(piece, str) and piece:
+                parts.append(piece)
+                tokens += 1
+                if first is None:
+                    first = time.monotonic()
+                    if connection.sock is not None:
+                        connection.sock.settimeout(_IDLE_TIMEOUT)
+            if item.get("done") is True:
+                final = item
+                break
+            now = time.monotonic()
+            if progress is not None and first is not None and now - reported >= 1:
+                rate = tokens / max(now - first, 0.001)
+                progress(f"Writing with your local model… {tokens} tokens ({rate:.1f}/s)")
+                reported = now
+    except TimeoutError:
+        raise LocalAIError("Ollama stopped responding while writing. Close memory-heavy apps or choose a smaller local model, then retry.") from None
+    except (OSError, HTTPException):
+        raise LocalAIError("Cannot reach Ollama at 127.0.0.1:11434. " + _setup_hint(model)) from None
+    finally:
+        connection.close()
+    if final is None:
+        raise _RejectedOutput("The model did not finish its response. Shorten the input and retry; no partial draft was accepted.")
+    seconds = (time.monotonic() - first) if first is not None else 0.0
+    result = {**final, "message": {"role": "assistant", "content": "".join(parts)}}
+    result["_tokens_per_second"] = tokens / seconds if seconds > 0 else None
+    return result
+
+
+def _chat(model: str, instructions: str, data: dict, schema: dict, *, feedback: str | None = None, attempt: int = 0, progress=None) -> dict:
     _model_name(model)
     encoded = json.dumps(data, ensure_ascii=False)
     if len(encoded) > MAX_INPUT_CHARS:
@@ -282,18 +371,21 @@ def _chat(model: str, instructions: str, data: dict, schema: dict, *, feedback: 
     if feedback:
         # Our own fixed validation message, never model or user text.
         instructions += f"\nA previous attempt was rejected by validation: {feedback} Correct this in the new answer."
-    response = _request("/api/chat", {
+    if progress is not None:
+        progress("Loading your local model… the first draft after starting can take a minute." if attempt == 0
+                 else f"Retrying (attempt {attempt + 1} of {MAX_GENERATION_ATTEMPTS}): {feedback}")
+    response = _stream_chat({
         "model": model,
         "messages": [
             {"role": "system", "content": instructions + "\nJSON schema:\n" + json.dumps(schema)},
             {"role": "user", "content": encoded},
         ],
-        "format": schema, "stream": False, "think": False,
+        "format": schema, "think": False,
         "truncate": False, "shift": False,
         "options": {"temperature": min(0.6, 0.2 + 0.2 * attempt), "num_predict": 2000,
                     "num_ctx": _context_size(encoded, instructions)},
-        "keep_alive": "5m",
-    }, timeout=_GENERATION_TIMEOUT, model=model)
+        "keep_alive": "5m",  # Free the model's memory soon after drafting.
+    }, model, progress)
     if _has_remote_metadata(response):
         raise LocalAIError("Ollama reported remote execution despite local verification. Disable cloud access in Ollama before retrying.")
     if response.get("done") is not True or response.get("done_reason") == "length":
@@ -308,7 +400,30 @@ def _chat(model: str, instructions: str, data: dict, schema: dict, *, feedback: 
         raise _RejectedOutput("The local model did not return valid structured JSON. Retry or choose another local chat model.") from None
     if not isinstance(result, dict) or set(result) != set(schema["required"]):
         raise _RejectedOutput("The local model returned unexpected fields. Retry; the output was not accepted.")
+    _last_speed.value = response.get("_tokens_per_second")
     return result
+
+
+class _Speed(threading.local):
+    value = None
+
+
+# Generation speed of this thread's latest draft, for slow-model advice.
+_last_speed = _Speed()
+
+
+def last_tokens_per_second():
+    return _last_speed.value
+
+
+# A cover letter must not volunteer disqualifying gaps; those go to the
+# candidate's private review notes. Matches English, Norwegian and German forms.
+_SELF_DISQUALIFYING = re.compile(
+    r"\b(?:not|no|never|lack|lacking|don't|doesn't|haven't|hasn't)\b[^.!?\n]{0,40}?"
+    r"\b(?:work(?:ing)?\s+(?:permit|permission|authori[sz]ation|visa)|right\s+to\s+work|permission\s+to\s+work)\b"
+    r"|\bikke\b[^.!?\n]{0,30}?(?:arbeidstillatelse|oppholdstillatelse)"
+    r"|\b(?:keine|nicht)\b[^.!?\n]{0,30}?(?:Arbeitserlaubnis|Arbeitsgenehmigung)",
+    re.IGNORECASE)
 
 
 def _check_language_claims(letter: str, languages: dict) -> None:
@@ -331,7 +446,7 @@ def _check_language_claims(letter: str, languages: dict) -> None:
                 raise _RejectedOutput("The draft may overstate a supplied language level. Retry and review language claims before use.")
 
 
-def generate_cover_letter(job: dict, profile: dict, model: str = DEFAULT_MODEL) -> dict:
+def generate_cover_letter(job: dict, profile: dict, model: str = DEFAULT_MODEL, *, progress=None) -> dict:
     """Return a grounded draft and review notes without changing any saved status."""
     _model_name(model)
     if not isinstance(job, dict) or not isinstance(profile, dict):
@@ -361,7 +476,7 @@ def generate_cover_letter(job: dict, profile: dict, model: str = DEFAULT_MODEL) 
     source_texts = [facts["summary"], facts["cv_text"], facts["work_authorization"], facts["experience_summary"], *facts["evidence"], *facts["skills"]]
 
     def attempt(feedback, number):
-        result = _chat(model, _COVER_INSTRUCTIONS, data, _COVER_SCHEMA, feedback=feedback, attempt=number)
+        result = _chat(model, _COVER_INSTRUCTIONS, data, _COVER_SCHEMA, feedback=feedback, attempt=number, progress=progress)
         try:
             letter = _text(result["cover_letter"], "Generated letter", 6000)
             notes = _strings(result["review_notes"], "Generated review notes", maximum=12)
@@ -371,6 +486,8 @@ def generate_cover_letter(job: dict, profile: dict, model: str = DEFAULT_MODEL) 
         if not letter or not evidence or any(not _is_excerpt(item, source_texts) for item in evidence):
             raise _RejectedOutput("The draft did not cite supplied candidate evidence correctly. Retry and review every factual claim.")
         _check_language_claims(letter, facts["languages"])
+        if _SELF_DISQUALIFYING.search(letter):
+            raise _RejectedOutput("The draft told the employer about a missing permission or qualification. Keep the letter positive and put that gap in review_notes.")
         if len(letter.split()) > style["max_words"]:
             raise _RejectedOutput("The draft exceeds your writing-style word limit. Retry or increase the limit in Countries & writing.")
         if any(phrase and phrase.casefold() in letter.casefold() for phrase in style["avoid_phrases"]):
@@ -381,7 +498,7 @@ def generate_cover_letter(job: dict, profile: dict, model: str = DEFAULT_MODEL) 
     return _with_retries(attempt)
 
 
-def extract_profile(cv_text: str, model: str = DEFAULT_MODEL) -> dict:
+def extract_profile(cv_text: str, model: str = DEFAULT_MODEL, *, progress=None) -> dict:
     """Return a schema-shaped suggestion; the caller must obtain user review to save."""
     _model_name(model)
     original = _text(cv_text, "CV text", MAX_CV_CHARS)
@@ -389,7 +506,7 @@ def extract_profile(cv_text: str, model: str = DEFAULT_MODEL) -> dict:
         raise ValueError("Add readable CV text before asking for a profile suggestion.")
 
     def attempt(feedback, number):
-        result = _chat(model, _EXTRACTION_INSTRUCTIONS, {"cv_text": original}, _PROFILE_SCHEMA, feedback=feedback, attempt=number)
+        result = _chat(model, _EXTRACTION_INSTRUCTIONS, {"cv_text": original}, _PROFILE_SCHEMA, feedback=feedback, attempt=number, progress=progress)
         try:
             suggestion = {key: _text(result[key], "Suggested profile field", 3000) for key in TEXT_FIELDS}
             suggestion.update({key: _strings(result[key], "Suggested profile list") for key in LIST_FIELDS})

@@ -13,7 +13,7 @@ import time
 from http.client import HTTPConnection, HTTPException
 from pathlib import Path
 
-from .local_ai import LocalAIError, list_local_models, validate_model_name
+from .local_ai import list_local_models, validate_model_name
 
 
 def pdf_available() -> bool:
@@ -66,21 +66,72 @@ def start_ollama() -> str:
     subprocess.Popen([executable, "serve"], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
                      stderr=subprocess.DEVNULL,
                      creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0)
-    for _ in range(20):
+    # A cold start (first run, antivirus scan, low memory) can take well over
+    # ten seconds; the earlier 10 s limit reported failure for working setups.
+    deadline = time.monotonic() + 60
+    while time.monotonic() < deadline:
         time.sleep(0.5)
         if _running():
             return "Ollama is running. Download or select a local model next."
-    raise RuntimeError("Ollama did not become ready. Open the Ollama app and retry Check setup.")
+    raise RuntimeError("Ollama did not become ready within a minute. Open the Ollama app from the Start menu, then retry.")
+
+
+def ensure_ollama(progress=None) -> None:
+    """Start an installed Ollama before local AI work instead of failing.
+
+    Ollama only answers while its background server runs, and it is often
+    not started with Windows. A missing installation still raises the
+    actionable error from local_ai when the request is made.
+    """
+    if _running() or not ollama_executable():
+        return
+    if progress is not None:
+        progress("Starting Ollama on this computer…")
+    start_ollama()
+
+
+def memory_available_gb() -> float | None:
+    """Free physical memory, or None where it cannot be measured."""
+    if os.name != "nt":
+        return None
+    import ctypes
+
+    class Status(ctypes.Structure):
+        _fields_ = [("length", ctypes.c_ulong), ("load", ctypes.c_ulong), ("total", ctypes.c_ulonglong),
+                    ("available", ctypes.c_ulonglong), ("page_total", ctypes.c_ulonglong),
+                    ("page_available", ctypes.c_ulonglong), ("virtual_total", ctypes.c_ulonglong),
+                    ("virtual_available", ctypes.c_ulonglong), ("extended", ctypes.c_ulonglong)]
+
+    status = Status(length=ctypes.sizeof(Status))
+    if not ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(status)):
+        return None
+    return status.available / 1024 ** 3
+
+
+def speed_advice(tokens_per_second, available_gb=None) -> str | None:
+    """Plain advice when local generation was slow, else None."""
+    if tokens_per_second is None or tokens_per_second >= 4:
+        return None
+    advice = f"Your local model wrote only {tokens_per_second:.1f} tokens per second."
+    if available_gb is not None and available_gb < 2:
+        advice += f" Only {available_gb:.1f} GB of memory was free, so Windows was swapping the model to disk; closing browsers, games or other large programs while drafting helps most."
+    else:
+        advice += " Closing other large programs helps; a smaller model such as qwen3:1.7b in Settings is faster but writes less carefully."
+    return advice
 
 
 def setup_status(model: str) -> dict:
     result = {"pdf": pdf_available(), "python": sys.executable, "models": [], "ready": False}
+    free = memory_available_gb()
+    if free is not None:
+        result["free_memory"] = f"{free:.1f} GB" + (" — low; local drafting will be slow until you close other programs" if free < 2 else "")
     try:
+        ensure_ollama()
         result["models"] = list_local_models()
         result["ready"] = _model_installed(model, result["models"])
         result["message"] = (f"Ready — {model} is installed locally." if result["ready"] else
                               f"Ollama is running. Download {model}, or choose an installed model.")
-    except LocalAIError as exc:
+    except RuntimeError as exc:  # LocalAIError, or Ollama failing to start.
         result["message"] = str(exc)
     return result
 

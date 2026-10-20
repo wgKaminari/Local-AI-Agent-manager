@@ -9,7 +9,7 @@ import hashlib
 import json
 import re
 from html.parser import HTMLParser
-from urllib.parse import parse_qs, urljoin, urlsplit
+from urllib.parse import parse_qs, urljoin
 
 from .sources import SourceError, _board, _fetch, _plain, _url_parts
 
