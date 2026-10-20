@@ -20,6 +20,7 @@ from werkzeug.exceptions import HTTPException
 from werkzeug.utils import secure_filename
 
 from . import gmail, runtime_setup, service
+from .adzuna import key_status as adzuna_status
 from .browser_delivery import BrowserApplicationSession
 from .company_catalog import company_catalog, job_board_catalog
 from .countries import COUNTRIES
@@ -320,7 +321,8 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
                        appearance=_appearance(data_dir), job_sites=provider_catalog(), version=__version__,
                        update_check=bool(app.config.get("UPDATE_CHECK")),
                        countries=COUNTRIES, statuses=STATUSES, catalog=company_catalog(), boards=job_board_catalog(),
-                       gmail=gmail.connection_status(data_dir), collection=service.read_collection_report(data_dir))
+                       gmail=gmail.connection_status(data_dir), collection=service.read_collection_report(data_dir),
+                       adzuna=adzuna_status(data_dir))
 
     @app.get("/api/jobs")
     def jobs():
@@ -401,6 +403,16 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
                     except Exception:
                         app.logger.exception("Could not update the window theme")
             return jsonify(values)
+
+    @app.route("/api/adzuna-key", methods=["POST", "DELETE"])
+    def adzuna_key():
+        # The key is checked against Adzuna outside the lock: one request.
+        if request.method == "DELETE":
+            with state.lock:
+                return jsonify(service.delete_adzuna_key(data_dir))
+        value = _object(body())
+        return jsonify(service.save_adzuna_key(data_dir, _text(value.get("app_id", ""), "Application ID", 64),
+                                               _text(value.get("app_key", ""), "Application key", 128)))
 
     @app.post("/api/country")
     def country():

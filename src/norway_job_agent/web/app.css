@@ -1940,6 +1940,34 @@ dialog::backdrop {
   line-height: 1.4
 }
 
+.adzuna-key {
+  margin: 0 0 14px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface)
+}
+
+.adzuna-key h3 {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0 0 6px
+}
+
+.adzuna-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 8px
+}
+
+.adzuna-key .row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center
+}
+
 .check-row {
   display: flex;
   gap: 8px;

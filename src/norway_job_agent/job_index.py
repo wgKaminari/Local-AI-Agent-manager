@@ -24,7 +24,8 @@ from .storage import JobStore, search_terms
 # Bump when match_job, fingerprints or stored fields change meaning.
 MATCH_VERSION = "2"
 RETENTION_DAYS = 30
-BOARD_SOURCES = ("arbeitsagentur", "arbeitnow", "djinni", "dou", "remotive", "remoteok", "himalayas", "hackernews", "linkedin")
+BOARD_SOURCES = ("arbeitsagentur", "arbeitnow", "djinni", "dou", "remotive", "remoteok", "himalayas", "hackernews", "adzuna",
+                 "linkedin")
 # Searched, never complete: an advert these have not returned for a month has
 # usually closed. Workday employers are searched for your roles, not read whole.
 UNSEEN_SOURCES = (*BOARD_SOURCES, "workday")
@@ -32,7 +33,7 @@ UNSEEN_SOURCES = (*BOARD_SOURCES, "workday")
 _KEEP_SOURCES = ("manual", "gmail")
 _SOURCE_RANK = {"greenhouse": 0, "lever": 0, "ashby": 0, "workday": 0, "smartrecruiters": 0, "career_page": 0,
                 "manual": 0, "nav": 1, "arbeitsagentur": 1, "djinni": 2, "dou": 2, "arbeitnow": 2, "remotive": 2,
-                "remoteok": 2, "himalayas": 2, "hackernews": 2, "gmail": 3, "linkedin": 3}
+                "remoteok": 2, "himalayas": 2, "hackernews": 2, "adzuna": 2, "gmail": 3, "linkedin": 3}
 _TRACK_RANK = {"target": 2, "horizon": 1, "other": 0}
 _GENDER_MARKERS = re.compile(r"\((?:[^()]*\b(?:m|w|d|f|x|gn|all genders?|div)\b[^()]*)\)|\*in\b|\b[mwfd]\s*/\s*[mwfd](?:\s*/\s*[mwfdx])?\b", re.I)
 _LEGAL_SUFFIXES = re.compile(r"\b(?:gmbh|ag|as|asa|inc|llc|ltd|limited|corp|corporation|se|plc|co|kg|ab|oy|sa|bv|nv|ug|sp z o o|tov|тов)\b\.?", re.I)

@@ -9,6 +9,7 @@ has configured. These providers search a whole market for each role query:
 * remotive, remoteok, himalayas - remote-job boards (free public APIs)
 * hackernews      - Hacker News "Who is hiring?" threads, see hackernews.py
 * us_employers    - a few hundred US company boards, see employer_pack.py
+* adzuna          - Adzuna's US job search with the user's free key, see adzuna.py
 * linkedin        - LinkedIn's public guest job search; opt-in, see linkedin_public.py
 
 Downloads never touch the database, so providers may run concurrently. Every
@@ -88,6 +89,9 @@ PROVIDERS: dict[str, Provider] = {
     "us_employers": Provider("US tech employers", ("US",), "https://github.com/wgKaminari/Local-AI-Agent-manager/blob/main/docs/market-search.md#us-tech-employers",
                              per_query=False, note="A few hundred verified US company career boards (Greenhouse, Lever, "
                                                    "Ashby, Workday), each read at most once a day."),
+    "adzuna": Provider("Adzuna", ("US",), "https://www.adzuna.com/", per_query=False, max_queries=20,
+                       note="Adverts from across US job sites. Needs your free key from developer.adzuna.com "
+                            "(paste it below); at most 40 searches per refresh, within the key's free allowance."),
     "linkedin": Provider("LinkedIn public search", ("NO", "US", "DE", "UA"), "https://www.linkedin.com/jobs/",
                          opt_in=True, max_queries=6,
                          note="No login. Slow and polite, but LinkedIn's terms forbid automated access; off until you enable it."),
@@ -116,9 +120,6 @@ BROAD_QUERIES = {
     "arbeitsagentur": ["Informatik", "IT", "Software", "Entwickler", "Developer", "Data", "Daten", "Analyst",
                        "Ingenieur", "Engineer", "Mathematik", "Statistik", "Wissenschaftler", "Forschung",
                        "Machine Learning", "Künstliche Intelligenz", "Cloud", "DevOps", "Consultant", "Werkstudent"],
-    "djinni": ["python", "data", "machine learning", "devops", "java", "javascript", "golang", "c++", ".net", "php",
-               "qa", "analyst", "product", "project manager", "designer", "support", "engineer", "developer",
-               "manager", "marketing", "sales", "hr", "security", "embedded"],
     "dou": ["category:" + name for name in (
         "Python", "Data Science", "AI/ML", "Data Engineer", "Big Data", "Analyst", "Java", ".NET", "Front End",
         "Node.js", "PHP", "Golang", "C++", "Ruby", "Scala", "Rust", "iOS/macOS", "Android", "Flutter", "DevOps",
@@ -369,9 +370,9 @@ def _arbeitnow(queries: list[str], country: str, limit: int, *, newest: int = 0,
     return jobs
 
 
-def _djinni(query: str, country: str, limit: int, **_) -> list[dict]:
+def _djinni_jobs(params: dict) -> list[dict]:
     jobs = []
-    for item in _rss("https://djinni.co/jobs/rss/?" + urlencode({"all_keywords": query}))[:limit]:
+    for item in _rss("https://djinni.co/jobs/rss/" + ("?" + urlencode(params) if params else "")):
         link = _link(item.get("link"), "https://djinni.co/")
         title = _plain(item.get("title"))
         match = re.search(r"/jobs/(\d+)", link)
@@ -384,6 +385,75 @@ def _djinni(query: str, country: str, limit: int, **_) -> list[dict]:
         job["countries"] = ["UA"]
         jobs.append(job)
     return jobs
+
+
+def _djinni(query: str, country: str, limit: int, **_) -> list[dict]:
+    return _djinni_jobs({"all_keywords": query})[:limit]
+
+
+# Djinni's feed returns the newest 100 jobs for any filter and ignores
+# paging, so keyword searches reached 1,892 of its 6,172 jobs. Its job
+# categories (157 with sub-categories, which parents do not include) split
+# the board; a full category is split further by experience, then region.
+DJINNI_FEED_SIZE = 100
+DJINNI_CRAWL_HOURS = 20
+_DJINNI_LEVELS = ("no_exp", "1y", "2y", "3y", "4y", "5y", "6y", "7y", "8y", "9y", "10y")
+_DJINNI_REGIONS = ("UKR", "worldwide", "eu", "other")
+
+
+def _djinni_categories() -> list[str]:
+    _, _, body, _ = _fetch("https://djinni.co/jobs/", respect_robots=True, max_response_bytes=MAX_ATS_RESPONSE_BYTES)
+    found = re.search(rb'<script type="application/json" class="tms-data">(.*?)</script>', body, re.S)
+    try:
+        groups = json.loads(found.group(1))["groups"] if found else None
+    except (ValueError, KeyError, TypeError) as exc:
+        raise SourceError("Djinni changed its category list; its keyword searches still ran.") from exc
+    if not isinstance(groups, list):
+        raise SourceError("Djinni changed its category list; its keyword searches still ran.")
+
+    def walk(items):
+        for item in items if isinstance(items, list) else []:
+            if isinstance(item, dict) and isinstance(item.get("key"), str) and item["key"].strip():
+                yield item["key"]
+                yield from walk(item.get("children"))
+    return list(dict.fromkeys(key for group in groups if isinstance(group, dict) for key in walk(group.get("items"))))
+
+
+def _djinni_everything(run: "ProviderRun", tags: list[str], state: dict, seen: set, deadline: float, progress=None) -> None:
+    """Read all of Djinni once a day; other refreshes read its newest jobs."""
+    from datetime import datetime, timezone
+    last = state.get("djinni_full_read")
+    try:
+        due = not last or (datetime.now(timezone.utc) - datetime.fromisoformat(last)).total_seconds() > DJINNI_CRAWL_HOURS * 3600
+    except (TypeError, ValueError):
+        due = True
+    if not due:
+        _keep(run, _djinni_jobs({}), tags, "UA", seen)
+        return
+    categories = _djinni_categories()
+    slices = [{"primary_keyword": key} for key in categories]
+    complete = True
+    for index, params in enumerate(slices):
+        if time.monotonic() > deadline:
+            complete = False
+            break
+        found = _djinni_jobs(params)
+        _keep(run, found, tags, "UA", seen)
+        if len(found) >= DJINNI_FEED_SIZE:
+            # A full feed hides older jobs: narrow it.
+            if "exp_level" not in params:
+                slices.extend({**params, "exp_level": level} for level in _DJINNI_LEVELS)
+            elif "region" not in params:
+                slices.extend({**params, "region": region} for region in _DJINNI_REGIONS)
+        if progress is not None and index % 50 == 49:
+            progress(f"Djinni: {index + 1} of {len(slices)} category feeds, {len(run.jobs):,} vacancies…")
+        time.sleep(REQUEST_PAUSE)
+    if complete:
+        state["djinni_full_read"] = datetime.now(timezone.utc).isoformat()
+        run.summary_note = f"Read all {len(categories)} Djinni categories in {len(slices)} feeds."
+    else:
+        run.has_more = True
+        run.stopped = "Time budget reached; the next refresh reads all of Djinni again."
 
 
 def _dou(query: str, country: str, limit: int, **_) -> list[dict]:
@@ -499,12 +569,15 @@ class ProviderRun:
     # Complete employer boards read: (source, id prefix, ids) for retirement.
     snapshots: list = field(default_factory=list)
     summary: str = ""
+    summary_note: str = ""
 
     def report(self) -> dict:
         provider = PROVIDERS[self.provider]
         coverage = self.summary or (
             f"Searched {provider.name} with {len(self.queries)} search{'' if len(self.queries) == 1 else 'es'}: "
             f"{self.fetched} results, {len(self.jobs)} new or updated vacancies kept.")
+        if self.summary_note:
+            coverage += " " + self.summary_note
         if self.details_loaded:
             coverage += f" Loaded {self.details_loaded} full adverts for role matches."
         if self.stopped:
@@ -545,12 +618,14 @@ def _keep(run: ProviderRun, found: list[dict], tags: list[str], country: str, se
 def search_provider(name: str, queries: list[str], country: str = "", *, limit_per_query: int = 100,
                     role_terms: list[str] = (), detail_budget: int = 0, state: dict | None = None,
                     progress=None, broad: bool = False, seconds: float = REFRESH_SECONDS,
-                    skip_boards: frozenset[str] = frozenset()) -> ProviderRun:
+                    skip_boards: frozenset[str] = frozenset(), credentials: dict | None = None,
+                    request_budget: int = 0) -> ProviderRun:
     """Search one provider for several queries. Network only; never raises.
 
     broad adds the provider's field-wide searches and reads deeper, for a
     refresh that collects everything; incremental positions live in state.
-    skip_boards names employer boards already configured as sources.
+    skip_boards names employer boards already configured as sources;
+    credentials and request_budget serve keyed APIs (Adzuna).
     """
     run = ProviderRun(name)
     provider = PROVIDERS[name]
@@ -562,7 +637,7 @@ def search_provider(name: str, queries: list[str], country: str = "", *, limit_p
         queries += [query for query in BROAD_QUERIES[name] if query.casefold() not in covered]
     run.queries = list(queries)
     seen: set = set()
-    if not queries:
+    if not queries and not (broad and name == "djinni"):
         return run
     deadline = time.monotonic() + seconds
     try:
@@ -570,6 +645,13 @@ def search_provider(name: str, queries: list[str], country: str = "", *, limit_p
             from .linkedin_public import search as linkedin_search
             linkedin_search(run, queries, country, state, progress=progress)
             _filter_linkedin(run, tags, country)
+        elif name == "adzuna":
+            from . import adzuna
+            if credentials is None:
+                run.stopped = "Add your free Adzuna key under Settings & activity → Job sites."
+            else:
+                adzuna.search(run, queries, credentials, state, budget=request_budget, deadline=deadline, progress=progress,
+                              keep=lambda run, jobs, tags: _keep(run, jobs, tags, "US", seen))
         elif name == "us_employers":
             from . import employer_pack
             employer_pack.collect(run, tags, state, skip=skip_boards, deadline=deadline, progress=progress,
@@ -611,6 +693,8 @@ def search_provider(name: str, queries: list[str], country: str = "", *, limit_p
                     progress(f"{provider.name}: {index + 1} of {len(queries)} searches, {len(run.jobs):,} vacancies…")
                 if index + 1 < len(queries):
                     time.sleep(REQUEST_PAUSE)
+            if name == "djinni" and broad and not run.has_more:
+                _djinni_everything(run, tags, state, seen, deadline, progress)
     except (SourceError, OSError) as exc:
         run.errors.append(str(exc))
     if detail_budget and name in LAZY_DETAILS and role_terms:
