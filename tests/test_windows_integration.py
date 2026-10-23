@@ -80,7 +80,7 @@ class ThemeHookTests(unittest.TestCase):
             app.config.update(TESTING=True, LOCAL_ORIGIN="http://127.0.0.1:7654")
             try:
                 html = app.test_client().get("/", base_url="http://127.0.0.1:7654").get_data(as_text=True)
-                self.assertIn('<body data-theme="dark">', html)
+                self.assertIn('<body data-theme="dark" data-remote="">', html)
                 self.assertNotIn("__THEME__", html)
             finally:
                 close_resources(app)

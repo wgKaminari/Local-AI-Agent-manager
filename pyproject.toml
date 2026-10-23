@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "norway-job-agent"
-version = "0.7.7"
+version = "0.8.0"
 description = "A local job discovery and application preparation assistant for Norway, USA, Germany and Ukraine."
 requires-python = ">=3.12"
-dependencies = ["pypdf>=6.18,<7", "Flask>=3.1,<4", "waitress>=3,<4", "pywebview>=6,<7"]
+dependencies = ["pypdf>=6.18,<7", "Flask>=3.1,<4", "waitress>=3,<4", "pywebview>=6,<7", "segno>=1.6,<2"]
 
 [project.optional-dependencies]
 browser = ["playwright>=1.49,<2"]
@@ -19,4 +19,4 @@ norway-jobs = "norway_job_agent.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-norway_job_agent = ["data/*.json", "web/*.html", "web/*.css", "web/*.js", "web/fonts/*.woff2", "web/fonts/*.txt", "assets/*.ico"]
+norway_job_agent = ["data/*.json", "web/*.html", "web/*.css", "web/*.js", "web/*.png", "web/fonts/*.woff2", "web/fonts/*.txt", "assets/*.ico"]

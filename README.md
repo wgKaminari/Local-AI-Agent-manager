@@ -55,6 +55,16 @@ Editing buffers stay with you between pages and vacancies. Save versions before 
 
 Use **J** and **K** to move through opportunities, **/** or **Ctrl F** to search, **Ctrl K** for Quick actions, **Ctrl S** to save the current editor, and **Ctrl Shift L** to switch light/dark appearance. The interface uses the bundled Geist typeface (SIL Open Font License, in `web/fonts`). The Help control lists these shortcuts. The redesign includes both themes, semantic form controls, keyboard navigation and responsive reading/editor layouts. Read the [UI/UX research](docs/ui-ux-research.md) for design references and validation targets.
 
+## On your phone
+
+Job Agent also works on your phone, Android or iPhone, over your home Wi-Fi: the same features and the same data, laid out for a small screen with a bottom tab bar (Discover, For you, Saved, Applications, More). Your PC keeps doing the work (collection, the local AI, Gmail, the database), so it must be on with Job Agent open.
+
+1. On the PC open **Settings & activity → Phone access** and choose **Turn on phone access**. If Windows asks whether Python may use private networks, choose **Allow**.
+2. Scan the QR code with the phone's camera, or type the address shown into its browser and enter the pairing code (valid for 10 minutes).
+3. In the browser menu choose **Add to Home screen** (iPhone: Share → Add to Home Screen) to open Job Agent like an app. An iPhone may ask for a code once more from the home-screen icon.
+
+Connecting Gmail, **Review & send** (the employer's form opens in a browser window on the PC), updates, desktop shortcuts, the Adzuna key and managing phones stay on the PC; the phone explains this when you try. Paired phones are listed under Phone access, where **Remove** locks one out at once. Only devices on your home network are answered, the page never contains the PC's session token, and each phone uses its own token, stored on the PC only as a hash. The connection inside your home network is not encrypted, so turn phone access on only on a network you trust. See [phone access](docs/phone-access.md).
+
 ## Features and coverage
 
 - **366 researched employer entries**: Norway 77, USA 154, Germany 116 and Ukraine 77. Some employers cover multiple countries.

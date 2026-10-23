@@ -31,7 +31,9 @@ const paths = {
   clock: 'M12 7v5l3 2 M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0',
   file: 'M14 2H4v20h16V8Z M14 2v6h6 M8 13h8 M8 17h6',
   back: 'm12 5-7 7 7 7 M5 12h15',
-  globe: 'M21 12H3 M12 3a16 16 0 0 1 0 18 16 16 0 0 1 0-18 M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0'
+  globe: 'M21 12H3 M12 3a16 16 0 0 1 0 18 16 16 0 0 1 0-18 M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0',
+  more: 'M4.5 12h1 M11.5 12h1 M18.5 12h1',
+  phone: 'M7 2h10v20H7Z M11 18h2'
 };
 const icon = name => `<svg aria-hidden="true" viewBox="0 0 24 24"><path d="${paths[name]||paths.file}"/></svg>`;
 const button = (label, action, kind = '', extra = '') => `<button type="button" class="${kind}" data-action="${action}" ${extra}>${label}</button>`;
@@ -90,7 +92,20 @@ const titles = {
   mail: ['Job alerts', 'Turn job-alert emails into a reviewed shortlist.'],
   settings: ['Settings & activity', 'Local AI, configured sources and collection results.']
 };
-const token = $('meta[name=session-token]').content;
+// On a phone (served by the PC over home Wi-Fi) the page carries no token:
+// the phone pairs once with a code shown on the PC and keeps its own token.
+const REMOTE = document.body.dataset.remote === '1';
+const DEVICE_KEY = 'job-agent-device';
+const THEME_KEY = 'job-agent-theme';
+const local = {
+  get(key) {
+    try { return localStorage.getItem(key); } catch { return null; }
+  },
+  set(key, value) {
+    try { value == null ? localStorage.removeItem(key) : localStorage.setItem(key, value); } catch { /* private mode: this visit only */ }
+  }
+};
+let token = REMOTE ? (local.get(DEVICE_KEY) || '') : $('meta[name=session-token]').content;
 async function api(path, {
   method = 'GET',
   body
@@ -113,6 +128,15 @@ async function api(path, {
     data = await response.json();
   } catch {
     throw Error('The local service returned an unreadable response. Reopen the app if this continues.');
+  }
+  if (!response.ok && REMOTE && response.status === 403 && data.pair) {
+    // Removed on the PC, or never paired: ask for a new code.
+    local.set(DEVICE_KEY, null);
+    token = '';
+    pairScreen();
+    const error = Error(data.error);
+    error.pair = true;
+    throw error;
   }
   if (!response.ok) {
     const error = Error(data.error || `This action failed (${response.status}).`);
@@ -271,7 +295,7 @@ function shell() {
     ['mail', 'Job alerts', 'mail'],
     ['settings', 'Settings & activity', 'settings']
   ];
-  $('#app').innerHTML = `<div class="shell"><aside class="sidebar"><div class="brand"><span class="brand-mark">J</span><span class="brand-copy">Job Agent</span>${button(icon('sun'),'theme','icon-only quiet','aria-label="Switch light or dark theme" title="Switch theme (Ctrl Shift L)"')}${button(icon('help'),'help','icon-only quiet','aria-label="Help and shortcuts" title="Help and shortcuts"')}</div>${button(icon('search')+'<span>Quick actions</span><kbd>Ctrl K</kbd>','commands','command-trigger','aria-label="Quick actions" title="Quick actions (Ctrl K)"')}<label class="country-control" title="Search country">${icon('globe')}<select id="country" aria-label="Search country" ${S.settingsBusy?'disabled':''}>${options(Object.entries(S.boot.countries),S.country,'All countries')}</select></label><nav aria-label="Main navigation">${nav.map(([id,label,i],n)=>`${n===4?'<div class="nav-label">You</div>':''}<button class="nav-item ${id===S.view?'active':''}" data-view="${id}" title="${label}" aria-label="${label}" ${id===S.view?'aria-current="page"':''}>${icon(i)}<span>${label}</span></button>`).join('')}</nav><div class="sidebar-bottom">${refreshCard()}</div></aside><div class="workspace"><main id="main" tabindex="-1" class="page ${isDiscovery()?'discovery':''}"></main><footer class="statusbar"><div id="task-status" class="task-indicator" role="status" aria-live="polite"></div><div class="hints" aria-hidden="true"><span><kbd>J</kbd><kbd>K</kbd>move</span><span><kbd>/</kbd>search</span><span><kbd>Ctrl K</kbd>actions</span><span><kbd>Ctrl S</kbd>save</span></div><span class="right">Local AI · you review every application</span></footer></div></div>`;
+  $('#app').innerHTML = `<div class="shell ${REMOTE?'remote':''}"><aside class="sidebar"><div class="brand"><span class="brand-mark">J</span><span class="brand-copy">Job Agent</span>${button(icon('sun'),'theme','icon-only quiet','aria-label="Switch light or dark theme" title="Switch theme (Ctrl Shift L)"')}${button(icon('help'),'help','icon-only quiet','aria-label="Help and shortcuts" title="Help and shortcuts"')}</div>${button(icon('search')+'<span>Quick actions</span><kbd>Ctrl K</kbd>','commands','command-trigger','aria-label="Quick actions" title="Quick actions (Ctrl K)"')}<label class="country-control" title="Search country">${icon('globe')}<select id="country" aria-label="Search country" ${S.settingsBusy?'disabled':''}>${options(Object.entries(S.boot.countries),S.country,'All countries')}</select></label><nav aria-label="Main navigation">${nav.map(([id,label,i],n)=>`${n===4?'<div class="nav-label">You</div>':''}<button class="nav-item ${id===S.view?'active':''}" data-view="${id}" title="${label}" aria-label="${label}" ${id===S.view?'aria-current="page"':''}>${icon(i)}<span>${label}</span></button>`).join('')}<button class="nav-item nav-more ${['profile','sources','mail','settings'].includes(S.view)?'active':''}" data-action="more-menu" title="More" aria-label="More">${icon('more')}<span>More</span></button></nav><div class="sidebar-bottom">${refreshCard()}</div></aside><div class="workspace"><main id="main" tabindex="-1" class="page ${isDiscovery()?'discovery':''}"></main><footer class="statusbar"><div id="task-status" class="task-indicator" role="status" aria-live="polite"></div><div class="hints" aria-hidden="true"><span><kbd>J</kbd><kbd>K</kbd>move</span><span><kbd>/</kbd>search</span><span><kbd>Ctrl K</kbd>actions</span><span><kbd>Ctrl S</kbd>save</span></div><span class="right">Local AI · you review every application</span></footer></div></div>`;
   renderPage();
   updateStatus();
 }
@@ -758,6 +782,7 @@ function renderCatalogCards() {
 // back: only whether one is saved and the last characters of its ID.
 function adzunaKeyBlock() {
   const a = S.boot.adzuna || {};
+  if (REMOTE) return `<div class="adzuna-key"><h3>Adzuna key ${a.configured ? pill('Saved', 'green') : pill('Not added')}</h3><p class="evidence">The Adzuna key is added or changed on the PC.</p></div>`;
   const body = a.configured
     ? `<p class="evidence">Key saved for Application ID ${esc(a.app_id_hint || '')}${a.saved_at ? ' on ' + esc(a.saved_at.slice(0, 10)) : ''}. It stays on this computer. The app uses about 72 Adzuna requests a day (50 jobs each), so the free allowance of 2,500 a month lasts the whole month.</p><div class="row">${button('Remove key', 'remove-adzuna', 'quiet')}</div>`
     : `<p class="evidence">Adzuna adds adverts from across US job sites. Create a free developer account, then copy the Application ID and Application key from its dashboard (API access details). The key is checked with one search and stays on this computer.</p><div class="adzuna-fields"><label class="field"><span>Application ID</span><input id="adzuna-id" autocomplete="off" spellcheck="false" maxlength="64"></label><label class="field"><span>Application key</span><input id="adzuna-secret" type="password" autocomplete="off" spellcheck="false" maxlength="128"></label></div><div class="row">${button('Check and save key', 'save-adzuna', 'primary')}${link('Get a free key', 'https://developer.adzuna.com/signup')}</div>`;
@@ -778,7 +803,7 @@ function updatesPanel() {
     u.newer ? `Version ${esc(u.latest)} is available; you have ${esc(u.current)}.` :
     `You have version ${esc(u.current)}. ${esc(u.reason || '')}`;
   const notes = u?.newer && u.notes ? `<details class="evidence"><summary>What's new in ${esc(u.latest)}</summary><div class="prose">${esc(u.notes)}</div></details>` : '';
-  const action = u?.newer ? (u.can_update ? button('Update now', 'apply-update', 'primary') : `<p class="evidence">${esc(u.reason)}</p>`) : '';
+  const action = u?.newer ? (REMOTE ? '<p class="evidence">Update from the PC: it closes and reopens Job Agent there.</p>' : u.can_update ? button('Update now', 'apply-update', 'primary') : `<p class="evidence">${esc(u.reason)}</p>`) : '';
   const install = u?.kind === 'source' ? `<p class="evidence">Install once from PowerShell, then the app updates itself: <code>${esc(u.install_command)}</code></p>` : '';
   return `<section class="panel"><div class="panel-title"><div><h2>Updates</h2><p>${status}</p></div>${pill('v' + version)}</div>${notes}<div class="section-actions">${button('Check for updates', 'check-updates')}${action}${link('Releases on GitHub', u?.url || 'https://github.com/wgKaminari/Local-AI-Agent-manager/releases')}</div>${install}<p class="evidence">Updating closes the app, installs the new version and reopens it. Your profile, vacancies and drafts are not changed.</p></section>`;
 }
@@ -802,7 +827,40 @@ function renderSettings() {
   const settings = S.settingsDraft || S.boot.settings;
   $('#main').insertAdjacentHTML('beforeend', `<div class="content-width"><section class="panel"><div class="panel-title"><div><h2>Local AI</h2><p>Ollama runs your model on this computer. No cloud AI key is needed.</p></div>${pill('On-device','green')}</div><div class="form-grid">${field('Model name','model',settings.model,{group:'settings',hint:'Save a model name before downloading or generating.'})}<div><label class="field"><span>Available models</span><select id="model-picker"><option value="">Check setup to list installed models</option></select></label></div></div><div class="section-actions">${button('Check setup','check-setup')}${button('Start Ollama','start-ollama')}${button('Download saved model','download-model')}${button('Install PDF support','install-pdf')}${link('Install Ollama','https://ollama.com/download/windows')}</div><div id="setup-result" class="evidence"></div></section>
   ${jobSitesPanel(settings)}<section class="panel"><div class="panel-title"><div><h2>Connected job sources</h2><p>${S.boot.settings.sources.length} configured. One refresh collects every target country; the country switch only filters what you see.</p></div>${button('Browse library','go-sources')}</div><div class="table-wrap"><table><thead><tr><th>Source</th><th>Countries</th><th>Action</th></tr></thead><tbody>${settings.sources.map((s,i)=>`<tr><td>${esc(s.name||s.board||cap(s.type))}<span class="sub">${esc(s.type)}</span></td><td>${esc(s.countries?.join(', ')||(s.type==='nav'?'NO':'Any'))}</td><td>${button('Remove','remove-source','quiet',`data-source-index="${i}"`)}</td></tr>`).join('')}</tbody></table></div><details class="evidence"><summary>Advanced source configuration</summary><p>Edit the source array for custom boards, locations or limits. Invalid changes are rejected when you save.</p><textarea id="sources-json" rows="10" aria-label="Advanced sources JSON">${esc(S.sourcesText??JSON.stringify(settings.sources,null,2))}</textarea></details><div class="savebar"><small>${S.settingsDirty?'Unsaved settings':'Changes apply after saving.'}</small>${button('Save settings','save-settings','primary')}</div></section>
-  <section class="panel"><div class="panel-title"><div><h2>Collection activity</h2><p>See what was collected and which sources need attention.</p></div>${button('Find opportunities','collect')}</div>${collectionReport()}</section><section class="panel"><div class="panel-title"><div><h2>Desktop app</h2><p>Open Job Agent from the Start menu or desktop like any other program: its own icon, no console window, and only one window at a time.</p></div></div><p class="evidence">The app runs entirely on this computer. Your profile, database, notes and drafts stay in your private data folder.</p><div class="section-actions">${button('Add Start menu & desktop shortcuts','create-shortcuts','primary')}${button('Switch theme','theme')}${button('Keyboard shortcuts','help')}</div></section>${updatesPanel()}</div>`);
+  ${phonePanel()}<section class="panel"><div class="panel-title"><div><h2>Collection activity</h2><p>See what was collected and which sources need attention.</p></div>${button('Find opportunities','collect')}</div>${collectionReport()}</section><section class="panel"><div class="panel-title"><div><h2>Desktop app</h2><p>Open Job Agent from the Start menu or desktop like any other program: its own icon, no console window, and only one window at a time.</p></div></div><p class="evidence">The app runs entirely on this computer. Your profile, database, notes and drafts stay in your private data folder.</p><div class="section-actions">${REMOTE?'':button('Add Start menu & desktop shortcuts','create-shortcuts','primary')}${button('Switch theme','theme')}${button('Keyboard shortcuts','help')}</div></section>${updatesPanel()}</div>`);
+  loadPhonePanel();
+}
+
+// Phone access, managed on the PC: a QR code and pairing code for a phone
+// on the same Wi-Fi, and the list of paired phones.
+function phonePanel() {
+  if (REMOTE) return `<section class="panel"><div class="panel-title"><div><h2>This phone</h2><p>Paired with your PC${S.boot.client?.device?` as “${esc(S.boot.client.device)}”`:''}. The PC does the work: keep it on with Job Agent open. Connecting Gmail, Review & send, updates and phone settings happen on the PC.</p></div>${pill('Paired','green')}</div><div class="section-actions">${button('Disconnect this phone','forget-phone')}</div></section>`;
+  return `<section class="panel" id="phone-panel"><div class="panel-title"><div><h2>Phone access</h2><p>Use Job Agent on your phone over your home Wi-Fi: the same features and data. This PC keeps doing the work, so it must be on with Job Agent open.</p></div>${pill(S.phone?.running?'On':'Off',S.phone?.running?'green':'')}</div><div id="phone-body"><p class="evidence">Loading…</p></div></section>`;
+}
+
+async function loadPhonePanel() {
+  if (REMOTE || !$('#phone-body')) return;
+  try {
+    S.phone = await api('/phone');
+  } catch (err) {
+    S.phone = {error: err.message};
+  }
+  renderPhoneBody();
+}
+
+function renderPhoneBody() {
+  const el = $('#phone-body');
+  if (!el) return;
+  const p = S.phone || {};
+  const badge = $('#phone-panel .panel-title .pill');
+  if (badge) badge.outerHTML = pill(p.running ? 'On' : 'Off', p.running ? 'green' : '');
+  const devices = (p.devices || []).length ? `<h3>Paired phones</h3><div class="table-wrap"><table><thead><tr><th>Phone</th><th>Paired</th><th>Last used</th><th>Action</th></tr></thead><tbody>${p.devices.map(d => `<tr><td>${esc(d.name)}</td><td>${esc((d.created_at || '').slice(0, 10))}</td><td>${d.last_seen ? esc(ago(d.last_seen)) + ' ago' : '–'}</td><td>${button('Remove', 'phone-remove', 'quiet', `data-device="${esc(d.id)}"`)}</td></tr>`).join('')}</tbody></table></div>` : '';
+  if (!p.running) {
+    el.innerHTML = `${p.error ? `<div class="notice warning">${esc(p.error)}</div>` : ''}<p class="evidence">Your phone and this PC must be on the same Wi-Fi. When you turn this on, Windows may ask whether Python can use private networks: choose Allow.</p><div class="section-actions">${button(icon('phone') + ' Turn on phone access', 'phone-on', 'primary button-icon')}</div>${devices}`;
+    return;
+  }
+  const minutes = Math.max(1, Math.ceil((p.code_seconds || 0) / 60));
+  el.innerHTML = `<div class="phone-pair">${p.qr_png ? `<img class="qr" src="${esc(p.qr_png)}" alt="QR code that opens ${esc(p.url)} and pairs your phone">` : ''}<div><ol class="steps"><li>On your phone, scan this QR code with the camera, or open <strong class="mono">${esc(p.url)}</strong> in its browser.</li><li>If it asks for a pairing code, enter <strong class="pair-code mono">${esc(p.code || '–')}</strong>${p.code ? ` <small>(valid for ${minutes} min)</small>` : ' <small>(choose New code)</small>'}</li><li>In the browser menu choose <strong>Add to Home screen</strong> to open Job Agent like an app. (iPhone: Share → Add to Home Screen; it may ask for a code once more.)</li></ol><div class="section-actions">${button('New code', 'phone-code')}${button('Turn off phone access', 'phone-off', 'quiet')}</div><p class="evidence">For your home Wi-Fi only: the connection between phone and PC is not encrypted, so do not turn this on in public networks. If the PC's address changes, scan the new code.</p></div></div>${devices}`;
 }
 
 function collectionReport() {
@@ -1071,7 +1129,7 @@ async function chooseUpload(kind, accept) {
     input.click();
   });
 }
-async function history(kind) {
+async function showHistory(kind) {
   const id = S.selected,
     data = await refreshJob(id);
   const rows = kind === 'letter' ? data.letters : data.preparations;
@@ -1181,6 +1239,10 @@ async function reviewApplication() {
 function toggleTheme() {
   S.theme = S.theme === 'dark' ? 'light' : 'dark';
   document.body.dataset.theme = S.theme;
+  if (REMOTE) {
+    local.set(THEME_KEY, S.theme);  // The PC keeps its own theme.
+    return;
+  }
   api('/appearance', {
     method: 'PUT',
     body: {
@@ -1191,6 +1253,31 @@ function toggleTheme() {
 async function action(name, el) {
   if (name === 'dismiss-toast') {
     $('#notifications').replaceChildren();
+    return;
+  }
+  if (name === 'more-menu') {
+    const views = [['profile', 'Profile & writing', 'profile'], ['sources', 'Source library', 'sources'], ['mail', 'Job alerts', 'mail'], ['settings', 'Settings & activity', 'settings']];
+    modal('More', `<div class="command-list more-list">${views.map(([view, label, i]) => `<button data-view="${view}" ${view===S.view?'aria-current="page"':''}>${icon(i)}${label}</button>`).join('')}${button(icon('plus')+' Add opportunity','add-job')}${button(icon('sun')+' Switch theme','theme')}${button(icon('help')+' Help','help')}</div>`);
+    return;
+  }
+  if (['phone-on', 'phone-off', 'phone-code', 'phone-remove'].includes(name)) {
+    const routes = {
+      'phone-on': ['/phone', 'POST', {enabled: true}],
+      'phone-off': ['/phone', 'POST', {enabled: false}],
+      'phone-code': ['/phone/code', 'POST', {}],
+      'phone-remove': ['/phone/devices/' + encodeURIComponent(el.dataset.device || ''), 'DELETE', undefined]
+    };
+    const [path, method, body] = routes[name];
+    S.phone = await api(path, {method, body});
+    renderPhoneBody();
+    if (name === 'phone-on') toast('Phone access is on. Scan the code with your phone.');
+    if (name === 'phone-remove') toast('That phone can no longer open Job Agent.');
+    return;
+  }
+  if (name === 'forget-phone') {
+    local.set(DEVICE_KEY, null);
+    token = '';
+    pairScreen('This phone is disconnected. Pair it again with a new code from your PC.');
     return;
   }
   if (name === 'close-modal') {
@@ -1324,7 +1411,7 @@ async function action(name, el) {
     return;
   }
   if (name === 'letter-history' || name === 'answers-history') {
-    await history(name === 'letter-history' ? 'letter' : 'app');
+    await showHistory(name === 'letter-history' ? 'letter' : 'app');
     return;
   }
   if (name === 'restore-version') {
@@ -1792,18 +1879,54 @@ document.addEventListener('keydown', e => {
     tabs[next].click();
   }
 });
+function deviceName() {
+  const agent = navigator.userAgent || '';
+  return /iPhone/.test(agent) ? 'iPhone' : /iPad/.test(agent) ? 'iPad' : /Android/.test(agent) ? 'Android phone' : 'Phone';
+}
+
+function pairScreen(message = '') {
+  const code = new URLSearchParams(location.search).get('pair') || '';
+  $('#app').innerHTML = `<form class="boot pair-screen" id="pair-form"><span class="brand-mark">J</span><h1>Connect to Job Agent on your PC</h1><p>On your PC, open <strong>Settings & activity → Phone access</strong> and enter the pairing code shown there. Your phone and PC must be on the same Wi-Fi.</p>${message ? `<div class="notice warning" role="alert">${esc(message)}</div>` : ''}<label class="field"><span>Pairing code</span><input id="pair-code" autocomplete="one-time-code" autocapitalize="characters" spellcheck="false" placeholder="ABCD-EFGH" value="${esc(code)}" required></label><label class="field"><span>Name for this phone</span><input id="pair-name" maxlength="60" value="${esc(deviceName())}"></label><button type="submit" class="primary" id="pair-submit">Connect</button></form>`;
+  $('#pair-form').addEventListener('submit', e => {
+    e.preventDefault();
+    submitPairing();
+  });
+  if (code && !message) submitPairing();
+}
+
+async function submitPairing() {
+  const submit = $('#pair-submit');
+  submit.disabled = true;
+  try {
+    const result = await api('/phone/pair', {method: 'POST', body: {code: $('#pair-code').value, name: $('#pair-name').value}});
+    token = result.token;
+    local.set(DEVICE_KEY, token);
+    history.replaceState(null, '', '/');  // The code never stays in the saved address.
+    await boot();
+  } catch (err) {
+    history.replaceState(null, '', '/');
+    pairScreen(err.message);
+  }
+}
+
 async function boot() {
+  if (REMOTE && !token) {
+    pairScreen();
+    return;
+  }
+  if (REMOTE && location.search) history.replaceState(null, '', '/');
   try {
     S.boot = await api('/bootstrap');
     S.profile = clone(S.boot.profile);
     S.country = S.boot.settings.active_country || '';
-    S.theme = S.boot.appearance?.theme || 'light';
+    S.theme = (REMOTE && local.get(THEME_KEY)) || S.boot.appearance?.theme || 'light';
     await refreshCoverage();
     document.body.dataset.theme = S.theme;
     shell();
     await loadJobs();
     if (S.boot.update_check) setTimeout(autoCheckUpdates, 4000);
   } catch (err) {
+    if (err.pair) return;  // The pairing screen is showing.
     const damaged = err.data?.damaged_file;
     $('#app').innerHTML = `<div class="boot"><span class="brand-mark">J</span><h1>Job Agent could not open</h1><p>${esc(err.message)}</p><div class="section-actions">${damaged?button('Restore last backup','restore-file','primary'):''}${button('Try again','retry-boot',damaged?'':'primary')}</div></div>`;
     $('[data-action=retry-boot]').addEventListener('click', boot);

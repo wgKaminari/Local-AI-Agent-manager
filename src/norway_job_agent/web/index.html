@@ -2,14 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="session-token" content="__SESSION_TOKEN__">
+  <meta name="theme-color" content="#0e0f11">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Job Agent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Personal Job Agent</title>
   <link rel="icon" href="data:,">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="apple-touch-icon" href="/assets/icon-192.png">
   <link rel="stylesheet" href="/assets/app.css">
   <script src="/assets/app.js" defer></script>
 </head>
-<body data-theme="__THEME__">
+<body data-theme="__THEME__" data-remote="__REMOTE__">
   <a class="skip-link" href="#main">Skip to workspace</a>
   <div id="app"><div class="boot"><span class="brand-mark">J</span><p>Opening Job Agent…</p></div></div>
   <div id="notifications" role="status" aria-live="polite" aria-atomic="true"></div>

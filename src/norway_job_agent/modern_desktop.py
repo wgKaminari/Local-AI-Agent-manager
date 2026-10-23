@@ -52,9 +52,14 @@ class LocalWorkspace:
         self.url = f"http://127.0.0.1:{self.server.effective_port}"
         self.app.config["LOCAL_ORIGIN"] = self.url
         self.thread = threading.Thread(target=self.server.run, name="local-workspace", daemon=True)
+        from .phone_access import PhoneAccess
+        # The same app on the home network, for a paired phone (off by default).
+        self.phone = PhoneAccess(Path(data_dir), self.app)
+        self.app.config["PHONE_ACCESS"] = self.phone
 
     def start(self):
         self.thread.start()
+        self.phone.start_saved()
         return self
 
     def close(self):
@@ -62,6 +67,8 @@ class LocalWorkspace:
         if self._closed:
             return
         self._closed = True
+        with contextlib.suppress(Exception):
+            self.phone.close()
         # Keep Waitress's wake-up socket alive until in-flight requests finish.
         # HTTPChannel.service() signals that socket after producing a response.
         self.server.accepting = False

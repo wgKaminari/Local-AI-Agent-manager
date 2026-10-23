@@ -15,11 +15,11 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, g, jsonify, request, send_from_directory
 from werkzeug.exceptions import HTTPException
 from werkzeug.utils import secure_filename
 
-from . import gmail, runtime_setup, service
+from . import gmail, phone_access, runtime_setup, service
 from .adzuna import key_status as adzuna_status
 from .browser_delivery import BrowserApplicationSession
 from .company_catalog import company_catalog, job_board_catalog
@@ -227,8 +227,33 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
     state = _State(data_dir, app)
     app.extensions["local_state"] = state
 
+    def phone_guard():
+        # Requests through the phone listener (marked by it, not by headers).
+        origin = app.config.get("PHONE_ORIGIN")
+        if not origin or not phone_access.is_private(request.remote_addr or ""):
+            return jsonify(error="Phone access is only for devices on your home network."), 403
+        if request.host != urlsplit(origin).netloc:
+            return jsonify(error="This address is not allowed."), 403
+        if request.headers.get("Origin") not in (None, origin) or request.headers.get("Sec-Fetch-Site") == "cross-site":
+            return jsonify(error="Requests from another website are not allowed."), 403
+        if request.path in {"/", "/manifest.webmanifest", "/api/phone/pair"} or request.path.startswith("/assets/"):
+            return None
+        access = app.config.get("PHONE_ACCESS")
+        g.device = access.device(request.headers.get("X-Session-Token", "")) if access else None
+        if g.device is None:
+            return jsonify(error="Pair this phone with your PC first.", pair=True), 403
+        return None
+
+    def pc_only(what):
+        if g.get("phone"):
+            raise ValueError(f"{what} happens on your PC. Open Job Agent on the PC to do it.")
+
     @app.before_request
     def guard():
+        g.phone = bool(request.environ.get(phone_access.ENVIRON_KEY))
+        g.device = None
+        if g.phone:
+            return phone_guard()
         origin = app.config["LOCAL_ORIGIN"]
         if origin:
             if request.host != urlsplit(origin).netloc:
@@ -267,6 +292,7 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
     @app.post("/api/updates/apply")
     def apply_update():
         from . import updates
+        pc_only("Updating the app")
         result = updates.start_update(_text(body().get("tag"), "Version", 40))
         quit_app = app.config.get("QUIT_APP")
         if quit_app is not None:
@@ -303,7 +329,55 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
         html = (assets / "index.html").read_text(encoding="utf-8")
         # The saved theme is applied before scripts run, avoiding a light flash.
         html = html.replace("__THEME__", _appearance(data_dir)["theme"])
-        return html.replace("__SESSION_TOKEN__", app.config["LOCAL_TOKEN"]), 200, {"Content-Type": "text/html; charset=utf-8"}
+        # A phone never receives the desktop's token; it pairs for its own.
+        html = html.replace("__REMOTE__", "1" if g.phone else "")
+        token = "" if g.phone else app.config["LOCAL_TOKEN"]
+        return html.replace("__SESSION_TOKEN__", token), 200, {"Content-Type": "text/html; charset=utf-8"}
+
+    @app.get("/manifest.webmanifest")
+    def manifest():
+        # Lets a phone add Job Agent to its home screen like an app.
+        return jsonify(name="Job Agent", short_name="Job Agent", start_url="/", scope="/", display="standalone",
+                       background_color="#0e0f11", theme_color="#0e0f11", icons=[
+                           {"src": "/assets/icon-192.png", "sizes": "192x192", "type": "image/png"},
+                           {"src": "/assets/icon-512.png", "sizes": "512x512", "type": "image/png"}]), 200, {
+                           "Content-Type": "application/manifest+json"}
+
+    def phone_controller():
+        access = app.config.get("PHONE_ACCESS")
+        if access is None:
+            raise ValueError("Phone access is available in the desktop app.")
+        return access
+
+    @app.route("/api/phone", methods=["GET", "POST"])
+    def phone():
+        pc_only("Managing phone access")
+        access = phone_controller()
+        if request.method == "POST":
+            return jsonify(access.enable() if body().get("enabled") is True else access.disable())
+        return jsonify(access.status())
+
+    @app.post("/api/phone/code")
+    def phone_code():
+        pc_only("Managing phone access")
+        return jsonify(phone_controller().new_code())
+
+    @app.delete("/api/phone/devices/<device_id>")
+    def phone_device(device_id):
+        pc_only("Managing phone access")
+        return jsonify(phone_controller().remove(_text(device_id, "Device", 40)))
+
+    @app.post("/api/phone/pair")
+    def phone_pair():
+        if not g.phone:
+            raise ValueError("Pair from the phone.")
+        value = body()
+        try:
+            token = phone_controller().pair(_text(value.get("code", ""), "Pairing code", 20),
+                                            _text(value.get("name", ""), "Device name", 200))
+        except PermissionError as exc:
+            return jsonify(error=str(exc)), 403
+        return jsonify(token=token)
 
     @app.get("/assets/<path:filename>")
     def asset(filename):
@@ -322,7 +396,8 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
                        update_check=bool(app.config.get("UPDATE_CHECK")),
                        countries=COUNTRIES, statuses=STATUSES, catalog=company_catalog(), boards=job_board_catalog(),
                        gmail=gmail.connection_status(data_dir), collection=service.read_collection_report(data_dir),
-                       adzuna=adzuna_status(data_dir))
+                       adzuna=adzuna_status(data_dir),
+                       client={"phone": bool(g.phone), "device": (g.device or {}).get("name", "")})
 
     @app.get("/api/jobs")
     def jobs():
@@ -406,6 +481,7 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
 
     @app.route("/api/adzuna-key", methods=["POST", "DELETE"])
     def adzuna_key():
+        pc_only("Changing the Adzuna key")
         # The key is checked against Adzuna outside the lock: one request.
         if request.method == "DELETE":
             with state.lock:
@@ -448,6 +524,10 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
     def start_task():
         value = body()
         action = _text(value.get("action"), "Action", 50)
+        if action == "gmail-connect":
+            pc_only("Connecting Gmail (Google's sign-in opens in a browser)")
+        if action == "shortcuts":
+            pc_only("Adding desktop shortcuts")
         if action in {"letter", "questions", "answers"}:
             identifier = _job_id(value.get("job_id"))
             service.get_vacancy(data_dir, identifier)
@@ -588,6 +668,8 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
                       "attachment": {".pdf", ".doc", ".docx", ".txt", ".rtf", ".odt", ".png", ".jpg", ".jpeg"}}
         if kind not in extensions or file is None or not file.filename:
             raise ValueError("Choose a file and its import type.")
+        if kind == "gmail":
+            pc_only("Setting up Gmail")
         original_name = file.filename.replace("\\", "/").rsplit("/", 1)[-1]
         suffix = Path(original_name).suffix.lower()
         if suffix not in extensions[kind]:
@@ -634,6 +716,7 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
 
     @app.post("/api/delivery/preview")
     def preview():
+        pc_only("Review & send (the employer's form opens in a browser window)")
         value = body()
         identifier = _job_id(value.get("job_id"))
         job = service.get_vacancy(data_dir, identifier)
