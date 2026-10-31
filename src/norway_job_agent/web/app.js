@@ -1566,9 +1566,9 @@ async function action(name, el) {
       'save-letter': 'letter',
       'save-answers': 'app'
     } [name]);
-    toast('Saved to your private workspace.');
     if (name === 'save-notes') await loadJobs();
     else renderDetail();
+    toast('Saved to your private workspace.');  // once the list shows the change
     return;
   }
   if (name === 'bookmark') {

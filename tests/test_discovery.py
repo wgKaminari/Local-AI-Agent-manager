@@ -100,7 +100,14 @@ class DiscoveryTests(unittest.TestCase):
                 for number, company, track in [(1, "A", "target"), (2, "A", "target"),
                     (3, "A", "target"), (4, "B", "target"), (5, "C", "target"), (6, "D", "horizon")]]
         result = diversify(jobs)
-        self.assertEqual([row["id"] for row in result], [1, 2, 4, 5, 3, 6])
+        # Employers take turns one job at a time: no pairs from one company.
+        self.assertEqual([row["id"] for row in result], [1, 4, 5, 2, 3, 6])
+
+    def test_variety_never_moves_a_better_match_below_a_weaker_band(self):
+        from norway_job_agent.job_index import diversify
+        rows = [{"id": number, "company": company, "track": "target", "mismatch": 0, "score": score}
+                for number, company, score in [(1, "A", 97), (2, "A", 96), (3, "B", 95), (4, "C", 92), (5, "A", 91), (6, "C", 84)]]
+        self.assertEqual([row["id"] for row in diversify(rows)], [1, 3, 2, 4, 5, 6])
 
     def test_early_role_gate_preserves_full_search_results_counts_and_order(self):
         self.profile["excluded_keywords"] = ["unpaid"]

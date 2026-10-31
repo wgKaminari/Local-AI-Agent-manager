@@ -358,11 +358,12 @@ class ServiceMarketTests(unittest.TestCase):
         self.assertEqual({item["source"] for item in jobs[0]["also_on"]}, {"linkedin", "arbeitsagentur"})
 
     def test_reposts_and_other_cities_of_one_role_count_once(self):
-        first = service.import_vacancy(self.folder, board_job("greenhouse", "x:1", title="Data Scientist", location="Berlin"))[0]
-        service.import_vacancy(self.folder, board_job("greenhouse", "x:2", title="Data Scientist", location="Berlin"))
-        service.import_vacancy(self.folder, board_job("greenhouse", "x:3", title="Data Scientist (m/w/d)", location="Munich"))
+        advert = "We build forecasting models in Python and SQL for our logistics platform, with a team of five data scientists."
+        first = service.import_vacancy(self.folder, board_job("greenhouse", "x:1", title="Data Scientist", location="Berlin", description=advert))[0]
+        service.import_vacancy(self.folder, board_job("greenhouse", "x:2", title="Data Scientist", location="Berlin", description=advert))
+        service.import_vacancy(self.folder, board_job("greenhouse", "x:3", title="Data Scientist (m/w/d)", location="Munich", description=advert))
         service.import_vacancy(self.folder, board_job("greenhouse", "x:4", title="Data Scientist", location="Seattle, WA",
-                                                      countries=["US"]))
+                                                      countries=["US"], description=advert))
         germany = service.vacancies(self.folder, country="DE")
         self.assertEqual(len(germany), 1)
         places = [germany[0]["location"], *(other["location"] for other in germany[0]["also_on"])]
@@ -373,6 +374,38 @@ class ServiceMarketTests(unittest.TestCase):
         service.update_workflow(self.folder, first, "saved", "")
         self.assertEqual(len(service.vacancies(self.folder, country="DE")), 1)
         self.assertEqual(service.vacancies(self.folder, country="DE")[0]["id"], first)
+
+    def test_openings_that_share_a_title_but_not_an_advert_stay_separate(self):
+        # Two "Data Scientist (m/w/d)" roles at one employer in different
+        # teams: marking one used to hide the other behind it.
+        team_a = service.import_vacancy(self.folder, board_job("greenhouse", "y:1", title="Data Scientist (m/w/d)",
+                                                               location="Munich", description="We build forecasting models in Python and SQL for our logistics platform, with a team of five data scientists."))[0]
+        team_b = service.import_vacancy(self.folder, board_job("greenhouse", "y:2", title="Data Scientist (m/f/d)",
+                                                               location="Munich", description="Join our marketing analytics group: customer segmentation, campaign measurement and dashboards in Tableau."))[0]
+        # Without advert text, another city is another opening; the same city a re-post.
+        service.import_vacancy(self.folder, board_job("arbeitsagentur", "z:1", title="Analyst", location="Hamburg"))
+        service.import_vacancy(self.folder, board_job("arbeitsagentur", "z:2", title="Analyst", location="Hamburg"))
+        service.import_vacancy(self.folder, board_job("arbeitsagentur", "z:3", title="Analyst", location="Dresden"))
+        # The same advert in English and German in one city is one job.
+        english = service.import_vacancy(self.folder, board_job("arbeitsagentur", "w:1", title="Data Scientist (m/f/d) Search",
+            location="Munich", description="CHECK24 is the comparison portal: we are the market leader and you will work with our team on search for your customers and the platform."))[0]
+        service.import_vacancy(self.folder, board_job("arbeitsagentur", "w:2", title="Data Scientist (m/w/d) Search",
+            location="Munich", description="CHECK24 ist das Vergleichsportal: wir sind der Marktführer und Sie werden mit dem Team an der Suche für die Kunden und auf der Plattform arbeiten."))
+        # The same job on another site is one job, whatever its text.
+        service.import_vacancy(self.folder, board_job("linkedin", "y:9", title="Data Scientist (m/w/d)", location="Munich",
+                                                      description="Short LinkedIn summary"))
+        shown = {job["id"]: job for job in service.vacancies(self.folder, country="DE")}
+        search = [job for job in shown.values() if "Search" in job["title"]]
+        self.assertEqual(len(search), 1)
+        self.assertEqual({search[0]["id"], *(other["id"] for other in search[0]["also_on"])}, {english, english + 1})
+        self.assertIn(team_a, shown)
+        self.assertIn(team_b, shown)
+        self.assertEqual(sum(job["title"] == "Analyst" for job in shown.values()), 2)
+        # Marking team A leaves team B visible and new.
+        service.update_stage(self.folder, team_a, "applied")
+        new_only = [job["id"] for job in service.vacancies(self.folder, "", "new", "DE")]
+        self.assertIn(team_b, new_only)
+        self.assertNotIn(team_a, new_only)
 
     def test_board_adverts_not_seen_for_a_month_leave_discovery_but_saved_ones_stay(self):
         old, saved = service.import_vacancy(self.folder, board_job(identifier="old"))[0], service.import_vacancy(self.folder, board_job(identifier="kept", title="SRE"))[0]

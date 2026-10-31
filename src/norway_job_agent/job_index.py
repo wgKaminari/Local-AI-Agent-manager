@@ -22,7 +22,7 @@ from datetime import date, datetime, timedelta, timezone
 from .storage import JobStore, search_terms
 
 # Bump when match_job, fingerprints or stored fields change meaning.
-MATCH_VERSION = "3"
+MATCH_VERSION = "4"
 RETENTION_DAYS = 30
 BOARD_SOURCES = ("arbeitsagentur", "arbeitnow", "djinni", "dou", "remotive", "remoteok", "himalayas", "hackernews", "adzuna",
                  "linkedin")
@@ -133,14 +133,62 @@ def ensure_matches(store: JobStore, profile: dict, *, progress=None, batch: int 
         lock.release()
 
 
+# Two postings on one site are one job only when their adverts match. Same
+# title, employer and country alone also joined different openings, such as
+# two "Data Scientist (m/w/d)" roles in different teams (160 pairs on real
+# data had adverts sharing under half their words).
+SAME_ADVERT = 0.8
+_WORD = re.compile(r"\w{3,}")
+# Frequent words that tell an advert's language: an employer often posts
+# the same job twice, once in English and once in German or Norwegian.
+_LANGUAGE_WORDS = {
+    "en": frozenset("the and you our with for are will your this that have from about".split()),
+    "de": frozenset("der die das und wir mit für ist sie ein eine bei auf als auch werden sind ihre".split()),
+    "no": frozenset("og det som med for til vår har deg våre ved fra kan skal".split()),
+    "uk": frozenset("та для що від або ми ти це як роботи досвід".split()),
+}
+
+
+def _advert_words(text: str) -> tuple[frozenset[int], str]:
+    """The advert's words (hashed) and its language, for comparing postings."""
+    tokens = re.findall(r"\w+", str(text or "").casefold())
+    counts = {code: sum(token in words for token in tokens) for code, words in _LANGUAGE_WORDS.items()}
+    language = max(counts, key=counts.get) if max(counts.values()) >= 3 else ""
+    return frozenset(hash(word) for word in tokens if len(word) >= 3), language
+
+
+def _place(location: str) -> str:
+    return " ".join(re.findall(r"\w+", re.split(r"[;,/|(\n]", str(location or "").casefold())[0])[:2])
+
+
+def _same_job(first: tuple, other: tuple, words: dict) -> bool:
+    """Whether two postings of one title at one employer are the same job.
+
+    Copies on different sites are. On one site they must share the advert
+    (at least 80% of its words) or be the same advert in two languages in
+    one city; without text to compare, the same city counts as a re-post,
+    another city as another opening.
+    """
+    if first[2] != other[2]:
+        return True
+    (a, first_language), (b, other_language) = words.get(first[0], (None, "")), words.get(other[0], (None, ""))
+    if a and b:
+        if first_language and other_language and first_language != other_language:
+            return _place(first[9]) == _place(other[9])
+        return len(a & b) / len(a | b) >= SAME_ADVERT
+    return _place(first[9]) == _place(other[9])
+
+
 def _refresh_duplicates(store: JobStore) -> None:
     """Show one job once: its other postings ride along on the shown copy.
 
-    Copies on other sites, the same advert posted again, and one role posted
-    for several cities merge; the shown copy lists the others with their
-    site and place. It prefers an active posting, then your workflow stage,
-    then the employer's own posting, then the fuller advert. A copy you
-    saved, applied to or otherwise moved past "new" always stays visible.
+    Copies on other sites, the same advert posted again, and one advert
+    posted for several cities merge; the shown copy lists the others with
+    their site and place. Different openings that share a title stay
+    separate (see _same_job). The shown copy prefers an active posting, then
+    your workflow stage, then the employer's own posting, then the fuller
+    advert. A copy you saved, applied to or otherwise moved past "new"
+    always stays visible.
     """
     connection = store._connection
     rows = connection.execute(
@@ -150,22 +198,35 @@ def _refresh_duplicates(store: JobStore) -> None:
     groups: dict[str, list] = {}
     for row in rows:
         groups.setdefault(row[1], []).append(row)
+    # Advert words only for jobs that share a title with another posting.
+    shared = [row[0] for members in groups.values() if len(members) > 1 for row in members if row[5]]
+    words = {}
+    for start in range(0, len(shared), 500):
+        chunk = shared[start:start + 500]
+        marks = ",".join("?" for _ in chunk)
+        for identifier, text in connection.execute(f"SELECT id, description FROM jobs WHERE id IN ({marks})", chunk):
+            words[identifier] = _advert_words(text)
     updates = []
     for members in groups.values():
-        if len(members) == 1:
-            desired = {members[0][0]: (None, "[]")}
-        else:
-            members.sort(key=lambda row: (not row[4], row[3] == "new", _SOURCE_RANK.get(row[2], 2), not row[5]))
-            primary, others, own = members[0], [], []
-            for row in members[1:]:
-                (own if row[3] != "new" else others).append(row)
+        desired = {}
+        members.sort(key=lambda row: (not row[4], row[3] == "new", _SOURCE_RANK.get(row[2], 2), not row[5]))
+        clusters: list[list] = []
+        for row in members:
+            cluster = next((cluster for cluster in clusters if _same_job(cluster[0], row, words)), None)
+            if cluster is None:
+                clusters.append([row])
+            else:
+                cluster.append(row)
+        for primary, *rest in clusters:
+            others = [row for row in rest if row[3] == "new"]
             also = [{"source": other[2], "id": other[0], "url": other[6], "location": str(other[9] or "")[:80]}
                     for other in others]
-            desired = {primary[0]: (primary[0] if others else None, json.dumps(also, ensure_ascii=False))}
+            desired[primary[0]] = (primary[0] if others else None, json.dumps(also, ensure_ascii=False) if others else "[]")
             for other in others:
                 desired[other[0]] = (primary[0], "[]")
-            for row in own:
-                desired[row[0]] = (None, "[]")
+            for row in rest:
+                if row[3] != "new":
+                    desired[row[0]] = (None, "[]")
         for row in members:
             primary_id, also_on = desired[row[0]]
             if (row[7], row[8]) != (primary_id, also_on):
@@ -310,20 +371,37 @@ def sort_rows(rows: list[dict], sort: str = "match", *, local_first: bool = Fals
 
 
 def diversify(rows: list[dict]) -> list[dict]:
-    """Keep role/experience groups ordered, with two jobs per employer per pass."""
-    groups: dict = {}
-    for row in rows:
-        group = (bool(row["mismatch"]), row["track"])
-        employer = " ".join(str(row["company"]).casefold().split())
-        groups.setdefault(group, {}).setdefault(employer, deque()).append(row)
-    result = []
-    for employers in groups.values():
+    """Employer variety without burying better matches.
+
+    The match order stays: role/experience groups, local before remote in a
+    country view, and bands of 5 match points (a 96 never drops below a
+    94). Inside each such stretch, employers take turns, one job each, so a
+    company's jobs sit together only when no other employer is left in it.
+    (Two jobs per employer per turn made most of the list look like pairs.)
+    """
+    result: list[dict] = []
+    run: list[dict] = []
+
+    def flush():
+        employers: dict = {}
+        for row in run:
+            employers.setdefault(" ".join(str(row["company"]).casefold().split()), deque()).append(row)
         remaining = list(employers.values())
         while remaining:
             for queue in remaining:
-                for _ in range(min(2, len(queue))):
-                    result.append(queue.popleft())
+                result.append(queue.popleft())
             remaining = [queue for queue in remaining if queue]
+
+    key = None
+    for row in rows:
+        band = (bool(row["mismatch"]), row["track"], row["score"] // 5 if row.get("score") is not None else -1)
+        if band != key and run:
+            flush()
+            run = []
+        key = band
+        run.append(row)
+    if run:
+        flush()
     return result
 
 
