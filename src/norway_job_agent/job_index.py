@@ -370,6 +370,9 @@ def sort_rows(rows: list[dict], sort: str = "match", *, local_first: bool = Fals
                                          row["track_rank"], local(row), row["score"] if row["score"] is not None else -1), reverse=True)
 
 
+_UNNAMED_EMPLOYERS = frozenset({"", "company on djinni", "company on linkedin", "employer not named", "employer not listed"})
+
+
 def diversify(rows: list[dict]) -> list[dict]:
     """Employer variety without burying better matches.
 
@@ -385,7 +388,9 @@ def diversify(rows: list[dict]) -> list[dict]:
     def flush():
         employers: dict = {}
         for row in run:
-            employers.setdefault(" ".join(str(row["company"]).casefold().split()), deque()).append(row)
+            name = " ".join(str(row["company"]).casefold().split())
+            # "Company on Djinni" and similar stand for many unnamed employers.
+            employers.setdefault(f"#{row['id']}" if name in _UNNAMED_EMPLOYERS else name, deque()).append(row)
         remaining = list(employers.values())
         while remaining:
             for queue in remaining:

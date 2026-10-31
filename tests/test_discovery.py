@@ -108,6 +108,10 @@ class DiscoveryTests(unittest.TestCase):
         rows = [{"id": number, "company": company, "track": "target", "mismatch": 0, "score": score}
                 for number, company, score in [(1, "A", 97), (2, "A", 96), (3, "B", 95), (4, "C", 92), (5, "A", 91), (6, "C", 84)]]
         self.assertEqual([row["id"] for row in diversify(rows)], [1, 3, 2, 4, 5, 6])
+        # Unnamed employers ("Company on Djinni") are many companies, not one.
+        unnamed = [{"id": number, "company": company, "track": "target", "mismatch": 0, "score": 90}
+                   for number, company in [(1, "Company on Djinni"), (2, "Company on Djinni"), (3, "A"), (4, "A")]]
+        self.assertEqual([row["id"] for row in diversify(unnamed)], [1, 2, 3, 4])
 
     def test_early_role_gate_preserves_full_search_results_counts_and_order(self):
         self.profile["excluded_keywords"] = ["unpaid"]
