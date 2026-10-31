@@ -181,10 +181,26 @@ function adoptSourceSettings(settings) {
 }
 let toastTimer;
 
-function toast(message, error = false) {
+// extra: an optional button such as Undo, kept clickable while the rest of
+// the message lets clicks through. A message with one stays a little longer.
+function toast(message, error = false, extra = '') {
   clearTimeout(toastTimer);
-  $('#notifications').innerHTML = `<div class="toast ${error?'error':''}"><span>${esc(message)}</span>${button('×','dismiss-toast','quiet','aria-label="Dismiss notification"')}</div>`;
-  toastTimer = setTimeout(() => $('#notifications').replaceChildren(), error ? 12000 : 4000);
+  $('#notifications').innerHTML = `<div class="toast ${error?'error':''}"><span>${esc(message)}</span>${extra}${button('×','dismiss-toast','quiet','aria-label="Dismiss notification"')}</div>`;
+  toastTimer = setTimeout(() => $('#notifications').replaceChildren(), error ? 12000 : extra ? 8000 : 4000);
+}
+
+// After a stage change the list reloads, so a job the filters no longer
+// match (only "New" shown, then marked Applied) leaves the list at once.
+async function setStage(id, status) {
+  const saved = await api(`/jobs/${id}/stage`, {method: 'POST', body: {status}});
+  for (const job of S.jobs.filter(item => item.id === id)) job.status = saved.status;
+  const buffer = S.buffers.get(id);
+  if (buffer) buffer.status = saved.status;
+  const detail = S.details.get(id);
+  if (detail) detail.job.status = saved.status;
+  await loadJobs();
+  if (S.selected === id) renderDetail();
+  return saved.status;
 }
 
 // Background work that is safe to interrupt: it simply completes next time.
@@ -1460,16 +1476,20 @@ async function action(name, el) {
     const previous = job?.status || buffer?.status || 'new';
     // Clicking a lit mark again undoes it, back to the stage it had before.
     const next = previous === mark ? (S.markUndo.get(id) || 'new') : mark;
-    const {status} = await api(`/jobs/${id}/stage`, {method: 'POST', body: {status: next}});
+    const status = await setStage(id, next);
     if (previous !== mark) S.markUndo.set(id, previous);
     else S.markUndo.delete(id);
-    if (job) job.status = status;
-    if (buffer) buffer.status = status;
-    const detail = S.details.get(id);
-    if (detail) detail.job.status = status;
-    renderCards();
-    if (S.selected === id) renderDetail();
-    toast(previous === mark ? `Mark removed: back to ${cap(status)}.` : `Marked as ${cap(status)}. Click it again to undo.`);
+    const hidden = !S.jobs.some(item => item.id === id);
+    const undo = button('Undo', 'undo-mark', 'quiet toast-action', `data-id="${id}" data-status="${esc(previous)}"`);
+    toast(previous === mark ? `Mark removed: back to ${cap(status)}.` :
+      `Marked as ${cap(status)}${hidden ? ' and hidden by your filters' : ''}.`, false, previous === mark ? '' : undo);
+    return;
+  }
+  if (name === 'undo-mark') {
+    const id = Number(el.dataset.id);
+    const status = await setStage(id, el.dataset.status || 'new');
+    S.markUndo.delete(id);
+    toast(`Undone: back to ${cap(status)}.`);
     return;
   }
   if (name === 'market-search') {

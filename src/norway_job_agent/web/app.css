@@ -832,7 +832,10 @@ input[type=radio] {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  overscroll-behavior: contain
+  overscroll-behavior: contain;
+  /* The app restores the list position itself after a reload; the browser's
+     own scroll anchoring would shift it again. */
+  overflow-anchor: none
 }
 
 .result-summary {
@@ -2366,6 +2369,13 @@ dialog::backdrop {
 
 #notifications .toast button {
   pointer-events: auto
+}
+
+#notifications .toast .toast-action {
+  min-height: 28px;
+  padding: 0 10px;
+  font-weight: 600;
+  color: var(--accent-text)
 }
 
 /* A card and its quick marks share one row. */

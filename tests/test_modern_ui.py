@@ -253,6 +253,8 @@ class ModernInterfaceTests(unittest.TestCase):
         self.assertAlmostEqual(self.list_scroll(), before, delta=2)
         # One click marks another vacancy; clicking again undoes it.
         row = self.page.locator(".job-row").nth(22)
+        row.scroll_into_view_if_needed()
+        before = self.list_scroll()
         identifier = int(row.locator(".job-card").get_attribute("data-job"))
         row.get_by_role("button", name="Mark as Applied", exact=False).click()
         self.expect(self.page.locator("#notifications")).to_contain_text("Marked as Applied")
@@ -261,6 +263,28 @@ class ModernInterfaceTests(unittest.TestCase):
         self.expect(row.locator(".mark.on")).to_have_text("Applied")
         row.locator(".mark.on").click()
         self.expect(self.page.locator("#notifications")).to_contain_text("Mark removed")
+        self.assertEqual(service.get_vacancy(self.data, identifier)["status"], "new")
+
+    def test_a_quick_mark_saves_and_a_filtered_list_drops_the_job_at_once(self):
+        self.many_jobs(30)
+        self.page.get_by_role("button", name="Filters").click()
+        self.page.locator("#modal").get_by_label("New", exact=True).check()
+        self.page.locator("#modal").get_by_role("button", name="Show results").click()
+        self.expect(self.page.locator(".job-card")).to_have_count(34)
+        self.page.evaluate("document.querySelector('#job-results').scrollTop = 600")
+        row = self.page.locator(".job-row").nth(15)
+        row.scroll_into_view_if_needed()
+        before = self.list_scroll()
+        identifier = int(row.locator(".job-card").get_attribute("data-job"))
+        row.get_by_role("button", name="Mark as Applied", exact=False).click()
+        self.expect(self.page.locator("#notifications")).to_contain_text("hidden by your filters")
+        self.expect(self.page.locator(".job-card")).to_have_count(33)
+        self.expect(self.page.locator(f'[data-job="{identifier}"]')).to_have_count(0)
+        self.assertEqual(service.get_vacancy(self.data, identifier)["status"], "applied")
+        self.assertAlmostEqual(self.list_scroll(), before, delta=2)
+        self.expect(self.page.locator(".list-title .count")).to_contain_text("33")
+        self.page.locator("#notifications").get_by_role("button", name="Undo").click()
+        self.expect(self.page.locator(f'[data-job="{identifier}"]')).to_have_count(1)
         self.assertEqual(service.get_vacancy(self.data, identifier)["status"], "new")
 
     def test_a_message_never_blocks_the_button_under_it(self):
