@@ -2681,3 +2681,22 @@ dialog::backdrop {
   .chat-composer textarea { min-height: 48px }
   .ai-provider-body { margin-left: 0 }
 }
+
+/* Applications found in your mail. */
+.mail-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px }
+.mail-stats .fit strong { font-size: 20px }
+.mail-months { display: flex; flex-direction: column; gap: 4px; max-width: 520px }
+.mail-month { display: grid; grid-template-columns: 90px minmax(0, 1fr) 32px; gap: 8px; align-items: center; font-size: 12.5px }
+.mail-month progress { width: 100%; height: 8px; border: 0; border-radius: 4px; background: var(--raised); appearance: none; accent-color: var(--accent) }
+.mail-month progress::-webkit-progress-bar { background: var(--raised); border-radius: 4px }
+.mail-month progress::-webkit-progress-value { background: var(--accent); border-radius: 4px }
+.mail-month progress::-moz-progress-bar { background: var(--accent) }
+.mail-month strong { text-align: right }
+.mail-suggestions { display: flex; flex-direction: column; gap: 6px }
+.field.compact { flex: 0 0 auto }
+.field.compact select { width: auto }
+#mail-apps .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end }
+.mail-notice { display: flex; flex-direction: row; gap: 10px; align-items: flex-start; margin-bottom: 12px }
+.mail-notice > svg { width: 18px; height: 18px; flex: none; margin-top: 2px }
+.mail-notice p { margin: 2px 0 0 }
+.pill svg { width: 12px; height: 12px; vertical-align: -2px }

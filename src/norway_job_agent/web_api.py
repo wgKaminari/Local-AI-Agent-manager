@@ -52,7 +52,7 @@ def _same_token(supplied, expected):
 
 # What a vacancy card renders; the detail view fetches the full record.
 _LIST_FIELDS = ("id", "title", "company", "location", "source", "status", "notes", "is_active", "countries",
-                "published_at", "discovered_at", "deadline", "also_on")
+                "published_at", "discovered_at", "deadline", "also_on", "email")
 
 
 def _list_match(match):
@@ -452,7 +452,7 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
                 deliveries = store.deliveries(identifier)
                 insights = store.insights(identifier)
             return jsonify(job=value, letters=service.draft_history(data_dir, identifier), preparations=histories(identifier),
-                           deliveries=deliveries, insights=insights)
+                           deliveries=deliveries, insights=insights, mail=service.mail_history(data_dir, value))
 
     @app.post("/api/jobs")
     def import_job():
@@ -543,6 +543,31 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
                 return jsonify(cloud_ai.delete_key(data_dir, provider))
         # The key is checked with the provider outside the lock: one free request.
         return jsonify(cloud_ai.save_key(data_dir, provider, _text(_object(body()).get("key", ""), "API key", 400)))
+
+    @app.route("/api/mail-applications", methods=["GET", "DELETE"])
+    def mail_applications():
+        with state.lock:
+            if request.method == "DELETE":
+                return jsonify(service.forget_mail(data_dir))
+            return jsonify(service.mail_overview(data_dir))
+
+    @app.post("/api/mail-applications/stages")
+    def mail_stages():
+        items = _object(body()).get("items")
+        if not isinstance(items, list):
+            raise ValueError("Choose the stages to update.")
+        clean = []
+        for item in items:
+            item = _object(item, "Stage")
+            clean.append({"job_id": _job_id(item.get("job_id")), "status": _text(item.get("status"), "Status", 20)})
+        with state.lock:
+            return jsonify(service.apply_mail_stages(data_dir, clean))
+
+    @app.post("/api/mail-applications/add")
+    def mail_add():
+        message_id = _text(_object(body()).get("message_id"), "Message", 200)
+        with state.lock:
+            return jsonify(service.add_mail_application(data_dir, message_id))
 
     @app.get("/api/chats")
     def chats():
@@ -678,6 +703,19 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
             def callback(progress):
                 return service.send_chat(data_dir, message, chat_id=chat_id, job_id=chat_job, use_profile=use_profile,
                                          on_text=lambda text: progress("", partial=text), progress=progress)
+        elif action == "mail-scan":
+            days = value.get("days", 365)
+            if not isinstance(days, int) or isinstance(days, bool):
+                raise ValueError("Choose how far back to read your email.")
+            callback = lambda progress: service.scan_mail(data_dir, days=days, progress=progress)
+        elif action == "mail-ai":
+            callback = lambda progress: service.ai_read_mail(data_dir, progress=progress)
+        elif action == "gmail-ai-read":
+            message_ids = value.get("message_ids")
+            if not isinstance(message_ids, list) or not message_ids or len(message_ids) > 10 or \
+                    any(not isinstance(item, str) or not item.isascii() or len(item) > 200 for item in message_ids):
+                raise ValueError("Choose up to 10 emails to read with AI.")
+            callback = lambda progress: service.ai_read_alerts(data_dir, message_ids, progress=progress)
         elif action == "ai-models":
             provider = _text(value.get("provider"), "Provider", 20)
             callback = lambda progress: {"provider": provider, "models": cloud_ai.list_models(data_dir, provider)}
@@ -740,7 +778,7 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
             key = ("chat", chat_id) if chat_id is not None else None
         if action == "market-search":
             key = ("collect", None)  # One network-wide search at a time.
-        if action in {"gmail-connect", "gmail-disconnect", "gmail-fetch"}:
+        if action in {"gmail-connect", "gmail-disconnect", "gmail-fetch", "mail-scan", "mail-ai", "gmail-ai-read"}:
             key = ("gmail-account", None)
         if action == "gmail-connect":
             with state.lock:

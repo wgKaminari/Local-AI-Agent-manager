@@ -569,6 +569,7 @@ def _cleanup_and_match(data_dir: Path, store: JobStore, profile: dict, progress=
         job_index.ensure_matches(store, profile, progress=progress)
     finally:
         experience_matching.flush_cache()
+    _relink_mail(store)  # Newly collected vacancies you already applied to.
     return removed
 
 
@@ -814,6 +815,10 @@ def list_page(data_dir: Path, *, view: str = "discover", query: str = "", status
         if view == "for-you" and sort == "match" and not query:
             rows = job_index.diversify(rows)
         page = job_index.load_full(store, [row["id"] for row in rows[offset:offset + limit]])
+        mail = store.email_for_jobs([job["id"] for job in page])
+        for job in page:
+            if job["id"] in mail:
+                job["email"] = _email_outcome(mail[job["id"]])
     summary.update(offset=offset, limit=limit, has_more=offset + limit < len(rows))
     return {"jobs": page, "summary": summary}
 
@@ -1124,6 +1129,152 @@ def send_chat(data_dir: Path, message: str, *, chat_id: int | None = None, job_i
             chat_id = store.create_chat(chat_title(message), job_id, use_profile)
         store.add_chat_messages(chat_id, [("user", message.strip(), ""), ("assistant", answer, _label(model))])
         return store.chat(chat_id)
+
+
+def _relink_mail(store: JobStore) -> None:
+    """Match application mail to your vacancies (company and position)."""
+    from . import mail_applications
+    records = store.email_records()
+    if not records:
+        return
+    jobs = [dict(row) for row in store._connection.execute("SELECT id, title, company, status FROM jobs")]
+    store.set_email_links(mail_applications.link(records, jobs))
+
+
+def _email_outcome(messages: list[dict]) -> dict:
+    """The latest news among a vacancy's application mail."""
+    outcome = messages[0]
+    for message in messages[1:]:
+        if message["kind"] != "applied" or outcome["kind"] == "applied":
+            outcome = message
+    return {"kind": outcome["kind"], "received_at": outcome["received_at"], "applied_at": messages[0]["received_at"]}
+
+
+def mail_overview(data_dir: Path) -> dict:
+    """Applications found in your mail: counts, months, stage suggestions."""
+    from . import mail_applications
+    with JobStore(Path(data_dir) / "vacancies.db") as store:
+        records = store.email_records()
+        overview = mail_applications.summary(records)
+        ids = sorted({group["job_id"] for group in overview["groups"] if group["job_id"]})
+        jobs = {job["id"]: job for job in (store.get_job(identifier) for identifier in ids) if job}
+    suggestions = []
+    for group in overview["groups"]:
+        job = jobs.get(group["job_id"])
+        if job is None:
+            group["job_id"] = None
+            continue
+        group["job_title"], group["job_status"] = job["title"], job["status"]
+        stage = mail_applications.stage_suggestion(job["status"], group["outcome"])
+        if stage and not any(item["job_id"] == job["id"] for item in suggestions):
+            suggestions.append({"job_id": job["id"], "title": job["title"], "company": job["company"],
+                                "current": job["status"], "suggested": stage, "date": group["last_at"]})
+    unclear = sum(1 for record in records if not record["company"] or not record["position"])
+    return {**overview, "suggestions": suggestions, "unclear": unclear, "messages": len(records)}
+
+
+def scan_mail(data_dir: Path, *, days: int = 365, progress=None) -> dict:
+    """Read new application mail from Gmail (read-only) and match it to your vacancies."""
+    from . import mail_applications
+    with JobStore(Path(data_dir) / "vacancies.db") as store:
+        known = store.email_known_ids()
+    result = mail_applications.scan(data_dir, days=days, known=known, progress=progress)
+    with JobStore(Path(data_dir) / "vacancies.db") as store:
+        store.save_email_records(result["records"], result["ignored"])
+        _relink_mail(store)
+    return {**mail_overview(data_dir), "scan": {key: result[key] for key in ("listed", "read", "more", "warnings")} | {"found": len(result["records"])}}
+
+
+def ai_read_mail(data_dir: Path, *, progress=None) -> dict:
+    """Let the chosen AI read application mail whose company or position the rules missed."""
+    from . import mail_applications
+    with JobStore(Path(data_dir) / "vacancies.db") as store:
+        unclear = [record for record in store.email_records() if not record["company"] or not record["position"]][:60]
+    if not unclear:
+        return mail_overview(data_dir)
+    changes = mail_applications.ai_read(unclear, _writer(data_dir, progress), progress=progress)
+    with JobStore(Path(data_dir) / "vacancies.db") as store:
+        for message_id, change in changes.items():
+            store.update_email_record(message_id, **change, source="ai")
+        _relink_mail(store)
+    return mail_overview(data_dir)
+
+
+def apply_mail_stages(data_dir: Path, items: list[dict]) -> dict:
+    """Update the stages you ticked; each must still be what your mail suggests."""
+    if not isinstance(items, list) or len(items) > 1000:
+        raise ValueError("Choose the stages to update.")
+    suggested = {item["job_id"]: item["suggested"] for item in mail_overview(data_dir)["suggestions"]}
+    updated = 0
+    for item in items:
+        if not isinstance(item, dict) or suggested.get(item.get("job_id")) != item.get("status"):
+            raise ValueError("Your mail no longer suggests one of these stages. Reload the page and try again.")
+    for item in items:
+        update_stage(data_dir, item["job_id"], item["status"])
+        updated += 1
+    return {**mail_overview(data_dir), "updated": updated}
+
+
+def add_mail_application(data_dir: Path, message_id: str) -> dict:
+    """Add an application found only in your mail to Applications, at its stage."""
+    from . import mail_applications
+    with JobStore(Path(data_dir) / "vacancies.db") as store:
+        records = store.email_records()
+    group = next((group for group in mail_applications.applications(records) if message_id in group["message_ids"]), None)
+    if group is None:
+        raise ValueError("This application is no longer in your mail results.")
+    if group["job_id"]:
+        return {"id": group["job_id"], **mail_overview(data_dir)}
+    first = next(record for record in records if record["message_id"] == group["message_ids"][0])
+    thread = first["thread_id"] or first["message_id"]
+    identifier, _ = import_vacancy(data_dir, {
+        "source": "gmail", "source_id": "application:" + thread,
+        "source_url": "https://mail.google.com/mail/u/0/#all/" + thread,
+        "title": group["position"] or "Application", "company": group["company"] or "Employer not named",
+        "description": f"Added from your email: {first['subject']}\n\n{first['excerpt'][:1200]}",
+        "published_at": group["applied_at"],
+        "raw_json": {"email_application": {"message_ids": group["message_ids"], "outcome": group["outcome"]}}})
+    update_stage(data_dir, identifier, mail_applications.STAGE_FOR[group["outcome"]])
+    with JobStore(Path(data_dir) / "vacancies.db") as store:
+        store.set_email_links({message: (identifier, "position") for message in group["message_ids"]})
+    return {"id": identifier, **mail_overview(data_dir)}
+
+
+def ai_read_alerts(data_dir: Path, message_ids: list[str], *, progress=None) -> dict:
+    """Vacancies in job-alert emails the rules could not read, found by the chosen AI."""
+    from . import gmail
+    candidates, warnings = [], []
+    model = _writer(data_dir, progress)
+    for number, message_id in enumerate(message_ids, 1):
+        if progress is not None:
+            progress(f"Reading email {number} of {len(message_ids)} with AI…")
+        try:
+            candidates += gmail.ai_candidates(data_dir, message_id, model, progress=progress)
+        except gmail.GmailError as exc:
+            if str(exc) not in warnings:
+                warnings.append(str(exc))
+    unique = {}
+    for job in candidates:
+        unique.setdefault(job["source_url"], job)
+    return {"candidates": list(unique.values()), "warnings": warnings}
+
+
+def forget_mail(data_dir: Path) -> dict:
+    with JobStore(Path(data_dir) / "vacancies.db") as store:
+        store.clear_email_records()
+    return mail_overview(data_dir)
+
+
+def mail_history(data_dir: Path, job: dict) -> list[dict]:
+    """Application mail about this vacancy, or earlier applications to its employer."""
+    from .mail_applications import company_key, same_company
+    with JobStore(Path(data_dir) / "vacancies.db") as store:
+        records = store.email_records()
+    key = company_key(job.get("company"))
+    found = [{**{name: record[name] for name in ("kind", "received_at", "company", "position", "subject")},
+              "this_job": record["job_id"] == job["id"]}
+             for record in records if record["job_id"] == job["id"] or (key and same_company(key, company_key(record["company"])))]
+    return sorted(found, key=lambda item: item["received_at"], reverse=True)[:12]
 
 
 def discover_application(data_dir: Path, id: int, manual_text: str = "") -> dict:

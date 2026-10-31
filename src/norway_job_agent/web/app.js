@@ -96,7 +96,10 @@ const S = {
   chatProfile: true,
   chatDraft: '',
   chatPending: null,
-  aiModels: {}
+  aiModels: {},
+  mail: null,  // applications found in your mail
+  mailDays: 365,
+  emailUnread: []  // job-alert emails the rules could not read
 };
 const titles = {
   discover: ['Discover', 'Every collected vacancy in your search.'],
@@ -106,7 +109,7 @@ const titles = {
   chat: ['AI chat', 'Ask about vacancies, applications, interviews and emails.'],
   profile: ['Profile & writing', 'The facts and voice your AI writes from. Used only after you save.'],
   sources: ['Source library', 'Employers and job boards you can collect from.'],
-  mail: ['Job alerts', 'Turn job-alert emails into a reviewed shortlist.'],
+  mail: ['Job alerts', 'Turn job-alert emails into a reviewed shortlist, and find the applications you have sent.'],
   settings: ['Settings & activity', 'AI assistant, configured sources and collection results.']
 };
 // On a phone (served by the PC over home Wi-Fi) the page carries no token:
@@ -464,10 +467,23 @@ const stageTones = {
   interview: 'green'
 };
 
+// What your mailbox says about a vacancy you have not marked yet.
+const MAIL_OUTCOMES = {applied: ['Applied', 'blue'], interview: ['Interview', 'green'], rejected: ['Rejected', '']};
+const shortDate = value => value ? new Date(value).toLocaleDateString(undefined, {day: 'numeric', month: 'short', year: new Date(value).getFullYear() === new Date().getFullYear() ? undefined : 'numeric'}) : '';
+const mailPill = e => `<span class="pill ${MAIL_OUTCOMES[e.kind]?.[1] || ''}" title="From your email: applied ${esc(shortDate(e.applied_at))}${e.kind !== 'applied' ? ', ' + esc(e.kind) + ' ' + esc(shortDate(e.received_at)) : ''}">${icon('mail')} ${MAIL_OUTCOMES[e.kind]?.[0] || 'Applied'} ${esc(shortDate(e.kind === 'applied' ? e.applied_at : e.received_at))}</span>`;
+
+function mailNotice(mail) {
+  if (!mail?.length) return '';
+  const mine = mail.filter(m => m.this_job), others = mail.filter(m => !m.this_job);
+  const line = m => `${esc(MAIL_OUTCOMES[m.kind]?.[0] || cap(m.kind))} ${esc(shortDate(m.received_at))}${m.position ? ' · ' + esc(m.position) : ''}${m.subject ? ` <small>(“${esc(m.subject)}”)</small>` : ''}`;
+  return `<div class="notice mail-notice">${icon('mail')}<div>${mine.length ? `<strong>Your email shows you applied for this job.</strong>${mine.map(m => `<p>${line(m)}</p>`).join('')}` : ''}${others.length ? `<strong>${mine.length ? 'Other applications to this employer' : 'You have applied to this employer before'}</strong>${others.slice(0, 5).map(m => `<p>${line(m)}</p>`).join('')}` : ''}</div></div>`;
+}
+
 function jobTags(j) {
   const e = j.match?.experience || {};
   const tags = [];
   if (j.status !== 'new' && !quickMarks().includes(j.status)) tags.push(pill(cap(j.status), stageTones[j.status] || ''));
+  if (j.email && ['new', 'saved', 'preparing', 'ready'].includes(j.status)) tags.push(mailPill(j.email));
   if (e.status === 'mismatch') tags.push(pill(e.minimum_years != null ? `${e.minimum_years}+ yrs asked` : 'Above your level', 'amber'));
   else if (e.status === 'stretch') tags.push(pill(`Stretch: ${e.minimum_years}+ yrs`, 'blue'));
   else if (j.match?.track === 'horizon' && S.view !== 'for-you') tags.push(pill('Related role'));
@@ -735,7 +751,7 @@ function overview(j, data) {
   const missing = needsDetails(j) ? (failure ? `${siteLabel(j.source)} could not show the full advert: ${failure} Open it on the site instead.` :
     `Loading the full advert from ${siteLabel(j.source)}…`) : 'No full description was imported. Read the original posting for details.';
   const analysis = data?.insights?.analysis?.payload;
-  return `${fitTiles(j)}${analysis ? keyFacts(analysis.key_facts, ['salary', 'remote_policy', 'visa_relocation', 'languages_required']) : ''}<div class="prose">${esc(String(j.description||'').trim()?j.description:missing)}</div>${experience}<details class="evidence"><summary>Things to check before applying</summary>${(m.warnings||[]).map(w=>`<p>${esc(w)}</p>`).join('')}<p>${m.score==null?'No fit score yet: add target roles, skills or your years of experience.':`${m.score}% fit: role 50%, skills 30% (full credit at 8 of your skills), experience 20%.`} It estimates fit from the advert's text, not eligibility or hiring probability.</p></details>`;
+  return `${mailNotice(data?.mail)}${fitTiles(j)}${analysis ? keyFacts(analysis.key_facts, ['salary', 'remote_policy', 'visa_relocation', 'languages_required']) : ''}<div class="prose">${esc(String(j.description||'').trim()?j.description:missing)}</div>${experience}<details class="evidence"><summary>Things to check before applying</summary>${(m.warnings||[]).map(w=>`<p>${esc(w)}</p>`).join('')}<p>${m.score==null?'No fit score yet: add target roles, skills or your years of experience.':`${m.score}% fit: role 50%, skills 30% (full credit at 8 of your skills), experience 20%.`} It estimates fit from the advert's text, not eligibility or hiring probability.</p></details>`;
 }
 
 // What the AI assistant found: analysis, key facts and interview preparation.
@@ -1242,14 +1258,47 @@ function collectionReport() {
 
 function renderMail() {
   const connected = S.boot.gmail?.connected;
-  $('#main').insertAdjacentHTML('beforeend', `<div class="content-width"><section class="panel"><div class="panel-title"><div><h2>Your job-alert inbox</h2><p>${esc(S.boot.gmail?.message||S.boot.gmail?.detail||'Connect Gmail with read-only access or import saved email files.')}</p></div>${pill(connected?'Connected · read-only':'Not connected',connected?'green':'')}</div><div class="section-actions">${button(connected?'Disconnect Gmail':'Connect Gmail',connected?'disconnect-gmail':'connect-gmail')}${button('Cancel sign-in','cancel-gmail')}${button('Import .eml','import-eml')}${button('Setup guide','gmail-help')}${button(icon('spark')+' Draft a reply','reply-dialog','button-icon')}</div><br><label class="field"><span>Gmail search</span><input id="email-query" value="${esc(S.emailQuery)}"></label><div class="section-actions">${button('Find job alerts','fetch-mail','primary')}${button('Next batch','next-mail','',S.emailNext?'':'disabled')}</div></section><section class="panel"><div class="panel-title"><div><h2>Review opportunities</h2><p>Select only the vacancies you want to add. Emails stay unchanged.</p></div>${button('Add selected','import-candidates','primary')}</div><div id="email-results"></div></section></div>`);
+  $('#main').insertAdjacentHTML('beforeend', `<div class="content-width"><section class="panel"><div class="panel-title"><div><h2>Your job-alert inbox</h2><p>${esc(S.boot.gmail?.message||S.boot.gmail?.detail||'Connect Gmail with read-only access or import saved email files.')}</p></div>${pill(connected?'Connected · read-only':'Not connected',connected?'green':'')}</div><div class="section-actions">${button(connected?'Disconnect Gmail':'Connect Gmail',connected?'disconnect-gmail':'connect-gmail')}${button('Cancel sign-in','cancel-gmail')}${button('Import .eml','import-eml')}${button('Setup guide','gmail-help')}${button(icon('spark')+' Draft a reply','reply-dialog','button-icon')}</div><br><label class="field"><span>Gmail search</span><input id="email-query" value="${esc(S.emailQuery)}"></label><div class="section-actions">${button('Find job alerts','fetch-mail','primary')}${button('Next batch','next-mail','',S.emailNext?'':'disabled')}</div></section><section class="panel"><div class="panel-title"><div><h2>Review opportunities</h2><p>Select only the vacancies you want to add. Emails stay unchanged.</p></div>${button('Add selected','import-candidates','primary')}</div><div id="email-results"></div></section><section class="panel" id="mail-apps"></section></div>`);
   renderEmailResults();
+  renderMailApps();
+  if (S.mail === null) api('/mail-applications').then(result => {
+    S.mail = result;
+    renderMailApps();
+  }).catch(err => toast(err.message, true));
+}
+
+function renderMailApps() {
+  const root = $('#mail-apps');
+  if (!root) return;
+  const connected = S.boot.gmail?.connected,
+    m = S.mail;
+  const days = [[90, '3 months'], [180, '6 months'], [365, '1 year'], [730, '2 years']];
+  const controls = `<div class="row">${connected ? `<label class="field compact"><span>Read back</span><select id="mail-days">${days.map(([d, label]) => `<option value="${d}" ${S.mailDays === d ? 'selected' : ''}>${label}</option>`).join('')}</select></label>${button(icon('search') + (m?.messages ? ' Scan for new mail' : ' Scan my email'), 'scan-mail', 'primary button-icon')}` : '<p class="evidence">Connect Gmail above to find the applications you have sent.</p>'}${m?.unclear ? button(icon('spark') + ` Read ${m.unclear} unclear email${m.unclear === 1 ? '' : 's'} with ${esc(aiName())}`, 'mail-ai', 'button-icon') : ''}${m?.messages ? button('Forget results', 'forget-mail', 'quiet') : ''}</div>`;
+  const head = `<div class="panel-title"><div><h2>Your applications in Gmail</h2><p>Finds the applications you have sent: confirmations, interview invitations and rejections in your mail, matched to your vacancies. Read-only: nothing in your mailbox changes, and only company, position, outcome, date and a short excerpt are kept on this computer.</p></div>${m?.applications ? pill(m.applications + ' applications', 'green') : ''}</div>`;
+  if (!m) {
+    root.innerHTML = head + '<p class="evidence">Loading…</p>';
+    return;
+  }
+  if (!m.messages) {
+    root.innerHTML = head + controls + `<div class="empty"><div class="empty-icon">${icon('applications')}</div><h2>How many applications have you sent?</h2><p>Scan your email to count them, see which got an answer, and mark the matching vacancies so you never apply twice.</p></div>`;
+    return;
+  }
+  const tile = (label, value, detail = '') => `<div class="fit"><small>${label}</small><strong>${value}</strong>${detail ? `<span>${detail}</span>` : ''}</div>`;
+  const stats = `<div class="mail-stats">${tile('Applications', m.applications)}${tile('Waiting for a reply', m.waiting)}${tile('Interviews', m.interview)}${tile('Rejections', m.rejected)}${tile('Response rate', m.response_rate + '%', 'Interviews and rejections')}</div>`;
+  const top = Math.max(1, ...m.months.map(x => x.count));
+  const months = m.months.length ? `<h3>Applications per month</h3><div class="mail-months">${m.months.map(x => `<div class="mail-month"><span>${esc(new Date(x.month + '-01T12:00').toLocaleDateString(undefined, {month: 'short', year: 'numeric'}))}</span><progress max="${top}" value="${x.count}" aria-label="${x.count} applications"></progress><strong>${x.count}</strong></div>`).join('')}</div>` : '';
+  const suggestions = m.suggestions.length ? `<div class="mail-suggestions"><h3>Update your stages</h3><p class="evidence">Your mail has news about these vacancies in your list.</p>${m.suggestions.map(s => `<label class="check-row"><input type="checkbox" data-mail-suggestion="${s.job_id}" data-status="${esc(s.suggested)}" checked> <span><strong>${esc(s.title)}</strong> · ${esc(s.company)} — ${esc(cap(s.current))} → ${esc(cap(s.suggested))} <small>(${esc(shortDate(s.date))})</small></span></label>`).join('')}<div class="row">${button('Update selected stages', 'apply-mail-stages', 'primary')}</div></div>` : '';
+  const outcome = g => g.outcome === 'applied' ? pill('Waiting', 'blue') : g.outcome === 'interview' ? pill('Interview', 'green') : pill('Rejected');
+  const rows = m.groups.slice(0, S.mailAll ? 1000 : 50).map(g => `<tr><td>${esc(g.company || 'Employer not named')}<span class="sub">${esc(g.position || 'Position not stated')}</span></td><td>${esc(shortDate(g.applied_at))}</td><td>${outcome(g)}${g.messages > 1 ? ` <small>${g.messages} emails</small>` : ''}</td><td>${g.job_id ? button('Open', 'open-job', 'quiet', `data-job-id="${g.job_id}"`) : button('Add to Applications', 'add-mail-app', 'quiet', `data-message="${esc(g.message_ids[0])}"`)}</td></tr>`).join('');
+  const table = `<h3>Applications found</h3><div class="table-wrap"><table><thead><tr><th>Employer and position</th><th>Applied</th><th>Outcome</th><th>In your list</th></tr></thead><tbody>${rows}</tbody></table></div>${m.groups.length > 50 && !S.mailAll ? button(`Show all ${m.groups.length}`, 'mail-all', 'quiet') : ''}<p class="evidence">Read from ${m.messages} emails by rules${m.unclear ? `; ${m.unclear} name no employer or position — AI can read those` : ''}. A rejection or invitation counts as the answer to the latest application to that employer. Check the original emails when it matters.</p>`;
+  root.innerHTML = head + controls + stats + months + suggestions + table;
 }
 
 function renderEmailResults() {
   const root = $('#email-results');
   if (!root) return;
-  root.innerHTML = S.emails.length ? `<label class="checkline"><input type="checkbox" id="select-all-emails"> Select all ${S.emails.length} opportunities</label><div class="table-wrap"><table><thead><tr><th>Select</th><th>Opportunity</th><th>Action</th></tr></thead><tbody>${S.emails.map((e,i)=>`<tr><td><input type="checkbox" data-email-index="${i}" ${e._selected?'checked':''} aria-label="Select ${esc(e.title)}"></td><td>${esc(e.title)}<span class="sub">${esc(e.company||'Employer to confirm')} · ${esc(e.location||'Location to confirm')}</span></td><td>${button('Review','edit-email','quiet',`data-email-index="${i}"`)}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty"><div class="empty-icon">' + icon('mail') + '</div><h2>Your shortlist starts with a review.</h2><p>Find job alerts or import an .eml message. Nothing is added until you choose it.</p></div>';
+  const unread = S.emailUnread.length ? `<div class="notice">${S.emailUnread.length} email${S.emailUnread.length === 1 ? '' : 's'} had no vacancy the rules could read. ${esc(aiName()[0].toUpperCase() + aiName().slice(1))} can read them (10 at a time) and list their vacancies here for review.<div class="row">${button(icon('spark') + ' Read with AI', 'ai-read-alerts', 'button-icon')}</div></div>` : '';
+  root.innerHTML = unread + S.emails.length ? `<label class="checkline"><input type="checkbox" id="select-all-emails"> Select all ${S.emails.length} opportunities</label><div class="table-wrap"><table><thead><tr><th>Select</th><th>Opportunity</th><th>Action</th></tr></thead><tbody>${S.emails.map((e,i)=>`<tr><td><input type="checkbox" data-email-index="${i}" ${e._selected?'checked':''} aria-label="Select ${esc(e.title)}"></td><td>${esc(e.title)}<span class="sub">${esc(e.company||'Employer to confirm')} · ${esc(e.location||'Location to confirm')}</span></td><td>${button('Review','edit-email','quiet',`data-email-index="${i}"`)}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty"><div class="empty-icon">' + icon('mail') + '</div><h2>Your shortlist starts with a review.</h2><p>Find job alerts or import an .eml message. Nothing is added until you choose it.</p></div>';
 }
 
 function mergeEmails(result) {
@@ -1257,7 +1306,10 @@ function mergeEmails(result) {
   for (const e of result.candidates || [])
     if (!old.has(e.source_url)) old.set(e.source_url, e);
   S.emails = [...old.values()];
-  S.emailNext = result.next_page_token || '';
+  S.emailNext = result.next_page_token ?? S.emailNext;
+  const unread = new Map(S.emailUnread.map(e => [e.message_id, e]));
+  for (const e of result.unread || []) unread.set(e.message_id, e);
+  S.emailUnread = [...unread.values()];
   if (S.view === 'mail') renderPage();
   toast(`${result.candidates?.length||0} opportunities found for review.${result.warnings?.length?' Some messages need manual review.':''}`);
 }
@@ -2343,6 +2395,71 @@ async function action(name, el) {
   if (name === 'import-eml') {
     const result = await chooseUpload('eml', '.eml');
     if (result) mergeEmails(result);
+    return;
+  }
+  if (name === 'scan-mail') {
+    S.mailDays = Number($('#mail-days')?.value || 365);
+    await task('mail-scan', {days: S.mailDays}, result => {
+      S.mail = result;
+      S.details.clear();  // Vacancy pages show what your mail says.
+      renderMailApps();
+      toast(`${result.scan.found} new application email${result.scan.found === 1 ? '' : 's'} found in ${result.scan.read} read.${result.scan.more ? ' There is more mail: scan again to continue.' : ''}${result.scan.warnings.length ? ' ' + result.scan.warnings.join(' ') : ''}`);
+    });
+    return;
+  }
+  if (name === 'mail-ai') {
+    await task('mail-ai', {}, result => {
+      S.mail = result;
+      S.details.clear();
+      renderMailApps();
+      toast('AI read the unclear emails. Check the results against the original emails when it matters.');
+    });
+    return;
+  }
+  if (name === 'forget-mail') {
+    if (!confirm('Forget the applications found in your mail? Your mailbox and vacancies are not changed.')) return;
+    S.mail = await api('/mail-applications', {method: 'DELETE'});
+    renderMailApps();
+    return;
+  }
+  if (name === 'mail-all') {
+    S.mailAll = true;
+    renderMailApps();
+    return;
+  }
+  if (name === 'apply-mail-stages') {
+    const items = $$('[data-mail-suggestion]').filter(input => input.checked).map(input => ({job_id: Number(input.dataset.mailSuggestion), status: input.dataset.status}));
+    if (!items.length) throw Error('Tick the stages to update.');
+    S.mail = await api('/mail-applications/stages', {method: 'POST', body: {items}});
+    for (const item of items) {
+      S.details.delete(item.job_id);
+      const b = S.buffers.get(item.job_id);
+      if (b && !b.dirty.has('notes')) b.status = item.status;  // Unsaved edits stay yours.
+    }
+    renderMailApps();
+    toast(`${S.mail.updated} stage${S.mail.updated === 1 ? '' : 's'} updated.`);
+    return;
+  }
+  if (name === 'add-mail-app') {
+    const result = await api('/mail-applications/add', {method: 'POST', body: {message_id: el.dataset.message}});
+    S.mail = result;
+    renderMailApps();
+    toast('Added to Applications at its stage.');
+    return;
+  }
+  if (name === 'open-job') {
+    const id = Number(el.dataset.jobId);
+    await navigate('discover');
+    await selectJob(id);
+    return;
+  }
+  if (name === 'ai-read-alerts') {
+    const batch = S.emailUnread.slice(0, 10);
+    await task('gmail-ai-read', {message_ids: batch.map(e => e.message_id)}, result => {
+      const done = new Set(batch.map(e => e.message_id));
+      S.emailUnread = S.emailUnread.filter(e => !done.has(e.message_id));
+      mergeEmails({candidates: result.candidates, warnings: result.warnings, next_page_token: undefined});
+    });
     return;
   }
   if (name === 'fetch-mail' || name === 'next-mail') {

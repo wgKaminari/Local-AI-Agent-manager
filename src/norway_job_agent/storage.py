@@ -34,10 +34,12 @@ _SCHEMA_OBJECTS = frozenset({
     "jobs_fts_insert", "jobs_fts_delete", "jobs_fts_update", "job_matches_stale", "jobs_last_seen",
     "job_identities_job", "job_provenance_job", "application_deliveries_job",
     "job_insights", "job_insights_job", "ai_chats", "ai_messages", "ai_messages_chat",
+    "email_applications", "email_applications_job",
 })
-SCHEMA_VERSION = 5
+SCHEMA_VERSION = 6
 # Version 5 keeps what the AI assistant wrote: vacancy analyses and interview
-# preparation per vacancy, and chat conversations.
+# preparation per vacancy, and chat conversations. Version 6 keeps the
+# applications found in your mailbox (and which messages were not one).
 # Version 4 adds derived data, so lists stay fast with tens of thousands of
 # collected vacancies: a full-text index kept in sync by triggers, and stored
 # match results that a trigger discards whenever a vacancy's content, stage
@@ -311,6 +313,23 @@ class JobStore:
                 created_at TEXT NOT NULL
             );
             CREATE INDEX IF NOT EXISTS ai_messages_chat ON ai_messages(chat_id);
+            CREATE TABLE IF NOT EXISTS email_applications (
+                message_id TEXT PRIMARY KEY,
+                thread_id TEXT NOT NULL DEFAULT '',
+                received_at TEXT NOT NULL DEFAULT '',
+                kind TEXT NOT NULL CHECK (kind IN ('applied', 'interview', 'rejected', 'other', 'ignored')),
+                company TEXT NOT NULL DEFAULT '',
+                position TEXT NOT NULL DEFAULT '',
+                sender TEXT NOT NULL DEFAULT '',
+                subject TEXT NOT NULL DEFAULT '',
+                excerpt TEXT NOT NULL DEFAULT '',
+                sent INTEGER NOT NULL DEFAULT 0,
+                source TEXT NOT NULL DEFAULT 'rules',
+                job_id INTEGER REFERENCES jobs(id) ON DELETE SET NULL,
+                match TEXT NOT NULL DEFAULT '',
+                created_at TEXT NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS email_applications_job ON email_applications(job_id);
         """)
         fts_existed = self._connection.execute("SELECT 1 FROM sqlite_master WHERE name = 'jobs_fts'").fetchone()
         self._connection.executescript(_DERIVED_SCHEMA)
@@ -710,6 +729,58 @@ class JobStore:
     def delete_chat(self, chat_id: int) -> bool:
         with self.transaction():
             return self._connection.execute("DELETE FROM ai_chats WHERE id = ?", (chat_id,)).rowcount > 0
+
+    _EMAIL_FIELDS = ("message_id", "thread_id", "received_at", "kind", "company", "position", "sender", "subject",
+                     "excerpt", "sent", "source", "job_id", "match")
+
+    def email_known_ids(self) -> set[str]:
+        return {row[0] for row in self._connection.execute("SELECT message_id FROM email_applications")}
+
+    def save_email_records(self, records: list[dict], ignored: list[str] = ()) -> None:
+        now = _now()
+        with self.transaction():
+            self._connection.executemany(
+                f"INSERT OR IGNORE INTO email_applications({', '.join(self._EMAIL_FIELDS[:11])}, created_at) "
+                f"VALUES ({', '.join('?' * 12)})",
+                [(*(int(bool(record.get(key))) if key == "sent" else str(record.get(key) or "") for key in self._EMAIL_FIELDS[:11]), now)
+                 for record in records])
+            self._connection.executemany(
+                "INSERT OR IGNORE INTO email_applications(message_id, kind, created_at) VALUES (?, 'ignored', ?)",
+                [(message_id, now) for message_id in ignored])
+
+    def email_records(self) -> list[dict]:
+        rows = self._connection.execute(
+            f"SELECT {', '.join(self._EMAIL_FIELDS)} FROM email_applications WHERE kind IN ('applied', 'interview', 'rejected') "
+            "ORDER BY received_at, message_id").fetchall()
+        return [{**dict(row), "sent": bool(row["sent"])} for row in rows]
+
+    def update_email_record(self, message_id: str, **changes) -> None:
+        allowed = {key: value for key, value in changes.items() if key in {"kind", "company", "position", "source", "job_id", "match"}}
+        if allowed:
+            with self.transaction():
+                self._connection.execute(f"UPDATE email_applications SET {', '.join(key + ' = ?' for key in allowed)} WHERE message_id = ?",
+                                         [*allowed.values(), message_id])
+
+    def set_email_links(self, links: dict[str, tuple[int | None, str]]) -> None:
+        with self.transaction():
+            self._connection.executemany("UPDATE email_applications SET job_id = ?, match = ? WHERE message_id = ?",
+                                         [(job_id, match, message_id) for message_id, (job_id, match) in links.items()])
+
+    def email_for_jobs(self, job_ids: list[int]) -> dict[int, list[dict]]:
+        """Each vacancy's application mail, oldest first."""
+        result = {}
+        for start in range(0, len(job_ids), 500):
+            chunk = job_ids[start:start + 500]
+            rows = self._connection.execute(
+                f"SELECT job_id, kind, received_at FROM email_applications WHERE job_id IN ({', '.join('?' * len(chunk))}) "
+                "AND kind IN ('applied', 'interview', 'rejected') ORDER BY received_at", chunk).fetchall()
+            for row in rows:
+                result.setdefault(row[0], []).append({"kind": row[1], "received_at": row[2]})
+        return result
+
+    def clear_email_records(self) -> int:
+        with self.transaction():
+            return self._connection.execute("DELETE FROM email_applications").rowcount
 
     def begin_delivery(self, job_id: int, fingerprint: str, destination: str) -> int:
         with self.transaction():

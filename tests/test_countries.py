@@ -386,7 +386,7 @@ class CountryMigrationTests(unittest.TestCase):
                         self.assertFalse(created)
                         self.assertEqual(store.get_job(7)["notes"], "Preserve my reviewed notes.")
                     with closing(sqlite3.connect(path)) as connection:
-                        self.assertEqual(connection.execute("PRAGMA user_version").fetchone()[0], 5)
+                        self.assertEqual(connection.execute("PRAGMA user_version").fetchone()[0], 6)
                     # The upgrade is repeatable and does not create more jobs.
                     with JobStore(path) as store:
                         self.assertEqual(len(store.list_jobs()), 1)

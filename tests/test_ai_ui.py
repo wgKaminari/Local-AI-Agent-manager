@@ -214,6 +214,38 @@ class AiInterfaceTests(unittest.TestCase):
         self.page.get_by_role("button", name="All conversations").click()
         self.expect(self.page.locator(".chat-item")).to_have_count(1)
 
+    def test_applications_found_in_mail_are_counted_marked_and_staged(self):
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        from test_mail_applications import fake_gmail
+        from norway_job_agent import gmail
+        status = {"connected": True, "message": "Connected for reading."}
+        with patch.object(gmail, "connection_status", return_value=status), patch.object(gmail, "_gmail_get", side_effect=fake_gmail):
+            self.page.reload()
+            self.page.get_by_role("button", name="More").click() if self.page.viewport_size["width"] < 640 else None
+            self.nav("Job alerts")
+            panel = self.page.locator("#mail-apps")
+            self.expect(panel).to_contain_text("How many applications have you sent?")
+            panel.locator("#mail-days").select_option("180")
+            panel.get_by_role("button", name="Scan my email").click()
+            self.expect(panel.locator(".mail-stats")).to_contain_text("Applications")
+            self.expect(self.page.locator("#notifications")).to_contain_text("6 new application emails found")
+            self.expect(panel.locator(".mail-month")).not_to_have_count(0)
+            self.expect(panel.locator(".mail-suggestions")).to_contain_text("Python Developer · Nordic Fixture — New → Rejected")
+            self.expect(panel.locator("tbody tr")).to_have_count(5)
+            # The vacancy list shows the outcome before you change the stage.
+            self.nav("Discover")
+            card = self.page.locator(f'[data-job="{self.job_id}"]')
+            self.expect(card).to_contain_text("Rejected")
+            card.click()
+            self.expect(self.page.locator("#detail-content .mail-notice")).to_contain_text("Your email shows you applied for this job.")
+            self.nav("Job alerts")
+            panel.get_by_role("button", name="Update selected stages").click()
+            self.expect(self.page.locator("#notifications")).to_contain_text("1 stage updated.")
+            self.assertEqual(service.get_vacancy(self.data, self.job_id)["status"], "rejected")
+            self.expect(panel.locator(".mail-suggestions")).to_have_count(0)
+            panel.get_by_role("button", name="Add to Applications").first.click()
+            self.expect(self.page.locator("#notifications")).to_contain_text("Added to Applications")
+
 
 if __name__ == "__main__":
     unittest.main()
