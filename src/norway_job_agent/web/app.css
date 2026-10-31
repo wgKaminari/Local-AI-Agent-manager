@@ -2600,3 +2600,84 @@ dialog::backdrop {
     font-size: 14px
   }
 }
+
+/* AI assistant: settings, insights, chat. */
+.ai-providers { display: flex; flex-direction: column; gap: 8px }
+.ai-provider { padding: 12px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface) }
+.ai-provider.active { border-color: var(--accent); background: var(--accent-tint) }
+.ai-choice { display: flex; gap: 10px; align-items: flex-start; cursor: pointer }
+.ai-choice strong { display: flex; gap: 8px; align-items: center; flex-wrap: wrap }
+.ai-choice small { display: block; color: var(--muted); margin-top: 2px }
+.ai-choice .company { display: inline; margin: 0 }
+.ai-provider-body { margin: 10px 0 0 26px; display: flex; flex-direction: column; gap: 8px }
+.ai-provider-body summary { cursor: pointer; color: var(--muted) }
+.ai-provider .row, .ai-usage .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end }
+.ai-usage { display: flex; flex-direction: column; gap: 8px; padding-top: 6px; border-top: 1px solid var(--line) }
+.meter { width: 100%; height: 6px; border: 0; border-radius: 3px; background: var(--raised); overflow: hidden; appearance: none; accent-color: var(--accent) }
+.meter::-webkit-progress-bar { background: var(--raised) }
+.meter::-webkit-progress-value { background: var(--accent) }
+.meter::-moz-progress-bar { background: var(--accent) }
+.key-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; margin: 10px 0 }
+.insight { display: flex; flex-direction: column; gap: 6px; margin-top: 16px; padding: 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface) }
+.insight-head { display: flex; gap: 8px; align-items: center }
+.insight h3 { margin: 8px 0 2px }
+.insight-list { margin: 0; padding-left: 20px; line-height: 1.55 }
+.insight-list.good li::marker { color: var(--green) }
+.insight-list.warn li::marker { color: var(--amber) }
+.insight-list.bad li::marker { color: var(--danger) }
+.question-prep { padding: 8px 0; border-top: 1px solid var(--line) }
+.question-prep summary { cursor: pointer; font-weight: 600 }
+.page.chat-view { padding: 0; overflow: hidden; display: flex; flex-direction: column }
+.chat-layout { flex: 1; min-height: 0; display: grid; grid-template-columns: 260px minmax(0, 1fr) }
+.chat-list { display: flex; flex-direction: column; gap: 8px; min-height: 0; overflow: auto; padding: 16px; border-right: 1px solid var(--line); background: var(--chrome) }
+.chat-list-head { display: flex; flex-direction: column; gap: 10px }
+.chat-list-head h1 { font-size: 18px; margin: 0 }
+.chat-item { display: flex; align-items: center; gap: 4px; border-radius: var(--radius) }
+.chat-item.active, .chat-item:hover { background: var(--hover) }
+.chat-open { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 8px; border: 0; background: none; text-align: left }
+.chat-open strong, .chat-open small { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.chat-open small { color: var(--muted) }
+.chat-thread { display: flex; flex-direction: column; min-height: 0; padding: 12px 20px 8px }
+.chat-context { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--line) }
+.chat-context h2 { margin: 0 auto 0 0; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 40% }
+.chat-back { display: none }
+.chat-job { display: inline-flex; align-items: center; gap: 6px; padding: 2px 4px 2px 8px; border: 1px solid var(--line); border-radius: 999px; max-width: 320px }
+.chat-job span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.chat-job svg, .chat-ai svg { width: 15px; height: 15px }
+.chat-ai { display: inline-flex; align-items: center; gap: 6px; min-width: 0 }
+.chat-ai select { width: auto; max-width: 280px; min-width: 0 }
+.chat-messages { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 12px; padding: 16px 0 }
+.msg { display: flex; flex-direction: column; max-width: 760px }
+.msg.user { align-self: flex-end; align-items: flex-end }
+.msg .bubble { padding: 10px 14px; border-radius: 12px; line-height: 1.55; overflow-wrap: anywhere }
+.msg.user .bubble { background: var(--accent-tint); border: 1px solid var(--line) }
+.msg.assistant .bubble { background: var(--surface); border: 1px solid var(--line) }
+.msg .bubble p, .msg .bubble ul, .msg .bubble ol, .msg .bubble pre, .msg .bubble h4 { margin: 0 0 8px }
+.msg .bubble > :last-child { margin-bottom: 0 }
+.msg .bubble ul, .msg .bubble ol { padding-left: 20px }
+.msg .bubble pre { padding: 8px; border-radius: 6px; background: var(--raised); overflow: auto; font-family: var(--mono) }
+.msg .bubble code { font-family: var(--mono); font-size: 12.5px }
+.msg-meta { display: flex; gap: 8px; align-items: center; color: var(--faint); font-size: 12px; padding: 2px 4px }
+.typing { display: inline-flex; gap: 4px }
+.typing i { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); animation: typing 1s infinite alternate }
+.typing i:nth-child(2) { animation-delay: .2s }
+.typing i:nth-child(3) { animation-delay: .4s }
+@keyframes typing { to { opacity: .25 } }
+.chat-empty { margin: auto; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; max-width: 560px }
+.chat-prompts { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center }
+.chat-composer { display: flex; gap: 8px; align-items: flex-end }
+.chat-composer textarea { flex: 1; resize: vertical; min-height: 64px }
+.chat-note { margin: 4px 0 0; font-size: 12px }
+@media (max-width:640px) {
+  .chat-layout { grid-template-columns: 1fr }
+  .chat-layout.has-chat .chat-list, .chat-layout:not(.has-chat) .chat-thread { display: none }
+  .chat-list { border-right: 0 }
+  .chat-thread { padding: 8px 12px }
+  .chat-back { display: inline-flex }
+  .chat-context { gap: 6px }
+  .chat-context h2 { max-width: calc(100% - 48px) }
+  .chat-ai select { max-width: 220px }
+  .chat-job { max-width: 100% }
+  .chat-composer textarea { min-height: 48px }
+  .ai-provider-body { margin-left: 0 }
+}

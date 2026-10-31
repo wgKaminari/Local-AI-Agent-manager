@@ -126,7 +126,7 @@ class StoredMatchTests(Fixture):
             connection.execute("PRAGMA user_version = 3")
             connection.commit()
         with JobStore(path) as store:
-            self.assertEqual(store._connection.execute("PRAGMA user_version").fetchone()[0], 4)
+            self.assertEqual(store._connection.execute("PRAGMA user_version").fetchone()[0], 5)
             found = store._connection.execute("SELECT rowid FROM jobs_fts WHERE jobs_fts MATCH 'linux'").fetchall()
         self.assertEqual(len(found), 1)
 

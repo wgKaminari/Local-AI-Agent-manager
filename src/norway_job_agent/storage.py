@@ -33,8 +33,11 @@ _SCHEMA_OBJECTS = frozenset({
     "application_deliveries", "job_matches", "job_matches_fingerprint", "job_matches_profile", "jobs_fts",
     "jobs_fts_insert", "jobs_fts_delete", "jobs_fts_update", "job_matches_stale", "jobs_last_seen",
     "job_identities_job", "job_provenance_job", "application_deliveries_job",
+    "job_insights", "job_insights_job", "ai_chats", "ai_messages", "ai_messages_chat",
 })
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 5
+# Version 5 keeps what the AI assistant wrote: vacancy analyses and interview
+# preparation per vacancy, and chat conversations.
 # Version 4 adds derived data, so lists stay fast with tens of thousands of
 # collected vacancies: a full-text index kept in sync by triggers, and stored
 # match results that a trigger discards whenever a vacancy's content, stage
@@ -282,6 +285,32 @@ class JobStore:
                 result_json TEXT NOT NULL DEFAULT '{}',
                 created_at TEXT NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS job_insights (
+                id INTEGER PRIMARY KEY,
+                job_id INTEGER NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
+                kind TEXT NOT NULL CHECK (kind IN ('analysis', 'interview')),
+                payload_json TEXT NOT NULL,
+                model TEXT NOT NULL DEFAULT '',
+                created_at TEXT NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS job_insights_job ON job_insights(job_id, kind);
+            CREATE TABLE IF NOT EXISTS ai_chats (
+                id INTEGER PRIMARY KEY,
+                title TEXT NOT NULL DEFAULT '',
+                job_id INTEGER REFERENCES jobs(id) ON DELETE SET NULL,
+                use_profile INTEGER NOT NULL DEFAULT 1,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS ai_messages (
+                id INTEGER PRIMARY KEY,
+                chat_id INTEGER NOT NULL REFERENCES ai_chats(id) ON DELETE CASCADE,
+                role TEXT NOT NULL CHECK (role IN ('user', 'assistant')),
+                content TEXT NOT NULL,
+                model TEXT NOT NULL DEFAULT '',
+                created_at TEXT NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS ai_messages_chat ON ai_messages(chat_id);
         """)
         fts_existed = self._connection.execute("SELECT 1 FROM sqlite_master WHERE name = 'jobs_fts'").fetchone()
         self._connection.executescript(_DERIVED_SCHEMA)
@@ -605,6 +634,82 @@ class JobStore:
             "SELECT id, payload_json, created_at FROM application_preparations WHERE job_id = ? ORDER BY id DESC", (job_id,)
         ).fetchall()
         return [{"id": row[0], "payload": json.loads(row[1]), "created_at": row[2]} for row in rows]
+
+    def save_insight(self, job_id: int, kind: str, payload: dict, model: str = "") -> int:
+        encoded = json.dumps(payload, ensure_ascii=False)
+        if len(encoded) > 200000:
+            raise ValueError("The AI result is too large to save.")
+        with self.transaction():
+            if self.get_job(job_id) is None:
+                raise KeyError(job_id)
+            cursor = self._connection.execute(
+                "INSERT INTO job_insights(job_id, kind, payload_json, model, created_at) VALUES (?, ?, ?, ?, ?)",
+                (job_id, kind, encoded, model, _now()))
+            # Earlier versions of the same kind are replaced, not kept.
+            self._connection.execute("DELETE FROM job_insights WHERE job_id = ? AND kind = ? AND id <> ?",
+                                     (job_id, kind, cursor.lastrowid))
+        return int(cursor.lastrowid)
+
+    def insights(self, job_id: int) -> dict:
+        rows = self._connection.execute(
+            "SELECT kind, payload_json, model, created_at FROM job_insights WHERE job_id = ? ORDER BY id", (job_id,)).fetchall()
+        return {row[0]: {"payload": json.loads(row[1]), "model": row[2], "created_at": row[3]} for row in rows}
+
+    def create_chat(self, title: str, job_id: int | None = None, use_profile: bool = True) -> int:
+        now = _now()
+        with self.transaction():
+            if job_id is not None and self.get_job(job_id) is None:
+                raise KeyError(job_id)
+            cursor = self._connection.execute(
+                "INSERT INTO ai_chats(title, job_id, use_profile, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
+                (title[:120], job_id, int(bool(use_profile)), now, now))
+        return int(cursor.lastrowid)
+
+    def chats(self, limit: int = 200) -> list[dict]:
+        rows = self._connection.execute(
+            """SELECT c.id, c.title, c.job_id, c.use_profile, c.updated_at, j.title, j.company,
+                      (SELECT COUNT(*) FROM ai_messages m WHERE m.chat_id = c.id)
+               FROM ai_chats c LEFT JOIN jobs j ON j.id = c.job_id
+               ORDER BY c.updated_at DESC, c.id DESC LIMIT ?""", (limit,)).fetchall()
+        return [{"id": row[0], "title": row[1], "job_id": row[2], "use_profile": bool(row[3]), "updated_at": row[4],
+                 "job_title": row[5] or "", "job_company": row[6] or "", "messages": row[7]} for row in rows]
+
+    def chat(self, chat_id: int) -> dict | None:
+        found = next((chat for chat in self.chats(1_000_000) if chat["id"] == chat_id), None)
+        if found is None:
+            return None
+        rows = self._connection.execute(
+            "SELECT id, role, content, model, created_at FROM ai_messages WHERE chat_id = ? ORDER BY id", (chat_id,)).fetchall()
+        return {**found, "messages": [{"id": row[0], "role": row[1], "content": row[2], "model": row[3], "created_at": row[4]}
+                                      for row in rows]}
+
+    def add_chat_messages(self, chat_id: int, messages: list[tuple[str, str, str]]) -> None:
+        now = _now()
+        with self.transaction():
+            if not self._connection.execute("SELECT 1 FROM ai_chats WHERE id = ?", (chat_id,)).fetchone():
+                raise KeyError(chat_id)
+            self._connection.executemany(
+                "INSERT INTO ai_messages(chat_id, role, content, model, created_at) VALUES (?, ?, ?, ?, ?)",
+                [(chat_id, role, content, model, now) for role, content, model in messages])
+            self._connection.execute("UPDATE ai_chats SET updated_at = ? WHERE id = ?", (now, chat_id))
+
+    def update_chat(self, chat_id: int, **changes) -> None:
+        allowed = {key: value for key, value in changes.items() if key in {"title", "job_id", "use_profile"}}
+        if not allowed:
+            return
+        if allowed.get("job_id") is not None and self.get_job(allowed["job_id"]) is None:
+            raise KeyError(allowed["job_id"])
+        if "use_profile" in allowed:
+            allowed["use_profile"] = int(bool(allowed["use_profile"]))
+        if "title" in allowed:
+            allowed["title"] = str(allowed["title"])[:120]
+        with self.transaction():
+            self._connection.execute(
+                f"UPDATE ai_chats SET {', '.join(key + ' = ?' for key in allowed)} WHERE id = ?", [*allowed.values(), chat_id])
+
+    def delete_chat(self, chat_id: int) -> bool:
+        with self.transaction():
+            return self._connection.execute("DELETE FROM ai_chats WHERE id = ?", (chat_id,)).rowcount > 0
 
     def begin_delivery(self, job_id: int, fingerprint: str, destination: str) -> int:
         with self.transaction():

@@ -271,6 +271,7 @@ class ModernInterfaceTests(unittest.TestCase):
         self.page.locator("#modal").get_by_label("New", exact=True).check()
         self.page.locator("#modal").get_by_role("button", name="Show results").click()
         self.expect(self.page.locator(".job-card")).to_have_count(34)
+        self.page.wait_for_load_state("networkidle")  # The filtered list has finished re-rendering.
         self.page.evaluate("document.querySelector('#job-results').scrollTop = 600")
         row = self.page.locator(".job-row").nth(15)
         row.scroll_into_view_if_needed()

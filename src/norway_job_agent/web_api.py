@@ -19,7 +19,7 @@ from flask import Flask, g, jsonify, request, send_from_directory
 from werkzeug.exceptions import HTTPException
 from werkzeug.utils import secure_filename
 
-from . import gmail, phone_access, runtime_setup, service
+from . import cloud_ai, gmail, phone_access, runtime_setup, service
 from .adzuna import key_status as adzuna_status
 from .browser_delivery import BrowserApplicationSession
 from .company_catalog import company_catalog, job_board_catalog
@@ -125,9 +125,13 @@ class _State:
             if key is not None:
                 self.active_actions.add(key)
 
-        def progress(message):
+        def progress(message, *, partial=None):
+            # partial: an answer as it is being written, shown in the chat.
             with self.lock:
-                self.tasks[identifier]["message"] = str(message)[:1000]
+                if partial is not None:
+                    self.tasks[identifier]["partial"] = str(partial)[:100_000]
+                else:
+                    self.tasks[identifier]["message"] = str(message)[:1000]
 
         def run():
             try:
@@ -413,7 +417,7 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
                        update_check=bool(app.config.get("UPDATE_CHECK")),
                        countries=COUNTRIES, statuses=STATUSES, catalog=company_catalog(), boards=job_board_catalog(),
                        gmail=gmail.connection_status(data_dir), collection=service.read_collection_report(data_dir),
-                       adzuna=adzuna_status(data_dir),
+                       adzuna=adzuna_status(data_dir), ai=cloud_ai.status(data_dir),
                        client={"phone": bool(g.phone), "device": (g.device or {}).get("name", "")})
 
     @app.get("/api/jobs")
@@ -446,7 +450,9 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
             value = service.get_vacancy(data_dir, identifier)
             with JobStore(data_dir / "vacancies.db") as store:
                 deliveries = store.deliveries(identifier)
-            return jsonify(job=value, letters=service.draft_history(data_dir, identifier), preparations=histories(identifier), deliveries=deliveries)
+                insights = store.insights(identifier)
+            return jsonify(job=value, letters=service.draft_history(data_dir, identifier), preparations=histories(identifier),
+                           deliveries=deliveries, insights=insights)
 
     @app.post("/api/jobs")
     def import_job():
@@ -520,6 +526,45 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
         return jsonify(service.save_adzuna_key(data_dir, _text(value.get("app_id", ""), "Application ID", 64),
                                                _text(value.get("app_key", ""), "Application key", 128)))
 
+    @app.route("/api/ai", methods=["GET", "PUT"])
+    def ai_settings():
+        with state.lock:
+            if request.method == "PUT":
+                return jsonify(cloud_ai.save_settings(data_dir, _object(body(), "AI settings")))
+            return jsonify(cloud_ai.status(data_dir))
+
+    @app.route("/api/ai/keys/<provider>", methods=["POST", "DELETE"])
+    def ai_key(provider):
+        pc_only("Adding or removing an AI provider's API key")
+        if provider not in cloud_ai.PROVIDERS:
+            raise ValueError("Choose Claude, ChatGPT, Gemini or DeepSeek.")
+        if request.method == "DELETE":
+            with state.lock:
+                return jsonify(cloud_ai.delete_key(data_dir, provider))
+        # The key is checked with the provider outside the lock: one free request.
+        return jsonify(cloud_ai.save_key(data_dir, provider, _text(_object(body()).get("key", ""), "API key", 400)))
+
+    @app.get("/api/chats")
+    def chats():
+        return jsonify(chats=service.list_chats(data_dir))
+
+    @app.route("/api/chats/<int:chat_id>", methods=["GET", "PATCH", "DELETE"])
+    def chat(chat_id):
+        if request.method == "DELETE":
+            return jsonify(deleted=service.delete_chat(data_dir, chat_id))
+        if request.method == "PATCH":
+            value, changes = _object(body()), {}
+            if "use_profile" in value:
+                if not isinstance(value["use_profile"], bool):
+                    raise ValueError("Choose whether the chat uses your profile.")
+                changes["use_profile"] = value["use_profile"]
+            if "job_id" in value:
+                changes["job_id"] = None if value["job_id"] is None else _job_id(value["job_id"])
+            if "title" in value:
+                changes["title"] = _text(value["title"], "Title", 120).strip() or "Chat"
+            return jsonify(service.update_chat(data_dir, chat_id, changes))
+        return jsonify(service.get_chat(data_dir, chat_id))
+
     @app.post("/api/country")
     def country():
         with state.lock:
@@ -558,7 +603,7 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
             pc_only("Connecting Gmail (Google's sign-in opens in a browser)")
         if action == "shortcuts":
             pc_only("Adding desktop shortcuts")
-        if action in {"letter", "questions", "answers"}:
+        if action in {"letter", "questions", "answers", "analyze", "interview"}:
             identifier = _job_id(value.get("job_id"))
             service.get_vacancy(data_dir, identifier)
         if action == "collect":
@@ -612,6 +657,30 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
                 if note:
                     exposed["performance_note"] = note
                 return exposed
+        elif action == "analyze":
+            callback = lambda progress: service.analyze_job(data_dir, identifier, progress=progress)
+        elif action == "interview":
+            callback = lambda progress: service.prepare_interview(data_dir, identifier, progress=progress)
+        elif action == "reply":
+            email = _text(value.get("email"), "Email", 20000)
+            goal = _text(value.get("goal", ""), "What to say", 1000)
+            language = _text(value.get("language", ""), "Language", 80)
+            reply_job = None if value.get("job_id") in (None, "") else _job_id(value.get("job_id"))
+            callback = lambda progress: service.draft_reply(data_dir, email, goal=goal, job_id=reply_job,
+                                                            language=language, progress=progress)
+        elif action == "chat":
+            message = _text(value.get("message"), "Message", 10000)
+            chat_id = None if value.get("chat_id") in (None, "") else _job_id(value.get("chat_id"))
+            chat_job = None if value.get("job_id") in (None, "") else _job_id(value.get("job_id"))
+            use_profile = value.get("use_profile", True)
+            if not isinstance(use_profile, bool):
+                raise ValueError("Choose whether the chat uses your profile.")
+            def callback(progress):
+                return service.send_chat(data_dir, message, chat_id=chat_id, job_id=chat_job, use_profile=use_profile,
+                                         on_text=lambda text: progress("", partial=text), progress=progress)
+        elif action == "ai-models":
+            provider = _text(value.get("provider"), "Provider", 20)
+            callback = lambda progress: {"provider": provider, "models": cloud_ai.list_models(data_dir, provider)}
         elif action == "suggest-profile":
             cv_text = _text(value.get("cv_text"), "CV")
             callback = lambda progress: service.suggest_profile(data_dir, cv_text, progress=progress)
@@ -666,7 +735,9 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
                 return {"message": f"Added {len(created)} shortcuts: Start menu and desktop. Pin the app from the Start menu if you like."}
         else:
             raise ValueError("Choose a supported background action.")
-        key = ("application", identifier) if action in {"questions", "answers"} else (action, identifier if action in {"letter", "load-details"} else None)
+        key = ("application", identifier) if action in {"questions", "answers"} else (action, identifier if action in {"letter", "load-details", "analyze", "interview"} else None)
+        if action == "chat":
+            key = ("chat", chat_id) if chat_id is not None else None
         if action == "market-search":
             key = ("collect", None)  # One network-wide search at a time.
         if action in {"gmail-connect", "gmail-disconnect", "gmail-fetch"}:

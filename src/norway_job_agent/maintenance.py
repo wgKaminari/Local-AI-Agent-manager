@@ -23,7 +23,7 @@ LOG_FILE = Path("logs") / "job-agent.log"
 BACKUP_FOLDER = Path("backups") / "automatic"
 BACKUP_KEEP = 10
 BACKUP_INTERVAL = timedelta(hours=20)
-SETTINGS_FILES = ("profile.json", "sources.json", "appearance.json", "nav-state.json", "last-collection.json")
+SETTINGS_FILES = ("profile.json", "sources.json", "appearance.json", "nav-state.json", "last-collection.json", "ai-settings.json")
 RECOVERABLE = {"profile.json": "profile", "sources.json": "source settings"}
 
 

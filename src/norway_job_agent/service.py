@@ -970,6 +970,20 @@ def _prepare_local_ai(progress=None) -> None:
         progress(f"Only {free:.1f} GB of memory is free, so this may take several minutes. Closing other programs speeds it up.")
 
 
+def _writer(data_dir: Path, progress=None):
+    """The AI you chose in Settings: your local model's name, or a cloud engine."""
+    from . import cloud_ai
+    engine = cloud_ai.engine(data_dir)
+    if engine is not None:
+        return engine
+    _prepare_local_ai(progress)
+    return read_settings(data_dir)["model"]
+
+
+def _label(model) -> str:
+    return model.label if getattr(model, "is_cloud", False) else model
+
+
 def _with_speed_advice(result: dict) -> dict:
     from .local_ai import last_tokens_per_second
     from .runtime_setup import memory_available_gb, speed_advice
@@ -981,8 +995,7 @@ def _with_speed_advice(result: dict) -> dict:
 
 def suggest_profile(data_dir: Path, cv_text: str, *, progress=None) -> dict:
     from .local_ai import extract_profile
-    _prepare_local_ai(progress)
-    return _with_speed_advice(extract_profile(cv_text, model=read_settings(data_dir)["model"], progress=progress))
+    return _with_speed_advice(extract_profile(cv_text, model=_writer(data_dir, progress), progress=progress))
 
 
 def write_letter(data_dir: Path, id: int, *, persist: bool = True, progress=None) -> dict:
@@ -992,15 +1005,14 @@ def write_letter(data_dir: Path, id: int, *, persist: bool = True, progress=None
         raise ValueError("This vacancy has been withdrawn. Select an active opportunity.")
     from .countries import profile_for_job
     profile = profile_for_job(read_profile(data_dir), job)
-    model = read_settings(data_dir)["model"]
-    _prepare_local_ai(progress)
+    model = _writer(data_dir, progress)
     result = _with_speed_advice(generate_cover_letter(job, profile, model=model, progress=progress))
     if persist:
         with JobStore(Path(data_dir) / "vacancies.db") as store:
             # A generation request never changes the application status.
-            result["id"] = store.save_draft(id, result["cover_letter"], model=model, profile_hash=profile_hash(profile))
+            result["id"] = store.save_draft(id, result["cover_letter"], model=_label(model), profile_hash=profile_hash(profile))
     else:
-        result["draft_metadata"] = {"model": model, "profile_hash": profile_hash(profile)}
+        result["draft_metadata"] = {"model": _label(model), "profile_hash": profile_hash(profile)}
     return result
 
 
@@ -1020,6 +1032,100 @@ def available_models() -> list[str]:
     return list_local_models()
 
 
+def _job_and_profile(data_dir: Path, id: int) -> tuple[dict, dict]:
+    from .countries import profile_for_job
+    job = get_vacancy(data_dir, id)
+    return job, profile_for_job(read_profile(data_dir), job)
+
+
+def analyze_job(data_dir: Path, id: int, *, progress=None) -> dict:
+    """Fit, gaps, red flags and key facts for one vacancy; the latest is kept."""
+    from .assistant import analyze_vacancy
+    job, profile = _job_and_profile(data_dir, id)
+    model = _writer(data_dir, progress)
+    result = analyze_vacancy(job, profile, model, progress=progress)
+    with JobStore(Path(data_dir) / "vacancies.db") as store:
+        store.save_insight(id, "analysis", result, model=_label(model))
+        return store.insights(id)
+
+
+def prepare_interview(data_dir: Path, id: int, *, progress=None) -> dict:
+    from .assistant import interview_prep
+    job, profile = _job_and_profile(data_dir, id)
+    model = _writer(data_dir, progress)
+    result = interview_prep(job, profile, model, progress=progress)
+    with JobStore(Path(data_dir) / "vacancies.db") as store:
+        store.save_insight(id, "interview", result, model=_label(model))
+        return store.insights(id)
+
+
+def job_insights(data_dir: Path, id: int) -> dict:
+    with JobStore(Path(data_dir) / "vacancies.db") as store:
+        return store.insights(id)
+
+
+def draft_reply(data_dir: Path, email_text: str, *, goal: str = "", job_id: int | None = None,
+                language: str = "", progress=None) -> dict:
+    """A reply to an employer's email for you to edit and send; nothing is sent."""
+    from .assistant import reply_draft
+    if job_id is not None:
+        job, profile = _job_and_profile(data_dir, job_id)
+    else:
+        job, profile = None, read_profile(data_dir)
+    model = _writer(data_dir, progress)
+    return {**reply_draft(email_text, profile, model, goal=goal, job=job, language=language, progress=progress),
+            "model": _label(model)}
+
+
+def list_chats(data_dir: Path) -> list[dict]:
+    with JobStore(Path(data_dir) / "vacancies.db") as store:
+        return store.chats()
+
+
+def get_chat(data_dir: Path, chat_id: int) -> dict:
+    with JobStore(Path(data_dir) / "vacancies.db") as store:
+        chat = store.chat(chat_id)
+    if chat is None:
+        raise ValueError("This chat no longer exists.")
+    return chat
+
+
+def update_chat(data_dir: Path, chat_id: int, changes: dict) -> dict:
+    get_chat(data_dir, chat_id)
+    with JobStore(Path(data_dir) / "vacancies.db") as store:
+        try:
+            store.update_chat(chat_id, **changes)
+        except KeyError:
+            raise ValueError("That vacancy no longer exists.") from None
+        return store.chat(chat_id)
+
+
+def delete_chat(data_dir: Path, chat_id: int) -> bool:
+    with JobStore(Path(data_dir) / "vacancies.db") as store:
+        return store.delete_chat(chat_id)
+
+
+def send_chat(data_dir: Path, message: str, *, chat_id: int | None = None, job_id: int | None = None,
+              use_profile: bool = True, on_text=None, progress=None) -> dict:
+    """Ask the chosen AI; the exchange is saved only once the answer is complete."""
+    from .assistant import chat_context, chat_reply, chat_title
+    chat = get_chat(data_dir, chat_id) if chat_id is not None else None
+    if chat is not None:
+        job_id, use_profile = chat["job_id"], chat["use_profile"]
+    if job_id is not None:
+        job, profile = _job_and_profile(data_dir, job_id)
+    else:
+        job, profile = None, read_profile(data_dir)
+    model = _writer(data_dir, progress)
+    answer = chat_reply(model, chat_context(profile if use_profile else None, job), chat["messages"] if chat else [],
+                        message, on_text=on_text, progress=progress)
+    with JobStore(Path(data_dir) / "vacancies.db") as store:
+        if chat is None:
+            chat_id = store.create_chat(chat_title(message), job_id, use_profile)
+        store.add_chat_messages(chat_id, [("user", message.strip(), ""), ("assistant", answer, _label(model))])
+        return store.chat(chat_id)
+
+
 def discover_application(data_dir: Path, id: int, manual_text: str = "") -> dict:
     from .application_forms import discover_application_form, parse_manual_questions
     job = get_vacancy(data_dir, id)
@@ -1036,9 +1142,8 @@ def prepare_application(data_dir: Path, id: int, form: dict, *, persist: bool = 
     if not job.get("is_active", True):
         raise ValueError("This vacancy has been withdrawn.")
     profile = profile_for_job(read_profile(data_dir), job)
-    _prepare_local_ai(progress)
     result = _with_speed_advice(generate_application_answers(job, profile, form, writing_style=profile.get("writing_style"),
-                                                             model=read_settings(data_dir)["model"], progress=progress))
+                                                             model=_writer(data_dir, progress), progress=progress))
     from .application_forms import form_fingerprint
     history = application_history(data_dir, id)
     if history and form_fingerprint(history[0]["payload"]["form"]) == form_fingerprint(form):

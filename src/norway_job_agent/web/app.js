@@ -34,7 +34,10 @@ const paths = {
   globe: 'M21 12H3 M12 3a16 16 0 0 1 0 18 16 16 0 0 1 0-18 M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0',
   more: 'M4.5 12h1 M11.5 12h1 M18.5 12h1',
   filter: 'M3 5h18 M6 12h12 M10 19h4',
-  phone: 'M7 2h10v20H7Z M11 18h2'
+  phone: 'M7 2h10v20H7Z M11 18h2',
+  chat: 'M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-6.4A8 8 0 1 1 21 12Z',
+  copy: 'M9 9h11v11H9Z M5 15H4V4h11v1',
+  send: 'M22 2 11 13 M22 2l-7 20-4-9-9-4Z'
 };
 const icon = name => `<svg aria-hidden="true" viewBox="0 0 24 24"><path d="${paths[name]||paths.file}"/></svg>`;
 const button = (label, action, kind = '', extra = '') => `<button type="button" class="${kind}" data-action="${action}" ${extra}>${label}</button>`;
@@ -86,17 +89,25 @@ const S = {
   emailNext: '',
   emailQuery: 'newer_than:90d (job OR jobs OR vacancy OR vacancies)',
   generation: 0,
-  theme: 'light'
+  theme: 'light',
+  chats: null,  // AI chat conversations, loaded when the chat opens
+  chat: null,
+  chatJob: null,  // vacancy a new chat is about
+  chatProfile: true,
+  chatDraft: '',
+  chatPending: null,
+  aiModels: {}
 };
 const titles = {
   discover: ['Discover', 'Every collected vacancy in your search.'],
   'for-you': ['For you', 'Target and related roles that fit your experience.'],
   saved: ['Saved', 'Opportunities you bookmarked.'],
   applications: ['Applications', 'Everything you are preparing or have sent.'],
-  profile: ['Profile & writing', 'The facts and voice your local AI writes from. Used only after you save.'],
+  chat: ['AI chat', 'Ask about vacancies, applications, interviews and emails.'],
+  profile: ['Profile & writing', 'The facts and voice your AI writes from. Used only after you save.'],
   sources: ['Source library', 'Employers and job boards you can collect from.'],
   mail: ['Job alerts', 'Turn job-alert emails into a reviewed shortlist.'],
-  settings: ['Settings & activity', 'Local AI, configured sources and collection results.']
+  settings: ['Settings & activity', 'AI assistant, configured sources and collection results.']
 };
 // On a phone (served by the PC over home Wi-Fi) the page carries no token:
 // the phone pairs once with a code shown on the PC and keeps its own token.
@@ -236,7 +247,7 @@ function updateStatus() {
   const tasks = [...S.tasks.values()];
   el.innerHTML = tasks.length ? `<i class="spinner"></i><span>${esc(tasks.at(-1))}${tasks.length>1?` · ${tasks.length} actions`:''}</span>` : `<span class="dot"></span><span>${dirty()?'You have unsaved edits':'All saved. Your workspace is local.'}</span>`;
 }
-async function task(action, extra = {}, done) {
+async function task(action, extra = {}, done, onPartial) {
   const key = action + ':' + (extra.job_id || '');
   if (S.tasks.has(key)) {
     toast('This action is already running. You can keep browsing.');
@@ -254,7 +265,7 @@ async function task(action, extra = {}, done) {
         ...extra
       }
     });
-    const result = await pollTask(task_id, key);
+    const result = await pollTask(task_id, key, onPartial);
     await done?.(result);
     return result;
   } finally {
@@ -262,14 +273,15 @@ async function task(action, extra = {}, done) {
     updateStatus();
   }
 }
-async function pollTask(id, key) {
+async function pollTask(id, key, onPartial) {
   for (;;) {
     const state = await api('/tasks/' + encodeURIComponent(id));
     if (state.status === 'done') return state.result;
     if (state.status === 'error') throw Error(state.error || state.message || 'The action could not finish.');
     S.tasks.set(key, state.message || 'Working…');
+    if (onPartial && state.partial !== undefined) onPartial(state.partial);
     updateStatus();
-    await new Promise(r => setTimeout(r, 700));
+    await new Promise(r => setTimeout(r, onPartial ? 350 : 700));
   }
 }
 
@@ -312,12 +324,13 @@ function shell() {
     ['for-you', 'For you', 'spark'],
     ['saved', 'Saved', 'saved'],
     ['applications', 'Applications', 'applications'],
+    ['chat', 'AI chat', 'chat'],
     ['profile', 'Profile & writing', 'profile'],
     ['sources', 'Source library', 'sources'],
     ['mail', 'Job alerts', 'mail'],
     ['settings', 'Settings & activity', 'settings']
   ];
-  $('#app').innerHTML = `<div class="shell ${REMOTE?'remote':''}"><aside class="sidebar"><div class="brand"><span class="brand-mark">J</span><span class="brand-copy">Job Agent</span>${button(icon('sun'),'theme','icon-only quiet','aria-label="Switch light or dark theme" title="Switch theme (Ctrl Shift L)"')}${button(icon('help'),'help','icon-only quiet','aria-label="Help and shortcuts" title="Help and shortcuts"')}</div>${button(icon('search')+'<span>Quick actions</span><kbd>Ctrl K</kbd>','commands','command-trigger','aria-label="Quick actions" title="Quick actions (Ctrl K)"')}<label class="country-control" title="Search country">${icon('globe')}<select id="country" aria-label="Search country" ${S.settingsBusy?'disabled':''}>${options(Object.entries(S.boot.countries),S.country,'All countries')}</select></label><nav aria-label="Main navigation">${nav.map(([id,label,i],n)=>`${n===4?'<div class="nav-label">You</div>':''}<button class="nav-item ${id===S.view?'active':''}" data-view="${id}" title="${label}" aria-label="${label}" ${id===S.view?'aria-current="page"':''}>${icon(i)}<span>${label}</span></button>`).join('')}<button class="nav-item nav-more ${['profile','sources','mail','settings'].includes(S.view)?'active':''}" data-action="more-menu" title="More" aria-label="More">${icon('more')}<span>More</span></button></nav><div class="sidebar-bottom">${refreshCard()}</div></aside><div class="workspace"><main id="main" tabindex="-1" class="page ${isDiscovery()?'discovery':''}"></main><footer class="statusbar"><div id="task-status" class="task-indicator" role="status" aria-live="polite"></div><div class="hints" aria-hidden="true"><span><kbd>J</kbd><kbd>K</kbd>move</span><span><kbd>/</kbd>search</span><span><kbd>Ctrl K</kbd>actions</span><span><kbd>Ctrl S</kbd>save</span></div><span class="right">Local AI · you review every application</span></footer></div></div>`;
+  $('#app').innerHTML = `<div class="shell ${REMOTE?'remote':''}"><aside class="sidebar"><div class="brand"><span class="brand-mark">J</span><span class="brand-copy">Job Agent</span>${button(icon('sun'),'theme','icon-only quiet','aria-label="Switch light or dark theme" title="Switch theme (Ctrl Shift L)"')}${button(icon('help'),'help','icon-only quiet','aria-label="Help and shortcuts" title="Help and shortcuts"')}</div>${button(icon('search')+'<span>Quick actions</span><kbd>Ctrl K</kbd>','commands','command-trigger','aria-label="Quick actions" title="Quick actions (Ctrl K)"')}<label class="country-control" title="Search country">${icon('globe')}<select id="country" aria-label="Search country" ${S.settingsBusy?'disabled':''}>${options(Object.entries(S.boot.countries),S.country,'All countries')}</select></label><nav aria-label="Main navigation">${nav.map(([id,label,i],n)=>`${n===5?'<div class="nav-label">You</div>':''}<button class="nav-item ${id===S.view?'active':''}" data-view="${id}" title="${label}" aria-label="${label}" ${id===S.view?'aria-current="page"':''}>${icon(i)}<span>${label}</span></button>`).join('')}<button class="nav-item nav-more ${['chat','profile','sources','mail','settings'].includes(S.view)?'active':''}" data-action="more-menu" title="More" aria-label="More">${icon('more')}<span>More</span></button></nav><div class="sidebar-bottom">${refreshCard()}</div></aside><div class="workspace"><main id="main" tabindex="-1" class="page ${isDiscovery()?'discovery':''} ${S.view==='chat'?'chat-view':''}"></main><footer class="statusbar"><div id="task-status" class="task-indicator" role="status" aria-live="polite"></div><div class="hints" aria-hidden="true"><span><kbd>J</kbd><kbd>K</kbd>move</span><span><kbd>/</kbd>search</span><span><kbd>Ctrl K</kbd>actions</span><span><kbd>Ctrl S</kbd>save</span></div><span class="right">${esc(aiShort())} · you review every application</span></footer></div></div>`;
   renderPage();
   updateStatus();
 }
@@ -363,8 +376,9 @@ function refreshCard() {
 
 function renderPage() {
   const main = $('#main');
-  main.innerHTML = isDiscovery() ? '' : heading();
+  main.innerHTML = isDiscovery() || S.view === 'chat' ? '' : heading();
   if (isDiscovery()) renderDiscovery();
+  else if (S.view === 'chat') renderChat();
   else if (S.view === 'profile') renderProfile();
   else if (S.view === 'sources') renderSources();
   else if (S.view === 'settings') renderSettings();
@@ -652,13 +666,14 @@ function renderDetail() {
     return;
   }
   const j = data.job;
-  root.innerHTML = `<div class="detail-head">${button(icon('back')+' All opportunities','back-list','quiet back-list button-icon')}<div class="detail-company"><span class="company-mark">${esc((j.company||'Co').slice(0,2).toUpperCase())}</span>${esc(j.company||'Employer')}</div><h2>${esc(j.title)}</h2><div class="detail-meta"><span>${esc(j.location||'Location to confirm')}</span>${j.employment_type?`<span>${esc(j.employment_type)}</span>`:''}${j.deadline?`<span>Closes ${esc(j.deadline.slice(0,10))}</span>`:''}</div><div class="detail-actions">${S.tab!=='letter'&&j.is_active?button(icon('spark')+' Write cover letter','','primary button-icon','data-tab="letter"'):''}${button(icon('saved')+' '+(b.status==='saved'?'Saved':['new','saved'].includes(b.status)?'Save':cap(b.status)),'bookmark','button-icon',['new','saved'].includes(b.status)?'':'disabled title="Change stage in Notes & stage"')}${link(BOARD_SOURCES.includes(j.source)?'On '+siteLabel(j.source):'Original posting',j.source_url)}${rawOf(j).external_apply_url?link('Apply on employer site',rawOf(j).external_apply_url):BOARD_SOURCES.includes(j.source)?'':link('Apply on site',j.apply_url||j.source_url)}${(S.jobs.find(x=>x.id===j.id)?.also_on||[]).slice(0,4).map(o=>link('On '+siteLabel(o.source)+(o.location&&o.location!==j.location?' – '+o.location.split(/[;,]/)[0]:''),o.url)).join('')}</div><div class="tabs" role="tablist" aria-label="Opportunity workspace">${[['overview','Overview'],['notes','Notes & stage'],['letter','Cover letter'],['answers','Application']].map(([id,label])=>`<button role="tab" aria-label="${label}" id="tab-${id}" aria-selected="${S.tab===id}" aria-controls="detail-content" class="tab ${S.tab===id?'active':''}" data-tab="${id}">${label}${b.dirty.has(id==='answers'?'app':id)?' •':''}</button>`).join('')}</div></div><div id="detail-content" class="detail-body" role="tabpanel" aria-labelledby="tab-${S.tab}"></div>`;
+  root.innerHTML = `<div class="detail-head">${button(icon('back')+' All opportunities','back-list','quiet back-list button-icon')}<div class="detail-company"><span class="company-mark">${esc((j.company||'Co').slice(0,2).toUpperCase())}</span>${esc(j.company||'Employer')}</div><h2>${esc(j.title)}</h2><div class="detail-meta"><span>${esc(j.location||'Location to confirm')}</span>${j.employment_type?`<span>${esc(j.employment_type)}</span>`:''}${j.deadline?`<span>Closes ${esc(j.deadline.slice(0,10))}</span>`:''}</div><div class="detail-actions">${S.tab!=='letter'&&j.is_active?button(icon('spark')+' Write cover letter','','primary button-icon','data-tab="letter"'):''}${button(icon('saved')+' '+(b.status==='saved'?'Saved':['new','saved'].includes(b.status)?'Save':cap(b.status)),'bookmark','button-icon',['new','saved'].includes(b.status)?'':'disabled title="Change stage in Notes & stage"')}${button(icon('chat')+' Ask AI','chat-about-job','button-icon')}${link(BOARD_SOURCES.includes(j.source)?'On '+siteLabel(j.source):'Original posting',j.source_url)}${rawOf(j).external_apply_url?link('Apply on employer site',rawOf(j).external_apply_url):BOARD_SOURCES.includes(j.source)?'':link('Apply on site',j.apply_url||j.source_url)}${(S.jobs.find(x=>x.id===j.id)?.also_on||[]).slice(0,4).map(o=>link('On '+siteLabel(o.source)+(o.location&&o.location!==j.location?' – '+o.location.split(/[;,]/)[0]:''),o.url)).join('')}</div><div class="tabs" role="tablist" aria-label="Opportunity workspace">${[['overview','Overview'],['notes','Notes & stage'],['letter','Cover letter'],['answers','Application'],['insights','AI insights']].map(([id,label])=>`<button role="tab" aria-label="${label}" id="tab-${id}" aria-selected="${S.tab===id}" aria-controls="detail-content" class="tab ${S.tab===id?'active':''}" data-tab="${id}">${label}${b.dirty.has(id==='answers'?'app':id)?' •':''}</button>`).join('')}</div></div><div id="detail-content" class="detail-body" role="tabpanel" aria-labelledby="tab-${S.tab}"></div>`;
   const body = $('#detail-content');
   if (!j.is_active || j.match?.expired) body.innerHTML = '<div class="notice warning">This posting is withdrawn or past its deadline. Your notes and drafts are still available.</div>';
   if (!S.jobs.some(item => item.id === j.id)) body.insertAdjacentHTML('beforeend', '<div class="notice">This opportunity is outside the current filters. Your editor stays open so you can finish your work.</div>');
-  if (S.tab === 'overview') body.insertAdjacentHTML('beforeend', overview(j));
+  if (S.tab === 'overview') body.insertAdjacentHTML('beforeend', overview(j, data));
   else if (S.tab === 'notes') body.insertAdjacentHTML('beforeend', notes(b));
   else if (S.tab === 'letter') body.insertAdjacentHTML('beforeend', letter(b));
+  else if (S.tab === 'insights') body.insertAdjacentHTML('beforeend', insights(data));
   else body.insertAdjacentHTML('beforeend', answers(b, data));
   if (needsDetails(j) && !S.loadingDetails.has(j.id) && !S.detailFailures.has(j.id)) loadDetails(j.id);
 }
@@ -712,14 +727,42 @@ function fitTiles(j) {
   return `<div class="fit-grid">${tile('Role', role)}${tile('Experience', experience)}${tile('Skills', skill)}</div>`;
 }
 
-function overview(j) {
+function overview(j, data) {
   const m = j.match || {},
     e = m.experience;
   const experience = e ? `<details class="evidence"><summary>How experience was screened</summary>${e.reasons.map(reason=>`<p>${esc(reason)}</p>`).join('')}${(e.requirements||[]).map(r=>`<p>${esc(cap(r.kind))}: ${esc(r.evidence)}</p>`).join('')}</details>` : '';
   const failure = S.detailFailures.get(j.id);
   const missing = needsDetails(j) ? (failure ? `${siteLabel(j.source)} could not show the full advert: ${failure} Open it on the site instead.` :
     `Loading the full advert from ${siteLabel(j.source)}…`) : 'No full description was imported. Read the original posting for details.';
-  return `${fitTiles(j)}<div class="prose">${esc(String(j.description||'').trim()?j.description:missing)}</div>${experience}<details class="evidence"><summary>Things to check before applying</summary>${(m.warnings||[]).map(w=>`<p>${esc(w)}</p>`).join('')}<p>${m.score==null?'No fit score yet: add target roles, skills or your years of experience.':`${m.score}% fit: role 50%, skills 30% (full credit at 8 of your skills), experience 20%.`} It estimates fit from the advert's text, not eligibility or hiring probability.</p></details>`;
+  const analysis = data?.insights?.analysis?.payload;
+  return `${fitTiles(j)}${analysis ? keyFacts(analysis.key_facts, ['salary', 'remote_policy', 'visa_relocation', 'languages_required']) : ''}<div class="prose">${esc(String(j.description||'').trim()?j.description:missing)}</div>${experience}<details class="evidence"><summary>Things to check before applying</summary>${(m.warnings||[]).map(w=>`<p>${esc(w)}</p>`).join('')}<p>${m.score==null?'No fit score yet: add target roles, skills or your years of experience.':`${m.score}% fit: role 50%, skills 30% (full credit at 8 of your skills), experience 20%.`} It estimates fit from the advert's text, not eligibility or hiring probability.</p></details>`;
+}
+
+// What the AI assistant found: analysis, key facts and interview preparation.
+const VERDICTS = {strong: ['Strong fit', 'green'], good: ['Good fit', 'green'], stretch: ['Stretch', 'amber'], weak: ['Weak fit', '']};
+const FACT_LABELS = [['salary', 'Salary'], ['remote_policy', 'Remote / on-site'], ['visa_relocation', 'Visa & relocation'], ['languages_required', 'Languages'],
+  ['seniority', 'Seniority'], ['employment_type', 'Employment'], ['deadline', 'Deadline'], ['contact', 'Contact'], ['tech_stack', 'Tech stack']];
+
+function keyFacts(facts, only) {
+  const shown = FACT_LABELS.filter(([key]) => (!only || only.includes(key)) && (Array.isArray(facts?.[key]) ? facts[key].length : facts?.[key]));
+  return shown.length ? `<div class="key-facts">${shown.map(([key, label]) => `<div class="fit"><small>${label}</small><span>${esc(Array.isArray(facts[key]) ? facts[key].join(', ') : facts[key])}</span></div>`).join('')}</div>` : '';
+}
+
+const bullets = (title, items, tone = '') => items?.length ? `<h3>${title}</h3><ul class="insight-list ${tone}">${items.map(item => `<li>${esc(item)}</li>`).join('')}</ul>` : '';
+const madeBy = item => `<p class="evidence">By ${esc(item.model || 'AI')} · ${esc(ago(item.created_at))}. AI can be wrong: check it against the advert.</p>`;
+
+function insights(data) {
+  const j = data.job,
+    a = data.insights?.analysis,
+    iv = data.insights?.interview;
+  const tools = `<div class="answers-toolbar">${button(icon('spark') + (a ? ' Analyse again' : ' Analyse vacancy'), 'analyze-job', (a ? '' : 'primary ') + 'button-icon')}${button(icon('profile') + (iv ? ' Prepare again' : ' Interview prep'), 'interview-prep', 'button-icon')}${button(icon('chat') + ' Ask AI', 'chat-about-job', 'button-icon')}${button(icon('mail') + ' Draft a reply', 'reply-dialog', 'button-icon', `data-job-id="${j.id}"`)}</div>`;
+  if (!a && !iv) return `${tools}<div class="empty"><div class="empty-icon">${icon('spark')}</div><h2>Let AI read this vacancy for you.</h2><p>Analyse vacancy: how well you fit, gaps, red flags and key facts such as salary, remote work and visa help. Interview prep: likely questions with answers built from your profile.</p><p class="evidence">Uses ${esc(aiLabel())}. Change it in Settings & activity → AI assistant.</p></div>`;
+  const p = a?.payload;
+  const verdict = p ? VERDICTS[p.verdict] || [cap(p.verdict), ''] : null;
+  const analysis = p ? `<section class="insight"><div class="insight-head"><h3>Analysis</h3>${pill(verdict[0], verdict[1])}</div><p>${esc(p.summary)}</p>${p.verdict_reason ? `<p class="evidence">${esc(p.verdict_reason)}</p>` : ''}${keyFacts(p.key_facts)}${bullets('You meet', p.strengths, 'good')}${bullets('Gaps', p.gaps, 'warn')}${bullets('Red flags', p.red_flags, 'bad')}${bullets('Put first in your application', p.emphasise)}${madeBy(a)}</section>` : '';
+  const q = iv?.payload;
+  const interview = q ? `<section class="insight"><div class="insight-head"><h3>Interview preparation</h3>${pill(q.questions.length + ' questions')}</div>${q.questions.map((item, i) => `<details class="question-prep" ${i === 0 ? 'open' : ''}><summary>${esc(item.question)}</summary>${item.why_they_ask ? `<p class="evidence">${esc(item.why_they_ask)}</p>` : ''}<div class="prose">${esc(item.answer_outline)}</div>${item.evidence?.length ? `<p class="evidence">From your profile: ${item.evidence.map(e => '“' + esc(e) + '”').join(' · ')}</p>` : ''}</details>`).join('')}${bullets('Questions you could ask them', q.questions_to_ask)}${bullets('Worth revising', q.topics_to_review)}${madeBy(iv)}</section>` : '';
+  return tools + analysis + interview;
 }
 
 function notes(b) {
@@ -727,12 +770,12 @@ function notes(b) {
 }
 
 function letter(b) {
-  return `<div class="answers-toolbar">${button(icon('spark')+' Draft with local AI','generate-letter','primary button-icon')}${button('Version history','letter-history')}${button('Export text','export-letter')}</div><label class="field"><span>Your cover letter</span><textarea id="letter-text" class="editor" placeholder="Write in your own words, or start a draft with your local AI model.">${esc(b.letter)}</textarea></label><div class="editor-meta"><span id="word-count">${b.letter.trim().split(/\s+/).filter(Boolean).length} words</span><span>Style: ${esc(S.profile.writing_style?.tone||'Professional and natural')}</span></div>${b.letterNotes?.length?`<div class="notice warning"><strong>Check before using this draft</strong>${b.letterNotes.map(n=>`<p>${esc(n)}</p>`).join('')}${b.letterEvidence?.length?`<details class="evidence"><summary>Profile facts the draft relies on</summary>${b.letterEvidence.map(e=>`<p>${esc(e)}</p>`).join('')}</details>`:''}</div>`:'<div class="notice">Review the facts and the employer’s requirements before using this letter. Your writing preferences are in Profile & writing.</div>'}<div class="savebar"><small>${b.dirty.has('letter')?'Unsaved edits':'Saved versions remain in history.'}</small>${button('Save version','save-letter','primary')}</div>`;
+  return `<div class="answers-toolbar">${button(icon('spark')+' Draft with '+esc(aiName()),'generate-letter','primary button-icon')}${button('Version history','letter-history')}${button('Export text','export-letter')}</div><label class="field"><span>Your cover letter</span><textarea id="letter-text" class="editor" placeholder="Write in your own words, or start a draft with AI.">${esc(b.letter)}</textarea></label><div class="editor-meta"><span id="word-count">${b.letter.trim().split(/\s+/).filter(Boolean).length} words</span><span>Style: ${esc(S.profile.writing_style?.tone||'Professional and natural')}</span></div>${b.letterNotes?.length?`<div class="notice warning"><strong>Check before using this draft</strong>${b.letterNotes.map(n=>`<p>${esc(n)}</p>`).join('')}${b.letterEvidence?.length?`<details class="evidence"><summary>Profile facts the draft relies on</summary>${b.letterEvidence.map(e=>`<p>${esc(e)}</p>`).join('')}</details>`:''}</div>`:'<div class="notice">Review the facts and the employer’s requirements before using this letter. Your writing preferences are in Profile & writing.</div>'}<div class="savebar"><small>${b.dirty.has('letter')?'Unsaved edits':'Saved versions remain in history.'}</small>${button('Save version','save-letter','primary')}</div>`;
 }
 
 function answers(b, data) {
   const p = b.app;
-  return `<div class="answers-toolbar">${button('Read questions','read-questions')}${button('Paste questions','paste-questions')}${p?button(icon('spark')+' Draft answers','generate-answers','primary button-icon'):''}</div>${!p?`<div class="empty"><div class="empty-icon">${icon('applications')}</div><h2>A thoughtful application starts here.</h2><p>Read the employer’s public questions or paste them in. Your local AI prepares drafts for you to review and edit.</p></div>`:`<div class="notice">${p.form.fields.length} questions · ${esc(p.form.coverage||'partial')} coverage. Check the original form for missing or conditional questions.<details class="evidence"><summary>Source details and limitations</summary>${(p.form.warnings||[]).map(w=>`<p>${esc(w)}</p>`).join('')}<p>${esc(p.form.source_url||'Manually supplied questions')}</p></details></div><div class="ready-line">${icon('check')} ${p.form.fields.filter(f=>hasAnswer(p,f)).length} of ${p.form.fields.length} questions completed</div><br>${p.form.fields.map((f,i)=>question(p,f,i)).join('')}<div class="savebar"><div class="section-actions">${button('Save version','save-answers')}${button('History','answers-history')}${button('Export','export-answers')}</div>${sendable(p)?button('Review & send','review-application','primary'):button('Copy answers & open application','copy-apply','primary')}</div><p class="evidence">${sendable(p)?'This is a standard public form: Review & send fills it in a browser for your final check before one explicit send.':'This employer’s form needs its own website (it uses JavaScript, a login or a hosted applicant system). Copy your reviewed answers, paste them into the form, and attach your files there.'}</p>`}${data.deliveries.length?`<div class="notice">Last delivery: ${esc(cap(data.deliveries[0].status))}. Check the employer’s confirmation before updating your stage.</div>`:''}`;
+  return `<div class="answers-toolbar">${button('Read questions','read-questions')}${button('Paste questions','paste-questions')}${p?button(icon('spark')+' Draft answers','generate-answers','primary button-icon'):''}</div>${!p?`<div class="empty"><div class="empty-icon">${icon('applications')}</div><h2>A thoughtful application starts here.</h2><p>Read the employer’s public questions or paste them in. Your AI prepares drafts for you to review and edit.</p></div>`:`<div class="notice">${p.form.fields.length} questions · ${esc(p.form.coverage||'partial')} coverage. Check the original form for missing or conditional questions.<details class="evidence"><summary>Source details and limitations</summary>${(p.form.warnings||[]).map(w=>`<p>${esc(w)}</p>`).join('')}<p>${esc(p.form.source_url||'Manually supplied questions')}</p></details></div><div class="ready-line">${icon('check')} ${p.form.fields.filter(f=>hasAnswer(p,f)).length} of ${p.form.fields.length} questions completed</div><br>${p.form.fields.map((f,i)=>question(p,f,i)).join('')}<div class="savebar"><div class="section-actions">${button('Save version','save-answers')}${button('History','answers-history')}${button('Export','export-answers')}</div>${sendable(p)?button('Review & send','review-application','primary'):button('Copy answers & open application','copy-apply','primary')}</div><p class="evidence">${sendable(p)?'This is a standard public form: Review & send fills it in a browser for your final check before one explicit send.':'This employer’s form needs its own website (it uses JavaScript, a login or a hosted applicant system). Copy your reviewed answers, paste them into the form, and attach your files there.'}</p>`}${data.deliveries.length?`<div class="notice">Last delivery: ${esc(cap(data.deliveries[0].status))}. Check the employer’s confirmation before updating your stage.</div>`:''}`;
 }
 
 // Only native HTML forms can be filled and sent from the app; Greenhouse,
@@ -841,7 +884,7 @@ function renderProfile() {
     w = p.writing_style || {};
   $('#main').insertAdjacentHTML('beforeend', `<div class="content-width">
   <div class="notice">Your profile is shared across countries. Only country-specific facts, such as work authorization, are separate.</div>
-  <section class="panel"><div class="panel-title"><div><h2>Your story</h2><p>Facts your local AI can use when preparing an application.</p></div>${pill('Shared profile','blue')}</div>
+  <section class="panel"><div class="panel-title"><div><h2>Your story</h2><p>Facts your AI can use when preparing an application.</p></div>${pill('Shared profile','blue')}</div>
   <div class="form-grid">${field('Full name','name',p.name)}${field('Cover-letter language','cover_letter_language',p.cover_letter_language)}${field('Years of professional experience','years_of_experience',p.years_of_experience??'',{type:'number',hint:'Use a decimal such as 2.5. Blank means unknown. Used to screen seniority and required experience.'})}
   <div class="span-2">${field('Professional summary','summary',p.summary,{lines:3})}</div>${field('Skills','skills',listText(p.skills),{lines:4,hint:`${(p.skills||[]).length} skills. Paste them any way: one per line, or separated by commas, semicolons or bullets.`})}${field('Projects & experience evidence','evidence',listText(p.evidence),{lines:4,hint:'One factual achievement per line or bullet; commas inside a sentence are kept.'})}
   ${field('Actual language proficiency','languages',Object.entries(p.languages||{}).map(([k,v])=>k+': '+v).join('\n'),{lines:3,hint:'Language and level, such as English: C1, German - A2 or Norwegian (B1); one per line or comma-separated.'})}${field('Language levels to include in searches','search_languages',Object.entries(p.search_languages||{}).map(([k,v])=>k+': '+v).join('\n'),{lines:3,hint:'Search preferences never change your stated proficiency.'})}</div></section>
@@ -922,10 +965,236 @@ function linkedinNotice() {
 
 function renderSettings() {
   const settings = S.settingsDraft || S.boot.settings;
-  $('#main').insertAdjacentHTML('beforeend', `<div class="content-width"><section class="panel"><div class="panel-title"><div><h2>Local AI</h2><p>Ollama runs your model on this computer. No cloud AI key is needed.</p></div>${pill('On-device','green')}</div><div class="form-grid">${field('Model name','model',settings.model,{group:'settings',hint:'Save a model name before downloading or generating.'})}<div><label class="field"><span>Available models</span><select id="model-picker"><option value="">Check setup to list installed models</option></select></label></div></div><div class="section-actions">${button('Check setup','check-setup')}${button('Start Ollama','start-ollama')}${button('Download saved model','download-model')}${button('Install PDF support','install-pdf')}${link('Install Ollama','https://ollama.com/download/windows')}</div><div id="setup-result" class="evidence"></div></section>
+  $('#main').insertAdjacentHTML('beforeend', `<div class="content-width">${aiPanel(settings)}
   ${jobSitesPanel(settings)}<section class="panel"><div class="panel-title"><div><h2>Connected job sources</h2><p>${S.boot.settings.sources.length} configured. One refresh collects every target country; the country switch only filters what you see.</p></div>${button('Browse library','go-sources')}</div><div class="table-wrap"><table><thead><tr><th>Source</th><th>Countries</th><th>Action</th></tr></thead><tbody>${settings.sources.map((s,i)=>`<tr><td>${esc(s.name||s.board||cap(s.type))}<span class="sub">${esc(s.type)}</span></td><td>${esc(s.countries?.join(', ')||(s.type==='nav'?'NO':'Any'))}</td><td>${button('Remove','remove-source','quiet',`data-source-index="${i}"`)}</td></tr>`).join('')}</tbody></table></div><details class="evidence"><summary>Advanced source configuration</summary><p>Edit the source array for custom boards, locations or limits. Invalid changes are rejected when you save.</p><textarea id="sources-json" rows="10" aria-label="Advanced sources JSON">${esc(S.sourcesText??JSON.stringify(settings.sources,null,2))}</textarea></details><div class="savebar"><small>${S.settingsDirty?'Unsaved settings':'Changes apply after saving.'}</small>${button('Save settings','save-settings','primary')}</div></section>
   ${quickMarksPanel()}${phonePanel()}<section class="panel"><div class="panel-title"><div><h2>Collection activity</h2><p>See what was collected and which sources need attention.</p></div>${button('Find opportunities','collect')}</div>${collectionReport()}</section><section class="panel"><div class="panel-title"><div><h2>Desktop app</h2><p>Open Job Agent from the Start menu or desktop like any other program: its own icon, no console window, and only one window at a time.</p></div></div><p class="evidence">The app runs entirely on this computer. Your profile, database, notes and drafts stay in your private data folder.</p><div class="section-actions">${REMOTE?'':button('Add Start menu & desktop shortcuts','create-shortcuts','primary')}${button('Switch theme','theme')}${button('Keyboard shortcuts','help')}</div></section>${updatesPanel()}</div>`);
   loadPhonePanel();
+}
+
+// AI assistant: the free local model or a cloud provider with your own key.
+function aiProvider() {
+  const a = S.boot.ai || {};
+  return (a.providers || []).find(p => p.id === a.provider) || null;
+}
+const aiName = () => aiProvider()?.name || 'local AI';
+const aiShort = () => aiProvider() ? 'AI: ' + aiProvider().name : 'Local AI';
+const aiLabel = () => aiProvider() ? `${aiProvider().name} (${aiProvider().model})` : `your local model (${S.boot.settings.model})`;
+const tokens = n => Number(n || 0).toLocaleString('en-US');
+
+function localModelBlock(settings) {
+  return `<div class="form-grid">${field('Model name','model',settings.model,{group:'settings',hint:'Save a model name before downloading or generating.'})}<div><label class="field"><span>Available models</span><select id="model-picker"><option value="">Check setup to list installed models</option></select></label></div></div><div class="section-actions">${button('Check setup','check-setup')}${button('Start Ollama','start-ollama')}${button('Download saved model','download-model')}${button('Install PDF support','install-pdf')}${link('Install Ollama','https://ollama.com/download/windows')}</div><div id="setup-result" class="evidence"></div>`;
+}
+
+function modelOptions(p) {
+  const models = [...(S.aiModels[p.id] || [])];
+  if (!models.some(m => m.id === p.model)) models.unshift({id: p.model, name: p.model});
+  return models.map(m => `<option value="${esc(m.id)}" ${m.id === p.model ? 'selected' : ''}>${esc(m.name && m.name !== m.id ? `${m.name} (${m.id})` : m.id)}</option>`).join('');
+}
+
+function aiProviderBody(p) {
+  if (p.configured) return `<div class="form-grid"><label class="field"><span>Model</span><select data-ai-model="${esc(p.id)}">${modelOptions(p)}</select><small>Default: ${esc(p.default_model)}. Refresh the list to see every model your key can use.</small></label></div><p class="evidence">Key ${esc(p.hint)} saved${p.saved_at ? ' on ' + esc(p.saved_at.slice(0, 10)) : ''}, encrypted on this computer. ${esc(p.note)}</p><div class="row">${button('Refresh model list', 'refresh-ai-models', 'quiet', `data-provider="${esc(p.id)}"`)}${link('Usage & billing', p.billing_url)}${REMOTE ? '' : button('Remove key', 'remove-ai-key', 'quiet', `data-provider="${esc(p.id)}"`)}</div>`;
+  if (REMOTE) return `<p class="evidence">${esc(p.note)} API keys are added on the PC.</p>`;
+  return `<p class="evidence">${esc(p.note)} Create an API key on ${esc(p.company)}'s site and paste it here: it is checked with one free request and saved encrypted on this computer, never shown again.</p><div class="adzuna-fields"><label class="field"><span>${esc(p.name)} API key</span><input id="ai-key-${esc(p.id)}" type="password" autocomplete="off" spellcheck="false" maxlength="400"></label></div><div class="row">${button('Check and save key', 'save-ai-key', 'primary', `data-provider="${esc(p.id)}"`)}${link('Get an API key', p.keys_url)}</div>`;
+}
+
+function aiPanel(settings) {
+  const a = S.boot.ai || {providers: [], usage: {}},
+    chosen = a.provider || 'local',
+    u = a.usage || {},
+    limit = a.monthly_token_limit || 0;
+  const choice = (id, title, sub, disabled = false) => `<label class="ai-choice"><input type="radio" name="ai-provider" value="${esc(id)}" ${chosen === id ? 'checked' : ''} ${disabled ? 'disabled' : ''}><span><strong>${title}</strong><small>${sub}</small></span></label>`;
+  const local = `<div class="ai-provider ${chosen === 'local' ? 'active' : ''}">${choice('local', 'Local model (Ollama)', 'Free and private: runs on this computer and sends nothing anywhere. Slower, and writes less well than cloud models.')}<details class="ai-provider-body" ${chosen === 'local' ? 'open' : ''}><summary>Local model settings</summary>${localModelBlock(settings)}</details></div>`;
+  const clouds = (a.providers || []).map(p => `<div class="ai-provider ${chosen === p.id ? 'active' : ''}" id="ai-${esc(p.id)}">${choice(p.id, `${esc(p.name)} <small class="company">${esc(p.company)}</small> ${p.configured ? pill('Key saved', 'green') : pill('No key')}`, p.configured ? `Uses ${esc(p.model)}; billed to your ${esc(p.company)} account.` : 'Add your API key below to use it.', !p.configured)}<div class="ai-provider-body">${aiProviderBody(p)}</div></div>`).join('');
+  const share = limit ? Math.min(100, Math.round(100 * (u.tokens || 0) / limit)) : 0;
+  const by = Object.entries(u.providers || {}).map(([id, c]) => `${esc((a.providers || []).find(p => p.id === id)?.name || id)} ${tokens(c.input + c.output)} (${c.requests} requests)`).join(' · ');
+  const usage = `<div class="ai-usage"><h3>Cloud AI this month</h3><p><strong>${tokens(u.tokens)}</strong> tokens used${limit ? ` of your ${tokens(limit)} limit` : ''}.${by ? ' ' + by + '.' : ''}</p>${limit ? `<progress class="meter" max="100" value="${share}" aria-label="Monthly token limit used">${share}%</progress>` : ''}<div class="row"><label class="field"><span>Monthly limit (tokens)</span><input id="ai-limit" type="number" min="0" step="100000" value="${limit}"></label>${button('Save limit', 'save-ai-limit')}</div><p class="evidence">Cloud requests stop once this month's tokens reach the limit; 0 means no limit. A cover letter or analysis uses roughly 5,000–20,000 tokens, a chat answer 2,000–10,000. To be safe, also set a spending limit on the provider's billing page.</p></div>`;
+  return `<section class="panel" id="ai-panel"><div class="panel-title"><div><h2>AI assistant</h2><p>Which AI writes your cover letters and application answers, analyses vacancies, prepares interviews, drafts replies and answers in AI chat. Your local model is free; cloud models write better and faster but charge your account per use.</p></div>${pill(aiProvider() ? aiProvider().name : 'Local · free', aiProvider() ? 'blue' : 'green')}</div><div class="ai-providers">${local}${clouds}</div>${usage}</section>`;
+}
+
+function renderAiPanel() {
+  const panel = $('#ai-panel');
+  if (panel) panel.outerHTML = aiPanel(S.settingsDraft || S.boot.settings);
+  const right = $('.statusbar .right');
+  if (right) right.textContent = aiShort() + ' · you review every application';
+}
+
+function aiConsent(p) {
+  modal(`Use ${p.name} for AI?`, `<p>From now on, whenever you use AI in Job Agent, this is sent to ${esc(p.company)}:</p><ul class="prose"><li>your profile and CV text,</li><li>the vacancy you are working on,</li><li>your chat messages, and emails you paste for a reply draft.</li></ul><p class="evidence">${esc(p.note)} Each request is billed to your ${esc(p.company)} account. Your local model sends nothing anywhere, and you can switch back at any time.</p>`,
+    button('Cancel', 'close-modal') + button('Use ' + esc(p.name), 'confirm-ai', 'primary', `data-provider="${esc(p.id)}"`));
+}
+
+async function chooseAi(id) {
+  const p = (S.boot.ai?.providers || []).find(item => item.id === id);
+  if (id !== 'local' && p && !p.consented) {
+    aiConsent(p);
+    renderAiPanel();  // The choice changes only after you confirm.
+    return;
+  }
+  S.boot.ai = await api('/ai', {method: 'PUT', body: {provider: id}});
+  renderAiPanel();
+  if (S.view === 'chat') renderThread();
+  toast(id === 'local' ? 'AI now runs on your local model: free and private.' : `AI now uses ${p.name} (${p.model}).`);
+}
+
+// Chat answers use a small, safe subset of Markdown: paragraphs, lists,
+// headings, bold, italics, code and http(s) links. Everything is escaped first.
+function md(text) {
+  const inline = s => esc(s).replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/(^|[\s(])\*([^*\s][^*]*)\*/g, '$1<em>$2</em>')
+    .replace(/\[([^\]]+)\]\((https?:[^\s)]+)\)/g, (all, label, url) => {
+      const href = safeUrl(url.replaceAll('&amp;', '&'));
+      return href ? `<a href="${esc(href)}" target="_blank" rel="noopener noreferrer">${label}</a>` : all;
+    });
+  const out = [];
+  let list = null, para = [], code = null;
+  const flush = () => {
+    if (para.length) out.push(`<p>${para.join('<br>')}</p>`);
+    para = [];
+    if (list) out.push(`</${list}>`);
+    list = null;
+  };
+  for (const line of String(text || '').replace(/\r/g, '').split('\n')) {
+    if (code !== null) {
+      if (line.trim().startsWith('```')) {
+        out.push(`<pre><code>${esc(code.join('\n'))}</code></pre>`);
+        code = null;
+      } else code.push(line);
+      continue;
+    }
+    if (line.trim().startsWith('```')) {
+      flush();
+      code = [];
+      continue;
+    }
+    const bullet = line.match(/^\s*[-*•]\s+(.*)$/), numbered = line.match(/^\s*\d+[.)]\s+(.*)$/), heading = line.match(/^\s*#{1,4}\s+(.*)$/);
+    if (bullet || numbered) {
+      const kind = bullet ? 'ul' : 'ol';
+      if (para.length || list !== kind) flush();
+      if (!list) {
+        out.push(`<${kind}>`);
+        list = kind;
+      }
+      out.push(`<li>${inline((bullet || numbered)[1])}</li>`);
+    } else if (heading) {
+      flush();
+      out.push(`<h4>${inline(heading[1])}</h4>`);
+    } else if (!line.trim()) flush();
+    else {
+      if (list) flush();
+      para.push(inline(line));
+    }
+  }
+  if (code !== null) out.push(`<pre><code>${esc(code.join('\n'))}</code></pre>`);
+  flush();
+  return out.join('');
+}
+
+async function loadChats() {
+  S.chats = (await api('/chats')).chats;
+}
+
+function renderChat() {
+  $('#main').innerHTML = `<div class="chat-layout ${S.chat || S.chatOpen ? 'has-chat' : ''}"><aside class="chat-list" aria-label="Conversations"><div class="chat-list-head"><h1>AI chat</h1>${button(icon('plus') + ' New chat', 'new-chat', 'primary button-icon')}</div><div id="chat-items"></div></aside><section class="chat-thread" id="chat-thread" aria-live="polite"></section></div>`;
+  renderChatList();
+  renderThread();
+  if (S.chats === null) loadChats().then(renderChatList).catch(err => toast(err.message, true));
+}
+
+function renderChatList() {
+  const root = $('#chat-items');
+  if (!root) return;
+  if (S.chats === null) {
+    root.innerHTML = '<p class="evidence">Loading…</p>';
+    return;
+  }
+  root.innerHTML = S.chats.length ? S.chats.map(c => `<div class="chat-item ${S.chat?.id === c.id ? 'active' : ''}"><button type="button" class="chat-open" data-action="open-chat" data-chat="${c.id}"><strong>${esc(c.title || 'Chat')}</strong><small>${c.job_title ? esc(c.job_title) + ' · ' : ''}${esc(ago(c.updated_at))}</small></button>${button(icon('close'), 'delete-chat', 'icon-only quiet', `data-chat="${c.id}" aria-label="Delete chat ${esc(c.title || '')}" title="Delete chat"`)}</div>`).join('') : '<p class="evidence">Your conversations appear here. They are saved on this computer.</p>';
+}
+
+function chatJobInfo() {
+  const id = S.chat ? S.chat.job_id : S.chatJob;
+  if (!id) return null;
+  const known = S.details.get(id)?.job || S.jobs.find(j => j.id === id);
+  return {id, title: S.chat?.job_title || known?.title || 'Vacancy', company: S.chat?.job_company || known?.company || ''};
+}
+
+function chatAiSelect() {
+  const a = S.boot.ai || {providers: []};
+  const rows = [['local', 'Local model · free', true], ...(a.providers || []).map(p => [p.id, `${p.name} · ${p.model}`, p.configured])];
+  return `<label class="chat-ai" title="Which AI answers">${icon('spark')}<select id="chat-ai" aria-label="Which AI answers">${rows.map(([id, label, ok]) => `<option value="${esc(id)}" ${id === (a.provider || 'local') ? 'selected' : ''} ${ok ? '' : 'disabled'}>${esc(label)}${ok ? '' : ' (add key in Settings)'}</option>`).join('')}</select></label>`;
+}
+
+function chatSuggestions(job) {
+  const prompts = job ? ['Am I a good fit for this job? Be honest about gaps.', 'What should I emphasise in my application?', 'Write five questions I could ask in the interview.', 'Draft a short LinkedIn message to the recruiter.']
+    : ['Which of my skills are most in demand for my target roles?', 'How can I improve my CV summary?', 'Help me prepare for a technical interview.', 'How should I answer “What are your salary expectations?”'];
+  return `<div class="chat-empty"><div class="empty-icon">${icon('chat')}</div><h2>${job ? 'Ask about this vacancy' : 'How can I help with your job search?'}</h2><div class="chat-prompts">${prompts.map(p => button(esc(p), 'chat-prompt', '', `data-prompt="${esc(p)}"`)).join('')}${button(icon('mail') + ' Draft a reply to an email', 'reply-dialog', 'button-icon', job ? `data-job-id="${job.id}"` : '')}</div></div>`;
+}
+
+function chatMessage(m, i) {
+  return `<div class="msg ${m.role}"><div class="bubble">${m.role === 'assistant' ? md(m.content) : `<p>${esc(m.content).replaceAll('\n', '<br>')}</p>`}</div>${m.role === 'assistant' ? `<div class="msg-meta"><span>${esc(m.model || '')}</span>${button(icon('copy') + ' Copy', 'copy-message', 'quiet button-icon', `data-index="${i}"`)}</div>` : ''}</div>`;
+}
+
+function renderThread() {
+  const root = $('#chat-thread');
+  if (!root) return;
+  const job = chatJobInfo(),
+    useProfile = S.chat ? S.chat.use_profile : S.chatProfile,
+    messages = S.chat?.messages || [],
+    p = aiProvider();
+  const context = `<div class="chat-context">${button(icon('back'), 'chat-back', 'icon-only quiet chat-back', 'aria-label="All conversations"')}<h2>${esc(S.chat?.title || 'New chat')}</h2><label class="check-row"><input type="checkbox" id="chat-profile" ${useProfile ? 'checked' : ''}> Use my profile</label>${job ? `<span class="chat-job">${icon('applications')}<span>${esc(job.title)}${job.company ? ' · ' + esc(job.company) : ''}</span>${button(icon('close'), 'chat-detach-job', 'icon-only quiet', 'aria-label="Stop using this vacancy" title="Stop using this vacancy"')}</span>` : ''}${chatAiSelect()}</div>`;
+  const pending = S.chatPending ? `<div class="msg user"><div class="bubble"><p>${esc(S.chatPending.text).replaceAll('\n', '<br>')}</p></div></div><div class="msg assistant"><div class="bubble" id="pending-answer">${S.chatPending.partial ? md(S.chatPending.partial) : '<span class="typing"><i></i><i></i><i></i></span>'}</div></div>` : '';
+  const body = messages.length || pending ? messages.map(chatMessage).join('') + pending : chatSuggestions(job);
+  const note = p ? `Sent to ${esc(p.company)} (${esc(p.model)})${useProfile ? ' with your profile' : ''}${job ? ' and this vacancy' : ''}. AI can be wrong: check facts before you rely on them.` : `Answered by your local model on this computer${useProfile ? ', with your profile' : ''}. AI can be wrong: check facts before you rely on them.`;
+  root.innerHTML = `${context}<div class="chat-messages" id="chat-messages">${body}</div><div class="chat-composer"><textarea id="chat-input" rows="3" maxlength="8000" placeholder="Ask anything about your job search… (Ctrl Enter to send)" aria-label="Message">${esc(S.chatDraft)}</textarea>${button(icon('send') + ' Send', 'send-chat', 'primary button-icon', S.chatPending ? 'disabled' : '')}</div><p class="evidence chat-note">${note}</p>`;
+  const box = $('#chat-messages');
+  box.scrollTop = box.scrollHeight;
+}
+
+function updatePending() {
+  const el = $('#pending-answer'),
+    box = $('#chat-messages');
+  if (!el || !S.chatPending) return;
+  const atBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 80;
+  el.innerHTML = S.chatPending.partial ? md(S.chatPending.partial) : '<span class="typing"><i></i><i></i><i></i></span>';
+  if (atBottom) box.scrollTop = box.scrollHeight;
+}
+
+async function sendChat() {
+  const text = S.chatDraft.trim();
+  if (!text) throw Error('Write a message first.');
+  if (S.chatPending) throw Error('Wait for the current answer to finish.');
+  const chatId = S.chat?.id ?? null;
+  S.chatPending = {text, partial: ''};
+  S.chatDraft = '';
+  renderThread();
+  try {
+    const chat = await task('chat', {message: text, chat_id: chatId, job_id: chatId ? null : S.chatJob, use_profile: chatId ? S.chat.use_profile : S.chatProfile}, null, partial => {
+      if (S.chatPending) {
+        S.chatPending.partial = partial;
+        updatePending();
+      }
+    });
+    if (!chat) {
+      S.chatDraft = text;
+      return;
+    }
+    if (!S.chat || S.chat.id === chat.id || chatId === null) S.chat = chat;
+    S.chats = [chat, ...(S.chats || []).filter(c => c.id !== chat.id)];
+  } catch (err) {
+    if (!S.chatDraft) S.chatDraft = text;  // Nothing was saved: keep what you wrote.
+    throw err;
+  } finally {
+    S.chatPending = null;
+    if (S.view === 'chat') {
+      renderChatList();
+      renderThread();
+    }
+  }
+}
+
+function replyDialog(jobId) {
+  const job = jobId ? (S.details.get(jobId)?.job || S.jobs.find(j => j.id === jobId)) : null;
+  modal('Draft a reply', `<p class="evidence">Paste an email from an employer or recruiter. ${esc(aiLabel())} drafts a reply in your voice from your profile. Nothing is sent: you check it and copy it into your email yourself.</p>${job ? `<div class="notice">About: ${esc(job.title)}${job.company ? ' · ' + esc(job.company) : ''}</div>` : ''}<label class="field"><span>Their email</span><textarea id="reply-email" rows="8" maxlength="12000" placeholder="Paste the whole email here"></textarea></label><label class="field"><span>What you want to say (optional)</span><input id="reply-goal" maxlength="1000" placeholder="For example: accept the interview and suggest Tuesday or Wednesday afternoon"></label><label class="field"><span>Language (optional)</span><input id="reply-language" maxlength="80" placeholder="Same as their email"></label><div id="reply-result"></div>`,
+    button('Close', 'close-modal') + button(icon('spark') + ' Draft reply', 'generate-reply', 'primary button-icon', job ? `data-job-id="${job.id}"` : ''));
 }
 
 function quickMarksPanel() {
@@ -973,7 +1242,7 @@ function collectionReport() {
 
 function renderMail() {
   const connected = S.boot.gmail?.connected;
-  $('#main').insertAdjacentHTML('beforeend', `<div class="content-width"><section class="panel"><div class="panel-title"><div><h2>Your job-alert inbox</h2><p>${esc(S.boot.gmail?.message||S.boot.gmail?.detail||'Connect Gmail with read-only access or import saved email files.')}</p></div>${pill(connected?'Connected · read-only':'Not connected',connected?'green':'')}</div><div class="section-actions">${button(connected?'Disconnect Gmail':'Connect Gmail',connected?'disconnect-gmail':'connect-gmail')}${button('Cancel sign-in','cancel-gmail')}${button('Import .eml','import-eml')}${button('Setup guide','gmail-help')}</div><br><label class="field"><span>Gmail search</span><input id="email-query" value="${esc(S.emailQuery)}"></label><div class="section-actions">${button('Find job alerts','fetch-mail','primary')}${button('Next batch','next-mail','',S.emailNext?'':'disabled')}</div></section><section class="panel"><div class="panel-title"><div><h2>Review opportunities</h2><p>Select only the vacancies you want to add. Emails stay unchanged.</p></div>${button('Add selected','import-candidates','primary')}</div><div id="email-results"></div></section></div>`);
+  $('#main').insertAdjacentHTML('beforeend', `<div class="content-width"><section class="panel"><div class="panel-title"><div><h2>Your job-alert inbox</h2><p>${esc(S.boot.gmail?.message||S.boot.gmail?.detail||'Connect Gmail with read-only access or import saved email files.')}</p></div>${pill(connected?'Connected · read-only':'Not connected',connected?'green':'')}</div><div class="section-actions">${button(connected?'Disconnect Gmail':'Connect Gmail',connected?'disconnect-gmail':'connect-gmail')}${button('Cancel sign-in','cancel-gmail')}${button('Import .eml','import-eml')}${button('Setup guide','gmail-help')}${button(icon('spark')+' Draft a reply','reply-dialog','button-icon')}</div><br><label class="field"><span>Gmail search</span><input id="email-query" value="${esc(S.emailQuery)}"></label><div class="section-actions">${button('Find job alerts','fetch-mail','primary')}${button('Next batch','next-mail','',S.emailNext?'':'disabled')}</div></section><section class="panel"><div class="panel-title"><div><h2>Review opportunities</h2><p>Select only the vacancies you want to add. Emails stay unchanged.</p></div>${button('Add selected','import-candidates','primary')}</div><div id="email-results"></div></section></div>`);
   renderEmailResults();
 }
 
@@ -1110,6 +1379,7 @@ document.addEventListener('input', e => {
     S.settingsDirty = true;
     updateStatus();
   } else if (el.id === 'email-query') S.emailQuery = el.value;
+  else if (el.id === 'chat-input') S.chatDraft = el.value;
 });
 document.addEventListener('change', async e => {
   const el = e.target;
@@ -1171,6 +1441,16 @@ document.addEventListener('change', async e => {
       S.settingsDirty = true;
       renderPage();
       updateStatus();
+    } else if (el.name === 'ai-provider' || el.id === 'chat-ai') {
+      await chooseAi(el.value);
+    } else if (el.dataset.aiModel) {
+      S.boot.ai = await api('/ai', {method: 'PUT', body: {models: {[el.dataset.aiModel]: el.value}}});
+      renderAiPanel();
+      toast(`${S.boot.ai.providers.find(p => p.id === el.dataset.aiModel)?.name} will use ${el.value}.`);
+    } else if (el.id === 'chat-profile') {
+      if (S.chat) S.chat = await api('/chats/' + S.chat.id, {method: 'PATCH', body: {use_profile: el.checked}});
+      else S.chatProfile = el.checked;
+      renderThread();
     } else if (el.dataset.emailIndex !== undefined && el.type === 'checkbox') S.emails[Number(el.dataset.emailIndex)]._selected = el.checked;
     else if (el.id === 'select-all-emails') {
       S.emails.forEach(x => x._selected = el.checked);
@@ -1249,7 +1529,7 @@ async function showHistory(kind) {
 }
 
 function commands() {
-  modal('Quick actions', `<input id="command-search" type="search" placeholder="Search actions…" aria-label="Search quick actions"><div class="command-list">${Object.entries(titles).map(([view,[label]])=>`<button data-view="${view}">${icon(view==='for-you'?'spark':view)}${label}</button>`).join('')}${button(icon('plus')+' Add opportunity','add-job')}${button(icon('spark')+' Find opportunities','collect')}${button(icon('sun')+' Switch theme','theme')}</div>`);
+  modal('Quick actions', `<input id="command-search" type="search" placeholder="Search actions…" aria-label="Search quick actions"><div class="command-list">${Object.entries(titles).map(([view,[label]])=>`<button data-view="${view}">${icon(view==='for-you'?'spark':view)}${label}</button>`).join('')}${button(icon('plus')+' Add opportunity','add-job')}${button(icon('spark')+' Find opportunities','collect')}${button(icon('mail')+' Draft a reply to an email','reply-dialog')}${button(icon('sun')+' Switch theme','theme')}</div>`);
   $('#command-search').addEventListener('input', e => $$('.command-list button').forEach(b => b.classList.toggle('hidden', !b.textContent.toLowerCase().includes(e.target.value.toLowerCase()))));
 }
 
@@ -1368,7 +1648,7 @@ async function action(name, el) {
     return;
   }
   if (name === 'more-menu') {
-    const views = [['profile', 'Profile & writing', 'profile'], ['sources', 'Source library', 'sources'], ['mail', 'Job alerts', 'mail'], ['settings', 'Settings & activity', 'settings']];
+    const views = [['chat', 'AI chat', 'chat'], ['profile', 'Profile & writing', 'profile'], ['sources', 'Source library', 'sources'], ['mail', 'Job alerts', 'mail'], ['settings', 'Settings & activity', 'settings']];
     modal('More', `<div class="command-list more-list">${views.map(([view, label, i]) => `<button data-view="${view}" ${view===S.view?'aria-current="page"':''}>${icon(i)}${label}</button>`).join('')}${button(icon('plus')+' Add opportunity','add-job')}${button(icon('sun')+' Switch theme','theme')}${button(icon('help')+' Help','help')}</div>`);
     return;
   }
@@ -1394,6 +1674,149 @@ async function action(name, el) {
   }
   if (name === 'close-modal') {
     closeModal();
+    return;
+  }
+  if (name === 'analyze-job' || name === 'interview-prep') {
+    const id = S.selected,
+      kind = name === 'analyze-job' ? 'analyze' : 'interview';
+    await task(kind, {job_id: id}, result => {
+      const data = S.details.get(id);
+      if (data) data.insights = result;
+      if (S.selected === id) renderDetail();
+      toast(kind === 'analyze' ? 'Analysis ready. AI can be wrong: check it against the advert.' : 'Interview preparation ready.');
+    });
+    return;
+  }
+  if (name === 'chat-about-job') {
+    S.chat = null;
+    S.chatJob = S.selected;
+    S.chatProfile = true;
+    S.chatOpen = true;
+    await navigate('chat');
+    $('#chat-input')?.focus();
+    return;
+  }
+  if (name === 'new-chat') {
+    S.chat = null;
+    S.chatJob = null;
+    S.chatOpen = true;
+    renderChat();
+    $('#chat-input')?.focus();
+    return;
+  }
+  if (name === 'open-chat') {
+    S.chat = await api('/chats/' + Number(el.dataset.chat));
+    S.chatOpen = true;
+    renderChat();
+    return;
+  }
+  if (name === 'chat-back') {
+    S.chatOpen = false;
+    S.chat = null;
+    renderChat();
+    return;
+  }
+  if (name === 'delete-chat') {
+    const id = Number(el.dataset.chat);
+    if (!confirm('Delete this conversation? It cannot be restored.')) return;
+    await api('/chats/' + id, {method: 'DELETE'});
+    S.chats = (S.chats || []).filter(c => c.id !== id);
+    if (S.chat?.id === id) S.chat = null;
+    renderChat();
+    toast('Conversation deleted.');
+    return;
+  }
+  if (name === 'chat-detach-job') {
+    if (S.chat) S.chat = await api('/chats/' + S.chat.id, {method: 'PATCH', body: {job_id: null}});
+    else S.chatJob = null;
+    renderThread();
+    return;
+  }
+  if (name === 'chat-prompt') {
+    S.chatDraft = el.dataset.prompt || '';
+    await sendChat();
+    return;
+  }
+  if (name === 'send-chat') {
+    await sendChat();
+    return;
+  }
+  if (name === 'copy-message') {
+    const message = S.chat?.messages?.[Number(el.dataset.index)];
+    if (message) {
+      await navigator.clipboard.writeText(message.content);
+      toast('Copied.');
+    }
+    return;
+  }
+  if (name === 'reply-dialog') {
+    replyDialog(el.dataset.jobId ? Number(el.dataset.jobId) : (S.view === 'chat' ? chatJobInfo()?.id : null));
+    return;
+  }
+  if (name === 'generate-reply') {
+    const email = $('#reply-email')?.value.trim() || '';
+    if (!email) throw Error('Paste the email you want to reply to.');
+    const jobId = el.dataset.jobId ? Number(el.dataset.jobId) : null;
+    await task('reply', {email, goal: $('#reply-goal').value, language: $('#reply-language').value, job_id: jobId}, result => {
+      const root = $('#reply-result');
+      if (!root) return toast('Your reply draft is ready, but the dialog was closed. Draft it again to see it.');
+      root.innerHTML = `<label class="field"><span>Subject</span><input id="reply-subject" value="${esc(result.subject)}"></label><label class="field"><span>Your reply</span><textarea id="reply-text" rows="10">${esc(result.reply)}</textarea></label><div class="notice warning"><strong>Check before sending</strong>${result.review_notes.map(n => `<p>${esc(n)}</p>`).join('')}</div><div class="row">${button(icon('copy') + ' Copy reply', 'copy-reply', 'primary button-icon')}<small class="evidence">By ${esc(result.model)}</small></div>`;
+      $('#reply-text').focus();
+    });
+    return;
+  }
+  if (name === 'copy-reply') {
+    await navigator.clipboard.writeText($('#reply-text').value);
+    toast('Reply copied. Paste it into your email, check it, and send it yourself.');
+    return;
+  }
+  if (name === 'save-ai-key') {
+    const provider = el.dataset.provider,
+      input = $('#ai-key-' + provider);
+    if (!input?.value.trim()) throw Error('Paste the API key first.');
+    const result = await api('/ai/keys/' + encodeURIComponent(provider), {method: 'POST', body: {key: input.value}});
+    input.value = '';
+    S.aiModels = {...S.aiModels, ...(result.models || {})};
+    delete result.models;
+    S.boot.ai = result;
+    renderAiPanel();
+    const p = result.providers.find(item => item.id === provider);
+    toast(`${p.name} key checked and saved. Choose ${p.name} above to use it.`);
+    return;
+  }
+  if (name === 'remove-ai-key') {
+    const provider = el.dataset.provider;
+    S.boot.ai = await api('/ai/keys/' + encodeURIComponent(provider), {method: 'DELETE'});
+    delete S.aiModels[provider];
+    renderAiPanel();
+    toast('Key removed from this computer.');
+    return;
+  }
+  if (name === 'refresh-ai-models') {
+    const provider = el.dataset.provider;
+    await task('ai-models', {provider}, result => {
+      S.aiModels[provider] = result.models;
+      renderAiPanel();
+      toast(`${result.models.length} models available.`);
+    });
+    return;
+  }
+  if (name === 'confirm-ai') {
+    const provider = el.dataset.provider;
+    S.boot.ai = await api('/ai', {method: 'PUT', body: {provider, consent: true}});
+    closeModal();
+    renderAiPanel();
+    if (S.view === 'chat') renderThread();
+    const p = S.boot.ai.providers.find(item => item.id === provider);
+    toast(`AI now uses ${p.name} (${p.model}).`);
+    return;
+  }
+  if (name === 'save-ai-limit') {
+    const limit = Number($('#ai-limit').value);
+    if (!Number.isInteger(limit) || limit < 0) throw Error('Enter a whole number of tokens, or 0 for no limit.');
+    S.boot.ai = await api('/ai', {method: 'PUT', body: {monthly_token_limit: limit}});
+    renderAiPanel();
+    toast(limit ? `Cloud AI stops at ${tokens(limit)} tokens a month.` : 'No monthly limit for cloud AI.');
     return;
   }
   if (name === 'commands') {
@@ -1990,6 +2413,11 @@ document.addEventListener('click', async e => {
   }
 });
 document.addEventListener('keydown', e => {
+  if (e.target.id === 'chat-input' && e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+    e.preventDefault();
+    sendChat().catch(err => toast(err.message, true));
+    return;
+  }
   if ($('#modal').open && e.key === 'Escape') {
     e.preventDefault();
     closeModal();

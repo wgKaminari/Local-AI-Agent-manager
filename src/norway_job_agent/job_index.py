@@ -435,7 +435,9 @@ _REMOVABLE = """status = 'new' AND notes = '' AND source NOT IN ('manual', 'gmai
               AND id NOT IN (SELECT job_id FROM drafts)
               AND id NOT IN (SELECT job_id FROM application_preparations)
               AND id NOT IN (SELECT job_id FROM application_deliveries)
-              AND id NOT IN (SELECT job_id FROM job_provenance)"""
+              AND id NOT IN (SELECT job_id FROM job_provenance)
+              AND id NOT IN (SELECT job_id FROM job_insights)
+              AND id NOT IN (SELECT job_id FROM ai_chats WHERE job_id IS NOT NULL)"""
 
 
 def prune_outside_it(store: JobStore) -> int:

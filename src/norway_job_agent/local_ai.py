@@ -5,6 +5,10 @@ https://docs.ollama.com/api/tags and
 https://docs.ollama.com/api-reference/show-model-details.
 Remote metadata fields are defined in Ollama's official api/types.go.
 No function in this module installs models, saves profiles or submits applications.
+
+Where a model name is expected, a cloud_ai.CloudEngine may be passed instead
+when you chose Claude, ChatGPT, Gemini or DeepSeek in Settings: the same
+instructions and validation then apply to that provider's answer.
 """
 
 from __future__ import annotations
@@ -21,6 +25,8 @@ DEFAULT_MODEL = "qwen3:4b"
 MAX_CV_CHARS = 20_000
 MAX_JOB_CHARS = 14_000
 MAX_INPUT_CHARS = 30_000
+# Cloud models read far more than a small local model's memory allows.
+MAX_CLOUD_INPUT_CHARS = 150_000
 MAX_RESPONSE_BYTES = 1_000_000
 MAX_OUTPUT_CHARS = 16_000
 # Generation streams, so time limits measure silence rather than total time:
@@ -147,7 +153,13 @@ Return cv_text as an empty string; the application will retain the original text
 """
 
 
+def _is_cloud(model) -> bool:
+    return getattr(model, "is_cloud", False) is True
+
+
 def _model_name(model: str) -> str:
+    if _is_cloud(model):
+        return model
     if not isinstance(model, str) or len(model) > 128 or not _MODEL_PATTERN.fullmatch(model):
         raise ValueError("Choose a local Ollama model name, such as qwen3:4b; URLs are not accepted.")
     lowered = model.lower()
@@ -286,11 +298,12 @@ def _context_size(encoded: str, instructions: str) -> int:
     return min(24576, max(8192, -(-estimate // 2048) * 2048))
 
 
-def _stream_chat(payload: dict, model: str, progress=None) -> dict:
+def _stream_chat(payload: dict, model: str, progress=None, on_text=None) -> dict:
     """POST /api/chat with streaming; return the same shape as a non-streamed reply.
 
-    Progress reports tokens and speed so a slow model visibly works. Partial
-    output is never returned: an interrupted stream raises LocalAIError.
+    Progress reports tokens and speed so a slow model visibly works; on_text
+    receives the text so far, for a chat. Partial output is never returned:
+    an interrupted stream raises LocalAIError.
     """
     import time
     data = json.dumps({**payload, "stream": True}, ensure_ascii=False).encode("utf-8")
@@ -334,6 +347,8 @@ def _stream_chat(payload: dict, model: str, progress=None) -> dict:
             if isinstance(piece, str) and piece:
                 parts.append(piece)
                 tokens += 1
+                if on_text is not None:
+                    on_text("".join(parts))
                 if first is None:
                     first = time.monotonic()
                     if connection.sock is not None:
@@ -360,17 +375,44 @@ def _stream_chat(payload: dict, model: str, progress=None) -> dict:
     return result
 
 
-def _chat(model: str, instructions: str, data: dict, schema: dict, *, feedback: str | None = None, attempt: int = 0, progress=None) -> dict:
+def _parse_structured(content, schema: dict, limit: int = MAX_OUTPUT_CHARS) -> dict:
+    if not isinstance(content, str) or not content.strip() or len(content) > limit:
+        raise _RejectedOutput("The model returned empty or oversized output. Retry with shorter input.")
+    text = content.strip()
+    if not text.startswith("{"):
+        # Cloud models sometimes wrap the object in a Markdown fence.
+        start, end = text.find("{"), text.rfind("}")
+        text = text[start:end + 1] if 0 <= start < end else text
+    try:
+        result = json.loads(text)
+    except (ValueError, RecursionError):
+        raise _RejectedOutput("The model did not return valid structured JSON. Retry or choose another model.") from None
+    if not isinstance(result, dict) or set(result) != set(schema["required"]):
+        raise _RejectedOutput("The model returned unexpected fields. Retry; the output was not accepted.")
+    return result
+
+
+def _chat(model: str, instructions: str, data: dict, schema: dict, *, feedback: str | None = None, attempt: int = 0,
+          progress=None, num_predict: int = 2000, output_limit: int = MAX_OUTPUT_CHARS) -> dict:
     _model_name(model)
     encoded = json.dumps(data, ensure_ascii=False)
-    if len(encoded) > MAX_INPUT_CHARS:
-        raise ValueError(f"Combined candidate and vacancy text is too long; shorten it to under {MAX_INPUT_CHARS:,} characters.")
-    # Verify before sending any personal data. A local model can be an alias for
-    # Ollama Cloud despite having an innocuous name, hence the separate /show.
-    _verify_local_model(model)
+    limit = MAX_CLOUD_INPUT_CHARS if _is_cloud(model) else MAX_INPUT_CHARS
+    if len(encoded) > limit:
+        raise ValueError(f"Combined candidate and vacancy text is too long; shorten it to under {limit:,} characters.")
     if feedback:
         # Our own fixed validation message, never model or user text.
         instructions += f"\nA previous attempt was rejected by validation: {feedback} Correct this in the new answer."
+    if _is_cloud(model):
+        if progress is not None:
+            progress(f"Writing with {model.label}…" if attempt == 0
+                     else f"Retrying (attempt {attempt + 1} of {MAX_GENERATION_ATTEMPTS}): {feedback}")
+        reply = model.generate(instructions + "\nJSON schema:\n" + json.dumps(schema),
+                               [{"role": "user", "content": encoded}], json_mode=True, progress=progress)
+        _last_speed.value = None
+        return _parse_structured(reply["text"], schema, output_limit)
+    # Verify before sending any personal data. A local model can be an alias for
+    # Ollama Cloud despite having an innocuous name, hence the separate /show.
+    _verify_local_model(model)
     if progress is not None:
         progress("Loading your local model… the first draft after starting can take a minute." if attempt == 0
                  else f"Retrying (attempt {attempt + 1} of {MAX_GENERATION_ATTEMPTS}): {feedback}")
@@ -382,7 +424,7 @@ def _chat(model: str, instructions: str, data: dict, schema: dict, *, feedback: 
         ],
         "format": schema, "think": False,
         "truncate": False, "shift": False,
-        "options": {"temperature": min(0.6, 0.2 + 0.2 * attempt), "num_predict": 2000,
+        "options": {"temperature": min(0.6, 0.2 + 0.2 * attempt), "num_predict": num_predict,
                     "num_ctx": _context_size(encoded, instructions)},
         "keep_alive": "5m",  # Free the model's memory soon after drafting.
     }, model, progress)
@@ -391,17 +433,33 @@ def _chat(model: str, instructions: str, data: dict, schema: dict, *, feedback: 
     if response.get("done") is not True or response.get("done_reason") == "length":
         raise _RejectedOutput("The model did not finish its response. Shorten the input and retry; no partial draft was accepted.")
     message = response.get("message")
-    content = message.get("content") if isinstance(message, dict) else None
-    if not isinstance(content, str) or not content.strip() or len(content) > MAX_OUTPUT_CHARS:
-        raise _RejectedOutput("The local model returned empty or oversized output. Retry with shorter input.")
-    try:
-        result = json.loads(content)
-    except (ValueError, RecursionError):
-        raise _RejectedOutput("The local model did not return valid structured JSON. Retry or choose another local chat model.") from None
-    if not isinstance(result, dict) or set(result) != set(schema["required"]):
-        raise _RejectedOutput("The local model returned unexpected fields. Retry; the output was not accepted.")
+    result = _parse_structured(message.get("content") if isinstance(message, dict) else None, schema, output_limit)
     _last_speed.value = response.get("_tokens_per_second")
     return result
+
+
+def chat_text(model: str, system: str, messages: list[dict], *, on_text=None, progress=None) -> str:
+    """A free-text chat answer from the local model, for the AI chat window."""
+    _model_name(model)
+    encoded = json.dumps(messages, ensure_ascii=False)
+    if len(encoded) + len(system) > MAX_INPUT_CHARS * 2:
+        raise ValueError("This conversation is too long for your local model. Start a new chat.")
+    _verify_local_model(model)
+    if progress is not None:
+        progress("Loading your local model… the first answer after starting can take a minute.")
+    response = _stream_chat({
+        "model": model,
+        "messages": [{"role": "system", "content": system}, *messages],
+        "think": False, "truncate": False, "shift": False,
+        "options": {"temperature": 0.5, "num_predict": 2000, "num_ctx": _context_size(encoded, system)},
+        "keep_alive": "5m",
+    }, model, progress, on_text)
+    if response.get("done") is not True or response.get("done_reason") == "length":
+        raise LocalAIError("Your local model did not finish its answer. Ask for something shorter.")
+    content = (response.get("message") or {}).get("content")
+    if not isinstance(content, str) or not content.strip():
+        raise LocalAIError("Your local model returned an empty answer. Try again.")
+    return content.strip()
 
 
 class _Speed(threading.local):
@@ -482,7 +540,7 @@ def generate_cover_letter(job: dict, profile: dict, model: str = DEFAULT_MODEL, 
             notes = _strings(result["review_notes"], "Generated review notes", maximum=12)
             evidence = _strings(result["used_evidence"], "Generated evidence", maximum=12)
         except ValueError:
-            raise _RejectedOutput("The local model returned invalid draft fields. Retry; the draft was not accepted.") from None
+            raise _RejectedOutput("The model returned invalid draft fields. Retry; the draft was not accepted.") from None
         if not letter or not evidence or any(not _is_excerpt(item, source_texts) for item in evidence):
             raise _RejectedOutput("The draft did not cite supplied candidate evidence correctly. Retry and review every factual claim.")
         _check_language_claims(letter, facts["languages"])
@@ -515,9 +573,9 @@ def extract_profile(cv_text: str, model: str = DEFAULT_MODEL, *, progress=None) 
                 raise ValueError("Invalid suggested languages")
             suggestion["languages"] = {_text(key, "Suggested language", 80): _text(value, "Suggested language level", 120) for key, value in languages.items()}
         except ValueError:
-            raise _RejectedOutput("The local model returned invalid profile fields. Retry; the suggestion was not accepted.") from None
+            raise _RejectedOutput("The model returned invalid profile fields. Retry; the suggestion was not accepted.") from None
         if suggestion["cv_text"]:
-            raise _RejectedOutput("The local model rewrote the CV field. Retry; only the original CV text is retained.")
+            raise _RejectedOutput("The model rewrote the CV field. Retry; only the original CV text is retained.")
         if suggestion["work_authorization"] and not _is_excerpt(suggestion["work_authorization"], [original]):
             raise _RejectedOutput("The profile suggestion included work authorization not found in the CV. Review your actual permission manually.")
         # Small local models sometimes paraphrase one field even when all other

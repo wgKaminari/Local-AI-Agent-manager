@@ -48,8 +48,9 @@ Your profile, CV text, database, notes and drafts remain in `%USERPROFILE%\.norw
    Matching reads the whole advert, not just the title: a job counts as related when its title names your field ("Software Engineer, Applied AI") or the advert centres on it, in English, Norwegian (Bokmål and Nynorsk), German or Ukrainian. Product, sales, legal and management roles are not recommended unless they are one of your target titles. The score is role fit 50%, skills 30% (full credit at 8 of your skills) and experience 20%. A posting asking for up to one year more than you have is marked **Stretch** and stays in For you.
 3. Browse **Discover**, **For you**, **Saved** and **Applications**. **Filters** combines several choices at once: stages (for example Applied and Interview together), experience (fits, stretch, above), when it was posted, a lowest match % and remote only; each active filter shows as a chip you can remove with one click. **Sort** by best match, highest match %, newest posted, recently found, deadline or company. The age on each card says when the employer posted it ("2 weeks ago"; hover for the date), or when the app found it if the site gives no date. **Quick marks** on every card (Applied and Rejected by default; choose up to four stages under **Settings & activity → Quick marks**) mark a vacancy in one click without opening it. The mark is saved at once and the list updates: with a filter such as only **New**, a job you mark Applied leaves the list straight away, and the message offers **Undo**. Click a lit mark again to undo it too. Saving a stage or a mark keeps your place in the list. For you excludes clear experience conflicts by default, ranks by fit in bands of 5 match points and lets employers take turns inside each band, one job each (so one company does not fill the top, and a 96% job never drops below a 94%), and keeps unknown requirements marked for review. All experience levels remain available, and Saved/Applications keep your follow-up records. Keyword overlap is supporting evidence, not eligibility or hiring probability.
 4. Open **Notes & stage** to record next steps. You control the stage: generating or sending material never automatically marks a vacancy as applied.
-5. Open **Cover letter**, choose **Draft with local AI**, check every claim, then edit and save a version or export it.
+5. Open **Cover letter**, choose **Draft with** your AI (local or cloud, see below), check every claim, then edit and save a version or export it.
 6. Open **Application**, read public questions or paste them, draft answers, review the choices and attach files explicitly. Use **Review & send** for supported forms, or transfer the prepared material to the employer's site.
+7. Open **AI insights** to have the AI analyse the vacancy (fit, gaps, red flags, key facts such as salary, remote work and visa help) or prepare you for its interview. **Ask AI** starts a chat about the vacancy in **AI chat**, and **Draft a reply** writes an answer to an employer's email for you to copy.
 
 Editing buffers stay with you between pages and vacancies. Save versions before closing; the native window warns about unsaved work or tasks still running. Collection and AI generation run in the background, and the status area describes actual activity. Failed operations keep previously saved records available.
 
@@ -57,13 +58,13 @@ Use **J** and **K** to move through opportunities, **/** or **Ctrl F** to search
 
 ## On your phone
 
-Job Agent also works on your phone, Android or iPhone, over your home Wi-Fi: the same features and the same data, laid out for a small screen with a bottom tab bar (Discover, For you, Saved, Applications, More). Your PC keeps doing the work (collection, the local AI, Gmail, the database), so it must be on with Job Agent open.
+Job Agent also works on your phone, Android or iPhone, over your home Wi-Fi: the same features and the same data, laid out for a small screen with a bottom tab bar (Discover, For you, Saved, Applications, More). Your PC keeps doing the work (collection, the AI, Gmail, the database), so it must be on with Job Agent open. AI chat is under **More**.
 
 1. On the PC open **Settings & activity → Phone access** and choose **Turn on phone access**. If Windows asks whether Python may use private networks, choose **Allow**.
 2. Scan the QR code with the phone's camera, or type the address shown into its browser and enter the pairing code (valid for 10 minutes).
 3. In the browser menu choose **Add to Home screen** (iPhone: Share → Add to Home Screen) to open Job Agent like an app. An iPhone may ask for a code once more from the home-screen icon.
 
-Connecting Gmail, **Review & send** (the employer's form opens in a browser window on the PC), updates, desktop shortcuts, the Adzuna key and managing phones stay on the PC; the phone explains this when you try. Paired phones are listed under Phone access, where **Remove** locks one out at once. Only devices on your home network are answered, the page never contains the PC's session token, and each phone uses its own token, stored on the PC only as a hash. The connection inside your home network is not encrypted, so turn phone access on only on a network you trust. See [phone access](docs/phone-access.md).
+Connecting Gmail, **Review & send** (the employer's form opens in a browser window on the PC), updates, desktop shortcuts, the Adzuna key, AI provider keys and managing phones stay on the PC; the phone explains this when you try. Paired phones are listed under Phone access, where **Remove** locks one out at once. Only devices on your home network are answered, the page never contains the PC's session token, and each phone uses its own token, stored on the PC only as a hash. The connection inside your home network is not encrypted, so turn phone access on only on a network you trust. See [phone access](docs/phone-access.md).
 
 ## Features and coverage
 
@@ -97,9 +98,13 @@ Collection downloads up to six sources at a time, then saves each source in its 
 
 The configuration limit is 250 sources. Country/source additions that exceed it are rejected without partially changing configuration. Country/city matching is a discovery hint, not proof of remote eligibility or work authorization; remote boards are placed in a country only when the advert names it or a region that includes it (Europe, Worldwide). FINN forbids automated collection and Indeed, Stepstone, Glassdoor and robota.ua block automated visitors; the app does not work around either. Use their saved-search alert emails through **Job alerts**, or manual import. Robots restrictions are respected, except for LinkedIn's opt-in public search described above. The app does not collect while closed.
 
+## AI: local or your own cloud key
+
+By default AI runs on your free local model through **Ollama** (below), and nothing leaves your computer. Under **Settings & activity → AI assistant** you can instead add your own API key for **Claude**, **ChatGPT**, **Gemini** or **DeepSeek**: cloud models write better and faster but are billed to your account per use, and your profile, CV, the vacancy and your chat messages are then sent to that provider. The app asks you to confirm this once, keeps the key encrypted for your Windows account (never in backups or shown again), and stops cloud requests at a monthly token limit you set (1,000,000 by default). See [AI assistant](docs/ai-assistant.md) for what is sent, costs and the features.
+
 ## Local AI
 
-AI runs through **Ollama** at `127.0.0.1:11434` with a downloaded local text model. Remote endpoints and cloud model aliases are rejected. No paid AI API or cloud model account is required.
+The local model runs through **Ollama** at `127.0.0.1:11434` with a downloaded local text model. Ollama's remote endpoints and cloud model aliases are rejected. No paid AI API or cloud model account is required.
 
 Drafting starts an installed Ollama automatically when it is not running, shows live progress while the model writes, and only gives up if Ollama stops responding, so a slow computer is never cut off mid-draft. If drafting is slow, close memory-heavy programs (browsers with many tabs, games): with little free memory Windows swaps the model to disk. The app tells you when that happened.
 
