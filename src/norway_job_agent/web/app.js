@@ -33,6 +33,7 @@ const paths = {
   back: 'm12 5-7 7 7 7 M5 12h15',
   globe: 'M21 12H3 M12 3a16 16 0 0 1 0 18 16 16 0 0 1 0-18 M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0',
   more: 'M4.5 12h1 M11.5 12h1 M18.5 12h1',
+  filter: 'M3 5h18 M6 12h12 M10 19h4',
   phone: 'M7 2h10v20H7Z M11 18h2'
 };
 const icon = name => `<svg aria-hidden="true" viewBox="0 0 24 24"><path d="${paths[name]||paths.file}"/></svg>`;
@@ -58,9 +59,14 @@ const S = {
   tab: 'overview',
   country: '',
   query: '',
-  status: '',
-  experience: 'relevant',
+  status: '',  // one stage or several, comma-separated
+  experience: 'fits,stretch',  // fits, stretch and/or above; '' = every level
+  posted: '',  // days: '1', '3', '7', '30'
+  minScore: '',
+  remote: false,
   sort: 'match',
+  listKey: '',
+  markUndo: new Map(),
   jobs: [],
   selected: null,
   details: new Map(),
@@ -178,7 +184,7 @@ let toastTimer;
 function toast(message, error = false) {
   clearTimeout(toastTimer);
   $('#notifications').innerHTML = `<div class="toast ${error?'error':''}"><span>${esc(message)}</span>${button('×','dismiss-toast','quiet','aria-label="Dismiss notification"')}</div>`;
-  toastTimer = setTimeout(() => $('#notifications').replaceChildren(), error ? 16000 : 6000);
+  toastTimer = setTimeout(() => $('#notifications').replaceChildren(), error ? 12000 : 4000);
 }
 
 // Background work that is safe to interrupt: it simply completes next time.
@@ -304,23 +310,37 @@ function isDiscovery(view = S.view) {
   return ['discover', 'for-you', 'saved', 'applications'].includes(view);
 }
 
+// How long ago, in words: "just now", "3 hours ago", "yesterday", "2 weeks ago".
 function ago(value) {
   const time = Date.parse(value || '');
   if (!time) return '';
   const minutes = Math.max(0, (Date.now() - time) / 60000);
-  if (minutes < 1) return 'now';
-  if (minutes < 60) return Math.round(minutes) + 'm';
-  if (minutes < 1440) return Math.round(minutes / 60) + 'h';
-  if (minutes < 10080) return Math.round(minutes / 1440) + 'd';
-  if (minutes < 525600) return Math.round(minutes / 10080) + 'w';
-  return Math.round(minutes / 525600) + 'y';
+  const unit = (n, word) => `${n} ${word}${n === 1 ? '' : 's'} ago`;
+  if (minutes < 1) return 'just now';
+  if (minutes < 60) return unit(Math.round(minutes), 'minute');
+  if (minutes < 1440) return unit(Math.round(minutes / 60), 'hour');
+  const days = Math.floor(minutes / 1440);
+  if (days === 1) return 'yesterday';
+  if (days < 7) return unit(days, 'day');
+  if (days < 30) return unit(Math.floor(days / 7), 'week');
+  if (days < 365) return unit(Math.floor(days / 30), 'month');
+  return unit(Math.floor(days / 365), 'year');
+}
+
+// The card's age: when the employer posted it, or when the app found it.
+function postedLabel(j) {
+  const value = j.published_at || j.discovered_at;
+  const time = Date.parse(value || '');
+  if (!time) return ['', ''];
+  const day = new Date(time).toLocaleDateString(undefined, {day: 'numeric', month: 'short', year: 'numeric'});
+  return [ago(value), j.published_at ? `Posted ${day}` : `Found by the app ${day} (no posting date given)`];
 }
 
 function refreshCard() {
   const r = S.boot.collection;
   const failed = r?.sources?.filter(s => !s.ok).length || 0;
   const when = r?.completed_at || r?.started_at;
-  const status = when ? `Refreshed ${ago(when)} ago` : 'Not refreshed yet';
+  const status = when ? `Refreshed ${ago(when)}` : 'Not refreshed yet';
   const detail = r ? `${r.sources?.length||0} sources checked${failed?` · ${failed} need attention`:''}` : 'Choose a country, then find opportunities.';
   return `<div class="refresh-card"><strong title="${esc(status)}"><span class="dot ${failed||!when?'amber':''}"></span><span>${esc(status)}</span></strong><small>${esc(detail)}</small>${button(icon('spark')+'Find opportunities','collect','','title="Find opportunities"')}</div>`;
 }
@@ -359,10 +379,43 @@ document.addEventListener('toggle', e => {
   if (e.target.matches?.('.coverage-notice')) S.coverageOpen = e.target.open;
 }, true);
 
+const SORTS = [['match', 'Best match'], ['score', 'Highest match %'], ['newest', 'Newest posted'], ['found', 'Recently found'], ['deadline', 'Deadline soonest'], ['company', 'Company A–Z']];
+const DEFAULT_EXPERIENCE = 'fits,stretch';
+const EXPERIENCE_LABELS = {fits: 'Fits my experience', stretch: 'Stretch', above: 'Above my experience'};
+const POSTED_LABELS = {'1': 'Posted in the last 24 hours', '3': 'Posted in the last 3 days', '7': 'Posted in the last week', '30': 'Posted in the last month'};
+
+function experienceView() {
+  return ['discover', 'for-you'].includes(S.view);
+}
+
+// Filters other than the search box and sort, each removable as a chip.
+function activeFilters() {
+  const active = (S.status ? S.status.split(',') : []).map(stage => ({key: 'status:' + stage, label: cap(stage)}));
+  if (experienceView() && S.experience !== DEFAULT_EXPERIENCE) active.push({key: 'experience', label: S.experience ? S.experience.split(',').map(g => EXPERIENCE_LABELS[g]).join(' + ') : 'All experience levels'});
+  if (S.posted) active.push({key: 'posted', label: POSTED_LABELS[S.posted]});
+  if (S.minScore) active.push({key: 'score', label: `Match ${S.minScore}% or more`});
+  if (S.remote) active.push({key: 'remote', label: 'Remote only'});
+  return active;
+}
+
+function filtersOn() {
+  return Boolean(S.query || activeFilters().length || S.sort !== 'match');
+}
+
+function filtersDialog() {
+  const stages = S.status ? S.status.split(',') : [];
+  const groups = S.experience ? S.experience.split(',') : Object.keys(EXPERIENCE_LABELS);
+  const check = (name, value, label, on) => `<label class="check-row"><input type="checkbox" name="${name}" value="${value}" ${on ? 'checked' : ''}> ${label}</label>`;
+  const radio = (name, value, label, on) => `<label class="check-row"><input type="radio" name="${name}" value="${value}" ${on ? 'checked' : ''}> ${label}</label>`;
+  modal('Filters', `<form id="filter-form" class="filter-form"><fieldset><legend>Stage</legend><div class="filter-options">${orderedStatuses.map(s => check('stage', s, cap(s), stages.includes(s))).join('')}</div><small>Tick several to see them together. None ticked shows every stage.</small></fieldset>${experienceView() ? `<fieldset><legend>Experience</legend><div class="filter-options">${check('experience', 'fits', 'Fits my experience', groups.includes('fits'))}${check('experience', 'stretch', 'Stretch: up to a year more', groups.includes('stretch'))}${check('experience', 'above', 'Above my experience', groups.includes('above'))}</div></fieldset>` : ''}<fieldset><legend>Posted</legend><div class="filter-options">${[['', 'Any time'], ['1', 'Last 24 hours'], ['3', 'Last 3 days'], ['7', 'Last week'], ['30', 'Last month']].map(([v, l]) => radio('posted', v, l, S.posted === v)).join('')}</div></fieldset><fieldset><legend>Match</legend><div class="filter-options">${[['', 'Any match'], ['50', '50% or more'], ['70', '70% or more'], ['85', '85% or more']].map(([v, l]) => radio('score', v, l, S.minScore === v)).join('')}</div></fieldset><fieldset><legend>Work</legend><div class="filter-options">${check('remote', '1', 'Remote only', S.remote)}</div></fieldset></form>`,
+    button('Clear all', 'clear-filters', 'quiet') + button('Show results', 'apply-filters', 'primary'));
+}
+
 function renderDiscovery() {
-  const filtered = S.query || S.status || S.sort !== 'match' || (['discover', 'for-you'].includes(S.view) && S.experience !== 'relevant');
+  const filtered = filtersOn();
+  const active = activeFilters();
   const select = (id, label, items, value, on) => `<select id="${id}" aria-label="${label}" class="${on?'on':''}">${items}</select>`;
-  $('#main').insertAdjacentHTML('beforeend', `<div class="results-layout ${S.selected&&S.showDetail?'has-selection':''}"><section class="results-panel" aria-label="Opportunities"><div class="list-head"><div class="list-title"><h1>${titles[S.view][0]}</h1><span class="count">${listCount()}</span><div class="heading-actions">${button(icon('plus'),'add-job','icon-only quiet','aria-label="Add opportunity" title="Add an opportunity you found"')}</div></div><div class="filterbar"><div class="search">${icon('search')}<input id="job-search" type="search" aria-label="Search opportunities" placeholder="Search roles, companies, skills" value="${esc(S.query)}"><kbd>/</kbd></div>${['discover','for-you'].includes(S.view)?select('experience-filter','Experience level',options([['relevant','Fits my experience'],['all','All levels'],['mismatch','Above my experience']],S.experience),S.experience,S.experience!=='relevant'):''}${select('status-filter','Filter by stage',options(orderedStatuses,S.status,'Any stage'),S.status,Boolean(S.status))}${select('sort','Sort opportunities',options([['match','Best match'],['newest','Newest'],['company','Company A–Z']],S.sort),S.sort,S.sort!=='match')}${filtered?button('Reset','reset-filters','quiet'):''}</div></div>${coverageNotice()}<div id="job-results"></div></section><section id="job-detail" class="detail" aria-label="Opportunity details"></section></div>`);
+  $('#main').insertAdjacentHTML('beforeend', `<div class="results-layout ${S.selected&&S.showDetail?'has-selection':''}"><section class="results-panel" aria-label="Opportunities"><div class="list-head"><div class="list-title"><h1>${titles[S.view][0]}</h1><span class="count">${listCount()}</span><div class="heading-actions">${button(icon('plus'),'add-job','icon-only quiet','aria-label="Add opportunity" title="Add an opportunity you found"')}</div></div><div class="filterbar"><div class="search">${icon('search')}<input id="job-search" type="search" aria-label="Search opportunities" placeholder="Search roles, companies, skills" value="${esc(S.query)}"><kbd>/</kbd></div>${button(icon('filter')+'Filters'+(active.length?` <span class="badge">${active.length}</span>`:''),'open-filters','filter-button button-icon'+(active.length?' on':''),'aria-haspopup="dialog"')}${select('sort','Sort opportunities',options(SORTS,S.sort),S.sort,S.sort!=='match')}${filtered?button('Reset','reset-filters','quiet'):''}</div>${active.length?`<div class="filter-chips" aria-label="Active filters">${active.map(f=>button(esc(f.label)+icon('close'),'remove-filter','chip',`data-filter="${esc(f.key)}" aria-label="Remove filter: ${esc(f.label)}" title="Remove this filter"`)).join('')}</div>`:''}</div>${coverageNotice()}<div id="job-results"></div></section><section id="job-detail" class="detail" aria-label="Opportunity details"></section></div>`);
   renderCards();
   renderDetail();
 }
@@ -384,7 +437,7 @@ const stageTones = {
 function jobTags(j) {
   const e = j.match?.experience || {};
   const tags = [];
-  if (j.status !== 'new') tags.push(pill(cap(j.status), stageTones[j.status] || ''));
+  if (j.status !== 'new' && !quickMarks().includes(j.status)) tags.push(pill(cap(j.status), stageTones[j.status] || ''));
   if (e.status === 'mismatch') tags.push(pill(e.minimum_years != null ? `${e.minimum_years}+ yrs asked` : 'Above your level', 'amber'));
   else if (e.status === 'stretch') tags.push(pill(`Stretch: ${e.minimum_years}+ yrs`, 'blue'));
   else if (j.match?.track === 'horizon' && S.view !== 'for-you') tags.push(pill('Related role'));
@@ -417,30 +470,51 @@ function marketBar() {
   return `<div class="market-bar">${icon('search')}<span class="market-text">${text}</span><span class="market-actions">${button(busy?'Searching…':'Search job sites','market-search','primary',busy?'disabled':'title="Search every enabled job site for this now"')}${saved?pill('Saved search','green'):button('Save search','save-search','quiet','title="Include this search in every refresh"')}</span></div>`;
 }
 
+// One-click stage buttons on each card, chosen in Settings & activity.
+function quickMarks() {
+  return S.boot?.appearance?.quick_marks || ['applied', 'rejected'];
+}
+const MARK_ICONS = {saved: 'saved', preparing: 'file', ready: 'check', applied: 'check', interview: 'profile', rejected: 'close', archived: 'file'};
+
+function markButtons(j) {
+  return `<div class="quick-marks">${quickMarks().map(mark => {
+    const on = j.status === mark;
+    return `<button type="button" class="mark ${on ? 'on mark-' + mark : ''}" data-action="quick-mark" data-id="${j.id}" data-mark="${mark}" aria-pressed="${on}" aria-label="${on ? `Marked ${cap(mark)}: click to undo` : `Mark as ${cap(mark)}`}: ${esc(j.title)}" title="${on ? `Marked ${cap(mark)}. Click to undo.` : `Mark as ${cap(mark)}`}">${icon(MARK_ICONS[mark] || 'check')}<span>${cap(mark)}</span></button>`;
+  }).join('')}</div>`;
+}
+
 function renderCards() {
   const root = $('#job-results');
   if (!root) return;
+  const scroll = root.scrollTop;  // redrawing the cards keeps your place
   root.innerHTML = marketBar() + (S.jobs.length ? S.jobs.map(j => {
     const score = j.match?.score,
       tier = score == null ? '' : score >= 70 ? 'high' : score >= 45 ? 'mid' : '';
     const selected = S.selected === j.id;
-    return `<button type="button" class="job-card ${selected?'selected':''}" data-job="${j.id}" aria-pressed="${selected}"><span class="score ${tier}" title="Fit with your profile: role 50%, skills 30%, experience 20%">${score??'–'}</span><span class="title-line"><span class="sr-only">${score==null?'No match score. ':score+'% fit. '}</span>${esc(j.title)}</span><span class="age" title="${esc(j.published_at||j.discovered_at||'')}">${ago(j.published_at||j.discovered_at)}</span><span class="job-sub">${esc(j.company||'Employer not listed')} · ${esc(j.location||'Location to confirm')}${alsoOn(j)}</span><span class="job-tags">${jobTags(j)}</span></button>`;
-  }).join('') + (S.summary?.has_more ? `<div class="empty">${button(`Show ${Math.min(PAGE_SIZE,(S.summary.shown||0)-S.jobs.length)} more of ${(S.summary.shown||0).toLocaleString()}`, 'more-jobs', 'quiet')}</div>` : '') : `<div class="empty"><div class="empty-icon">${icon('discover')}</div><h2>${S.query||S.status?'Nothing matches these filters':'No opportunities yet'}</h2><p>${S.query?'Nothing collected matches yet. Search job sites above, try other words, or reset the filters.':S.status?'Try another stage or reset the filters. Your saved work is unaffected.':'Choose a country and find opportunities, or add a vacancy you found yourself.'}</p>${button(S.query||S.status?'Reset filters':'Find opportunities',S.query||S.status?'reset-filters':'collect',S.query?'':'primary')}</div>`);
+    const [age, posted] = postedLabel(j);
+    return `<div class="job-row ${selected?'selected':''}"><button type="button" class="job-card ${selected?'selected':''}" data-job="${j.id}" aria-pressed="${selected}"><span class="score ${tier}" title="Fit with your profile: role 50%, skills 30%, experience 20%">${score??'–'}</span><span class="title-line"><span class="sr-only">${score==null?'No match score. ':score+'% fit. '}</span>${esc(j.title)}</span><span class="age" title="${esc(posted)}"><span class="sr-only">${esc(posted)}. </span>${esc(age)}</span><span class="job-sub">${esc(j.company||'Employer not listed')} · ${esc(j.location||'Location to confirm')}${alsoOn(j)}</span><span class="job-tags">${jobTags(j)}</span></button>${markButtons(j)}</div>`;
+  }).join('') + (S.summary?.has_more ? `<div class="empty">${button(`Show ${Math.min(PAGE_SIZE,(S.summary.shown||0)-S.jobs.length)} more of ${(S.summary.shown||0).toLocaleString()}`, 'more-jobs', 'quiet')}</div>` : '') : `<div class="empty"><div class="empty-icon">${icon('discover')}</div><h2>${filtersOn()?'Nothing matches these filters':'No opportunities yet'}</h2><p>${S.query?'Nothing collected matches yet. Search job sites above, try other words, or reset the filters.':filtersOn()?'Try other filters or reset them. Your saved work is unaffected.':'Choose a country and find opportunities, or add a vacancy you found yourself.'}</p>${button(filtersOn()?'Reset filters':'Find opportunities',filtersOn()?'reset-filters':'collect',S.query?'':'primary')}</div>`);
+  root.scrollTop = scroll;
 }
 // The server pages lists; the database may hold tens of thousands of vacancies.
 const PAGE_SIZE = 80;
 
-function listParams(offset) {
-  return new URLSearchParams({
+function listFilters() {
+  return {
     country: S.country,
     query: S.query,
     status: S.status,
     sort: S.sort,
-    experience: ['discover', 'for-you'].includes(S.view) ? S.experience : 'all',
-    view: S.view,
-    offset,
-    limit: PAGE_SIZE
-  });
+    experience: experienceView() ? (S.experience || 'all') : 'all',
+    posted: S.posted || '0',
+    min_score: S.minScore || '0',
+    remote: S.remote ? '1' : '0',
+    view: S.view
+  };
+}
+
+function listParams(offset, limit = PAGE_SIZE) {
+  return new URLSearchParams({...listFilters(), offset, limit});
 }
 
 async function loadMore() {
@@ -464,11 +538,17 @@ async function loadJobs() {
   // the user has moved to a page without a vacancy list.
   if (!['discover', 'for-you', 'saved', 'applications'].includes(S.view)) return;
   const version = ++S.generation;
+  // Reloading the same list (after saving a note or a stage) keeps every
+  // page you loaded and your scroll position; a new filter starts at the top.
+  const key = JSON.stringify(listFilters());
+  const same = key === S.listKey && S.jobs.length > 0;
+  const listScroll = same ? ($('#job-results')?.scrollTop || 0) : 0;
   const {
     jobs,
     summary
-  } = await api('/jobs?' + listParams(0));
+  } = await api('/jobs?' + listParams(0, same ? Math.min(500, Math.max(PAGE_SIZE, S.jobs.length)) : PAGE_SIZE));
   if (version !== S.generation) return;
+  S.listKey = key;
   S.jobs = jobs;
   S.summary = summary;
   if (!S.selected && jobs.length) await selectJob(jobs[0].id, false);
@@ -481,6 +561,7 @@ async function loadJobs() {
     const detailScroll = $('#detail-content')?.scrollTop || 0;
     renderPage();
     if ($('#detail-content')) $('#detail-content').scrollTop = detailScroll;
+    if ($('#job-results')) $('#job-results').scrollTop = listScroll;
     const replacement = focusId ? document.getElementById(focusId) : null;
     if (replacement) {
       replacement.focus({
@@ -827,8 +908,13 @@ function renderSettings() {
   const settings = S.settingsDraft || S.boot.settings;
   $('#main').insertAdjacentHTML('beforeend', `<div class="content-width"><section class="panel"><div class="panel-title"><div><h2>Local AI</h2><p>Ollama runs your model on this computer. No cloud AI key is needed.</p></div>${pill('On-device','green')}</div><div class="form-grid">${field('Model name','model',settings.model,{group:'settings',hint:'Save a model name before downloading or generating.'})}<div><label class="field"><span>Available models</span><select id="model-picker"><option value="">Check setup to list installed models</option></select></label></div></div><div class="section-actions">${button('Check setup','check-setup')}${button('Start Ollama','start-ollama')}${button('Download saved model','download-model')}${button('Install PDF support','install-pdf')}${link('Install Ollama','https://ollama.com/download/windows')}</div><div id="setup-result" class="evidence"></div></section>
   ${jobSitesPanel(settings)}<section class="panel"><div class="panel-title"><div><h2>Connected job sources</h2><p>${S.boot.settings.sources.length} configured. One refresh collects every target country; the country switch only filters what you see.</p></div>${button('Browse library','go-sources')}</div><div class="table-wrap"><table><thead><tr><th>Source</th><th>Countries</th><th>Action</th></tr></thead><tbody>${settings.sources.map((s,i)=>`<tr><td>${esc(s.name||s.board||cap(s.type))}<span class="sub">${esc(s.type)}</span></td><td>${esc(s.countries?.join(', ')||(s.type==='nav'?'NO':'Any'))}</td><td>${button('Remove','remove-source','quiet',`data-source-index="${i}"`)}</td></tr>`).join('')}</tbody></table></div><details class="evidence"><summary>Advanced source configuration</summary><p>Edit the source array for custom boards, locations or limits. Invalid changes are rejected when you save.</p><textarea id="sources-json" rows="10" aria-label="Advanced sources JSON">${esc(S.sourcesText??JSON.stringify(settings.sources,null,2))}</textarea></details><div class="savebar"><small>${S.settingsDirty?'Unsaved settings':'Changes apply after saving.'}</small>${button('Save settings','save-settings','primary')}</div></section>
-  ${phonePanel()}<section class="panel"><div class="panel-title"><div><h2>Collection activity</h2><p>See what was collected and which sources need attention.</p></div>${button('Find opportunities','collect')}</div>${collectionReport()}</section><section class="panel"><div class="panel-title"><div><h2>Desktop app</h2><p>Open Job Agent from the Start menu or desktop like any other program: its own icon, no console window, and only one window at a time.</p></div></div><p class="evidence">The app runs entirely on this computer. Your profile, database, notes and drafts stay in your private data folder.</p><div class="section-actions">${REMOTE?'':button('Add Start menu & desktop shortcuts','create-shortcuts','primary')}${button('Switch theme','theme')}${button('Keyboard shortcuts','help')}</div></section>${updatesPanel()}</div>`);
+  ${quickMarksPanel()}${phonePanel()}<section class="panel"><div class="panel-title"><div><h2>Collection activity</h2><p>See what was collected and which sources need attention.</p></div>${button('Find opportunities','collect')}</div>${collectionReport()}</section><section class="panel"><div class="panel-title"><div><h2>Desktop app</h2><p>Open Job Agent from the Start menu or desktop like any other program: its own icon, no console window, and only one window at a time.</p></div></div><p class="evidence">The app runs entirely on this computer. Your profile, database, notes and drafts stay in your private data folder.</p><div class="section-actions">${REMOTE?'':button('Add Start menu & desktop shortcuts','create-shortcuts','primary')}${button('Switch theme','theme')}${button('Keyboard shortcuts','help')}</div></section>${updatesPanel()}</div>`);
   loadPhonePanel();
+}
+
+function quickMarksPanel() {
+  const chosen = quickMarks();
+  return `<section class="panel"><div class="panel-title"><div><h2>Quick marks</h2><p>One-click buttons on every vacancy in the lists, so you can mark one without opening it. Click a lit mark again to undo it. Choose up to four.</p></div>${pill(chosen.length + ' chosen')}</div><div class="mark-options">${orderedStatuses.filter(stage => stage !== 'new').map(stage => `<label class="check-row"><input type="checkbox" data-quick-mark="${stage}" ${chosen.includes(stage) ? 'checked' : ''}> ${cap(stage)}</label>`).join('')}</div></section>`;
 }
 
 // Phone access, managed on the PC: a QR code and pairing code for a phone
@@ -854,7 +940,7 @@ function renderPhoneBody() {
   const p = S.phone || {};
   const badge = $('#phone-panel .panel-title .pill');
   if (badge) badge.outerHTML = pill(p.running ? 'On' : 'Off', p.running ? 'green' : '');
-  const devices = (p.devices || []).length ? `<h3>Paired phones</h3><div class="table-wrap"><table><thead><tr><th>Phone</th><th>Paired</th><th>Last used</th><th>Action</th></tr></thead><tbody>${p.devices.map(d => `<tr><td>${esc(d.name)}</td><td>${esc((d.created_at || '').slice(0, 10))}</td><td>${d.last_seen ? esc(ago(d.last_seen)) + ' ago' : '–'}</td><td>${button('Remove', 'phone-remove', 'quiet', `data-device="${esc(d.id)}"`)}</td></tr>`).join('')}</tbody></table></div>` : '';
+  const devices = (p.devices || []).length ? `<h3>Paired phones</h3><div class="table-wrap"><table><thead><tr><th>Phone</th><th>Paired</th><th>Last used</th><th>Action</th></tr></thead><tbody>${p.devices.map(d => `<tr><td>${esc(d.name)}</td><td>${esc((d.created_at || '').slice(0, 10))}</td><td>${d.last_seen ? esc(ago(d.last_seen)) : '–'}</td><td>${button('Remove', 'phone-remove', 'quiet', `data-device="${esc(d.id)}"`)}</td></tr>`).join('')}</tbody></table></div>` : '';
   if (!p.running) {
     el.innerHTML = `${p.error ? `<div class="notice warning">${esc(p.error)}</div>` : ''}<p class="evidence">Your phone and this PC must be on the same Wi-Fi. When you turn this on, Windows may ask whether Python can use private networks: choose Allow.</p><div class="section-actions">${button(icon('phone') + ' Turn on phone access', 'phone-on', 'primary button-icon')}</div>${devices}`;
     return;
@@ -1029,6 +1115,16 @@ document.addEventListener('change', async e => {
         el.value = old;
         throw err;
       }
+    } else if (el.dataset.quickMark) {
+      const chosen = $$('[data-quick-mark]').filter(input => input.checked).map(input => input.dataset.quickMark);
+      if (chosen.length > 4) {
+        el.checked = false;
+        throw Error('Choose up to four quick marks.');
+      }
+      S.boot.appearance = await api('/appearance', {method: 'PUT', body: {quick_marks: chosen}});
+      const badge = el.closest('.panel')?.querySelector('.panel-title .pill');
+      if (badge) badge.textContent = chosen.length + ' chosen';
+      toast(chosen.length ? `Quick marks: ${chosen.map(cap).join(', ')}.` : 'Quick marks are off.');
     } else if (['status-filter', 'sort', 'experience-filter'].includes(el.id)) {
       S[el.id === 'sort' ? 'sort' : el.id === 'experience-filter' ? 'experience' : 'status'] = el.value;
       await loadJobs();
@@ -1313,8 +1409,67 @@ async function action(name, el) {
     S.query = '';
     S.status = '';
     S.sort = 'match';
-    S.experience = 'relevant';
+    S.experience = DEFAULT_EXPERIENCE;
+    S.posted = '';
+    S.minScore = '';
+    S.remote = false;
     await loadJobs();
+    return;
+  }
+  if (name === 'open-filters') {
+    filtersDialog();
+    return;
+  }
+  if (name === 'clear-filters') {
+    $$('#filter-form input').forEach(input => {
+      input.checked = input.type === 'radio' ? input.value === '' : input.name === 'experience' && input.value !== 'above';
+    });
+    return;
+  }
+  if (name === 'apply-filters') {
+    const form = $('#filter-form');
+    const ticked = group => $$(`input[name=${group}]:checked`, form).map(input => input.value);
+    S.status = ticked('stage').join(',');
+    if ($('input[name=experience]', form)) {
+      const groups = ticked('experience');
+      S.experience = groups.length === 0 || groups.length === 3 ? '' : groups.join(',');
+    }
+    S.posted = ticked('posted')[0] || '';
+    S.minScore = ticked('score')[0] || '';
+    S.remote = ticked('remote').length > 0;
+    closeModal();
+    await loadJobs();
+    return;
+  }
+  if (name === 'remove-filter') {
+    const [kind, value] = el.dataset.filter.split(':');
+    if (kind === 'status') S.status = S.status.split(',').filter(stage => stage !== value).join(',');
+    if (kind === 'experience') S.experience = DEFAULT_EXPERIENCE;
+    if (kind === 'posted') S.posted = '';
+    if (kind === 'score') S.minScore = '';
+    if (kind === 'remote') S.remote = false;
+    await loadJobs();
+    return;
+  }
+  if (name === 'quick-mark') {
+    const id = Number(el.dataset.id),
+      mark = el.dataset.mark;
+    const job = S.jobs.find(item => item.id === id);
+    const buffer = S.buffers.get(id);
+    if (buffer?.dirty.has('notes')) throw Error('Save your note and stage edits for this vacancy first.');
+    const previous = job?.status || buffer?.status || 'new';
+    // Clicking a lit mark again undoes it, back to the stage it had before.
+    const next = previous === mark ? (S.markUndo.get(id) || 'new') : mark;
+    const {status} = await api(`/jobs/${id}/stage`, {method: 'POST', body: {status: next}});
+    if (previous !== mark) S.markUndo.set(id, previous);
+    else S.markUndo.delete(id);
+    if (job) job.status = status;
+    if (buffer) buffer.status = status;
+    const detail = S.details.get(id);
+    if (detail) detail.job.status = status;
+    renderCards();
+    if (S.selected === id) renderDetail();
+    toast(previous === mark ? `Mark removed: back to ${cap(status)}.` : `Marked as ${cap(status)}. Click it again to undo.`);
     return;
   }
   if (name === 'market-search') {

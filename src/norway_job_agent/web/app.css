@@ -2343,3 +2343,250 @@ dialog::backdrop {
     display: none
   }
 }
+
+/* ---------- Messages, quick marks, filters ---------- */
+
+/* Messages appear at the top centre and never block a click: a save
+   button underneath stays usable while a message shows. */
+#notifications {
+  top: 12px;
+  right: auto;
+  bottom: auto;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 40;
+  max-width: min(520px, calc(100vw - 32px));
+  pointer-events: none
+}
+
+#notifications .toast {
+  pointer-events: none;
+  box-shadow: var(--shadow)
+}
+
+#notifications .toast button {
+  pointer-events: auto
+}
+
+/* A card and its quick marks share one row. */
+.job-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--line)
+}
+
+.job-row .job-card {
+  flex: 1 1 auto;
+  min-width: 0;
+  border-bottom: 0
+}
+
+.job-row:hover {
+  background: var(--hover)
+}
+
+.job-row .job-card:hover,
+.job-row .job-card.selected {
+  background: transparent;
+  box-shadow: none
+}
+
+.job-row.selected {
+  background: var(--raised);
+  box-shadow: inset 2px 0 0 var(--accent)
+}
+
+.job-card .age {
+  font-family: inherit;
+  white-space: nowrap
+}
+
+.quick-marks {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(2, auto);
+  gap: 4px;
+  flex-shrink: 0;
+  padding: 6px 12px 6px 0
+}
+
+.quick-marks:empty {
+  display: none
+}
+
+.mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  min-height: 24px;
+  padding: 0 9px 0 7px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 500;
+  white-space: nowrap
+}
+
+.mark svg {
+  width: 12px;
+  height: 12px
+}
+
+.mark:hover {
+  border-color: var(--line-strong);
+  color: var(--ink)
+}
+
+.mark.on {
+  border-color: transparent;
+  background: var(--raised);
+  color: var(--ink)
+}
+
+.mark.mark-applied,
+.mark.mark-interview,
+.mark.mark-ready {
+  background: var(--green-bg);
+  color: var(--green)
+}
+
+.mark.mark-rejected {
+  background: var(--danger-bg);
+  color: var(--danger)
+}
+
+.mark.mark-saved {
+  background: var(--blue-bg);
+  color: var(--blue)
+}
+
+.mark.mark-preparing {
+  background: var(--amber-bg);
+  color: var(--amber)
+}
+
+.mark-options,
+.filter-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 2px 14px
+}
+
+/* Filters: one button opens every choice; active ones show as chips. */
+.filter-button {
+  min-height: 28px;
+  padding: 0 12px;
+  border-radius: 14px;
+  font-size: 12.5px;
+  gap: 6px
+}
+
+.filter-button svg {
+  width: 14px;
+  height: 14px
+}
+
+.filter-button.on {
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  background: var(--accent-tint);
+  color: var(--accent-text)
+}
+
+.filter-button .badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 11px;
+  font-weight: 600
+}
+
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 26px;
+  padding: 0 6px 0 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  border-radius: 13px;
+  background: var(--accent-tint);
+  color: var(--accent-text);
+  font-size: 12px
+}
+
+.chip svg {
+  width: 12px;
+  height: 12px
+}
+
+.filter-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px
+}
+
+.filter-form fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0
+}
+
+.filter-form legend {
+  margin-bottom: 6px;
+  font-weight: 600
+}
+
+.filter-form small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted)
+}
+
+@media (max-width:640px) {
+  #notifications {
+    top: calc(56px + env(safe-area-inset-top));
+    left: 12px;
+    right: 12px;
+    bottom: auto;
+    transform: none;
+    max-width: none
+  }
+
+  /* On a phone the marks sit under the card, large enough to tap. */
+  .job-row {
+    flex-wrap: wrap
+  }
+
+  .quick-marks {
+    display: flex;
+    width: 100%;
+    justify-content: flex-end;
+    padding: 0 12px 8px
+  }
+
+  .mark {
+    min-height: 34px;
+    padding: 0 12px 0 10px;
+    border-radius: 17px;
+    font-size: 13px
+  }
+
+  .filter-button {
+    min-height: 36px;
+    font-size: 14px
+  }
+}

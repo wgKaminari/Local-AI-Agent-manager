@@ -229,6 +229,93 @@ class ModernInterfaceTests(unittest.TestCase):
         self.expect(self.page.locator(".job-card")).to_have_count(94)
         self.expect(self.page.locator(".job-card").nth(80)).to_have_attribute("aria-pressed", "true")
 
+    def many_jobs(self, count=40):
+        for index in range(count):
+            service.import_vacancy(self.data, {"title": f"Analyst {index:02d}", "company": f"Scroll {index:02d}",
+                                               "location": "Oslo, Norway", "source": "manual",
+                                               "source_url": f"https://jobs.example.test/scroll/{index}"})
+        self.reload()
+
+    def list_scroll(self):
+        return self.page.evaluate("document.querySelector('#job-results').scrollTop")
+
+    def test_saving_a_stage_or_a_quick_mark_keeps_your_place_in_the_list(self):
+        self.many_jobs()
+        self.page.evaluate("document.querySelector('#job-results').scrollTop = 900")
+        before = self.list_scroll()
+        self.assertGreater(before, 500)
+        card = self.page.locator(".job-row").nth(20)
+        card.locator(".job-card").click()
+        self.tab("Notes & stage")
+        self.page.get_by_label("Application stage").select_option("interview")
+        self.page.get_by_role("button", name="Save notes & stage").click()
+        self.saved()
+        self.assertAlmostEqual(self.list_scroll(), before, delta=2)
+        # One click marks another vacancy; clicking again undoes it.
+        row = self.page.locator(".job-row").nth(22)
+        identifier = int(row.locator(".job-card").get_attribute("data-job"))
+        row.get_by_role("button", name="Mark as Applied", exact=False).click()
+        self.expect(self.page.locator("#notifications")).to_contain_text("Marked as Applied")
+        self.assertEqual(service.get_vacancy(self.data, identifier)["status"], "applied")
+        self.assertAlmostEqual(self.list_scroll(), before, delta=2)
+        self.expect(row.locator(".mark.on")).to_have_text("Applied")
+        row.locator(".mark.on").click()
+        self.expect(self.page.locator("#notifications")).to_contain_text("Mark removed")
+        self.assertEqual(service.get_vacancy(self.data, identifier)["status"], "new")
+
+    def test_a_message_never_blocks_the_button_under_it(self):
+        self.select()
+        self.tab("Notes & stage")
+        self.page.get_by_role("button", name="Save notes & stage").click()
+        self.saved()
+        toast = self.page.locator("#notifications .toast").bounding_box()
+        # Whatever lies under the message still receives the click.
+        point = self.page.evaluate(f"document.elementFromPoint({toast['x'] + toast['width'] / 2}, {toast['y'] + toast['height'] / 2})?.closest('#notifications') === null")
+        self.assertTrue(point)
+        self.assertLess(toast["y"], 120)  # at the top, away from save buttons
+
+    def test_filters_combine_several_choices_and_show_removable_chips(self):
+        service.update_workflow(self.data, self.ids["NO"], "applied", "")
+        service.update_workflow(self.data, self.ids["DE"], "rejected", "")
+        self.reload()
+        self.page.get_by_role("button", name="Filters").click()
+        dialog = self.page.locator("#modal")
+        dialog.get_by_label("Applied").check()
+        dialog.get_by_label("Rejected").check()
+        dialog.get_by_role("button", name="Show results").click()
+        self.expect(self.page.locator(".job-card")).to_have_count(2)
+        chips = self.page.locator(".filter-chips .chip")
+        self.expect(chips).to_have_count(2)
+        self.expect(self.page.get_by_role("button", name="Filters")).to_contain_text("2")
+        chips.filter(has_text="Rejected").click()
+        self.expect(self.page.locator(".job-card")).to_have_count(1)
+        self.expect(self.page.locator(".job-card")).to_contain_text("Nordic Fixture")
+        self.page.get_by_label("Sort opportunities").select_option("score")
+        self.page.get_by_role("button", name="Reset", exact=True).click()
+        self.expect(self.page.locator(".job-card")).to_have_count(4)
+        self.expect(self.page.locator(".job-card .age").first).to_contain_text(re.compile(r"just now|ago"))
+        self.assertIn("Found by the app", self.page.locator(".job-card .age").first.get_attribute("title"))
+
+    def test_quick_marks_are_chosen_in_settings(self):
+        self.nav("Settings & activity")
+        self.page.get_by_role("checkbox", name="Interview", exact=True).check()
+        self.expect(self.page.locator("#notifications")).to_contain_text("Quick marks: Applied, Interview, Rejected")
+        self.page.get_by_role("checkbox", name="Rejected", exact=True).uncheck()
+        self.expect(self.page.locator("#notifications")).to_contain_text("Quick marks: Applied, Interview.")
+        for stage in ("Saved", "Ready"):
+            self.page.get_by_role("checkbox", name=stage, exact=True).check()
+            self.expect(self.page.locator("#notifications")).to_contain_text(stage)
+        fifth = self.page.get_by_role("checkbox", name="Archived", exact=True)
+        fifth.click()
+        self.expect(self.page.locator("#notifications")).to_contain_text("up to four")
+        self.expect(fifth).not_to_be_checked()
+        self.assertEqual(json.loads((self.data / "appearance.json").read_text(encoding="utf-8"))["quick_marks"],
+                         ["saved", "ready", "applied", "interview"])
+        self.nav("Discover")
+        marks = self.page.locator(".job-row").first.locator(".mark")
+        self.expect(marks).to_have_count(4)
+        self.expect(marks.nth(3)).to_contain_text("Interview")
+
     def test_leaving_discovery_while_a_search_reload_is_pending_sends_no_bad_request(self):
         failed = []
         self.page.on("response", lambda response: failed.append(response.url) if response.status >= 400 else None)
@@ -591,8 +678,11 @@ class ModernInterfaceTests(unittest.TestCase):
         self.expect(self.page.locator(".job-card")).to_have_count(4)
         self.expect(self.page.locator(".coverage-notice")).to_contain_text("1 above your experience")
         self.expect(self.page.locator(".coverage-notice")).to_contain_text("2.5 years")
-        self.page.get_by_label("Experience level", exact=True).select_option("all")
+        self.page.get_by_role("button", name="Filters").click()
+        self.page.locator("#modal").get_by_label("Above my experience").check()
+        self.page.locator("#modal").get_by_role("button", name="Show results").click()
         self.expect(self.page.locator(".job-card")).to_have_count(5)
+        self.expect(self.page.locator(".filter-chips")).to_contain_text("All experience levels")
         self.page.locator(f'[data-job="{senior}"]').click()
         self.expect(self.page.locator("#detail-content")).to_contain_text("Experience mismatch")
         self.expect(self.page.locator("#detail-content")).to_contain_text("5")

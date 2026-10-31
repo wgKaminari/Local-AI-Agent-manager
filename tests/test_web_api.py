@@ -247,7 +247,7 @@ class LocalApiTests(unittest.TestCase):
         profile = (self.path / "profile.json").read_bytes()
         settings = (self.path / "sources.json").read_bytes()
         response = self.request("PUT", "/api/appearance", json={"theme": "dark"})
-        self.assertEqual(response.get_json(), {"theme": "dark", "sidebar_visible": False})
+        self.assertEqual(response.get_json(), {"theme": "dark", "sidebar_visible": False, "quick_marks": ["applied", "rejected"]})
         self.assertEqual(self.request("GET", "/api/bootstrap").get_json()["appearance"], response.get_json())
         for value in ("unknown", [], None):
             self.assertEqual(self.request("PUT", "/api/appearance", json={"theme": value}).status_code, 400)
@@ -258,7 +258,7 @@ class LocalApiTests(unittest.TestCase):
     def test_corrupt_appearance_uses_usable_defaults(self):
         for content in ("broken json", "[]", '{"theme": "sepia", "sidebar_visible": "no"}'):
             (self.path / "appearance.json").write_text(content, encoding="utf-8")
-            self.assertEqual(self.request("GET", "/api/appearance").get_json(), {"theme": "light", "sidebar_visible": True})
+            self.assertEqual(self.request("GET", "/api/appearance").get_json(), {"theme": "light", "sidebar_visible": True, "quick_marks": ["applied", "rejected"]})
 
     def test_for_you_excludes_unwanted_terms(self):
         profile = service.read_profile(self.path)

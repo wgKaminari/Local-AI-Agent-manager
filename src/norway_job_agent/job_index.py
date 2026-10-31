@@ -246,13 +246,17 @@ def select_rows(store: JobStore, *, query: str = "", status: str = "", country: 
         params["country"] = f"%,{country},%"
         where.append("m.countries LIKE :country")
     if status:
-        _validate_status(status)
-        params["status"] = status
-        where.append("j.status = :status")
+        # One stage, or several separated by commas ("applied,rejected").
+        wanted = list(dict.fromkeys(part for part in status.split(",") if part))
+        for index, item in enumerate(wanted):
+            _validate_status(item)
+            params[f"status{index}"] = item
+        where.append(f"j.status IN ({', '.join(f':status{index}' for index in range(len(wanted)))})")
     if query and query.strip():
         where.append(_query_sql(query.strip()[:500], params))
     sql = (f"SELECT j.id, j.title, j.company, j.location, j.status, j.source, j.deadline, j.published_at, j.discovered_at, "
-           f"m.track, m.track_rank, m.score, m.mismatch, m.excluded, {_DEADLINE_SQL} AS expired "
+           f"m.track, m.track_rank, m.score, m.mismatch, m.excluded, {_DEADLINE_SQL} AS expired, "
+           f"json_extract(m.match_json, '$.experience.status') AS experience_status "
            f"FROM jobs j JOIN job_matches m ON m.job_id = j.id WHERE {' AND '.join(where)} "
            f"ORDER BY j.discovered_at DESC, j.id DESC")
     return [dict(row) for row in store._connection.execute(sql, params)]
@@ -274,13 +278,30 @@ def relevance_sort(rows: list[dict], query: str) -> None:
         row["_relevance"] = relevance(row)
 
 
+SORTS = ("match", "score", "newest", "found", "deadline", "company")
+
+
 def sort_rows(rows: list[dict], sort: str = "match", *, local_first: bool = False) -> list[dict]:
+    def posted(row):
+        return str(row.get("published_at") or row.get("discovered_at") or "")
     if sort == "newest":
-        return sorted(rows, key=lambda row: str(row.get("published_at") or row.get("discovered_at") or ""), reverse=True)
+        return sorted(rows, key=posted, reverse=True)
+    if sort == "found":
+        return sorted(rows, key=lambda row: str(row.get("discovered_at") or ""), reverse=True)
+    if sort == "score":
+        return sorted(rows, key=lambda row: (row["score"] if row.get("score") is not None else -1, posted(row)), reverse=True)
+    if sort == "deadline":
+        # Soonest open deadline first; adverts without a deadline after them.
+        today = date.today().isoformat()
+        def closes(row):
+            value = str(row.get("deadline") or "")[:10]
+            dated = len(value) == 10 and value[4] == "-" and value[7] == "-" and value >= today
+            return (0, value) if dated else (1, "")
+        return sorted(rows, key=closes)
     if sort == "company":
         return sorted(rows, key=lambda row: (str(row.get("company", "")).casefold(), str(row.get("title", "")).casefold()))
     if sort != "match":
-        raise ValueError("Choose match, newest or company sorting.")
+        raise ValueError("Choose a supported sort order.")
     # In a country view, jobs located there come before remote-anywhere ones
     # of the same fit, so worldwide remote boards do not fill every country.
     local = (lambda row: not str(row.get("location") or "").casefold().startswith("remote")) if local_first else (lambda row: True)

@@ -63,9 +63,22 @@ def _list_match(match):
             "experience": {key: experience.get(key) for key in ("status", "candidate_years", "minimum_years")}}
 
 
+# One-click stage buttons on every vacancy card, chosen in Settings.
+DEFAULT_QUICK_MARKS = ("applied", "rejected")
+MAX_QUICK_MARKS = 4
+
+
+def _quick_marks(value):
+    from .storage import STATUS_ORDER
+    if not isinstance(value, (list, tuple)) or len(value) > MAX_QUICK_MARKS or any(
+            not isinstance(item, str) or item not in STATUS_ORDER or item == "new" for item in value):
+        raise ValueError(f"Choose up to {MAX_QUICK_MARKS} stages for quick marks.")
+    return [item for item in STATUS_ORDER if item in value]
+
+
 def _appearance(data_dir):
     """Share the legacy desktop preference file without importing Tk widgets."""
-    result = {"theme": "light", "sidebar_visible": True}
+    result = {"theme": "light", "sidebar_visible": True, "quick_marks": list(DEFAULT_QUICK_MARKS)}
     try:
         saved = json.loads((data_dir / "appearance.json").read_text(encoding="utf-8"))
         if isinstance(saved, dict):
@@ -73,6 +86,10 @@ def _appearance(data_dir):
                 result["theme"] = saved["theme"]
             if isinstance(saved.get("sidebar_visible"), bool):
                 result["sidebar_visible"] = saved["sidebar_visible"]
+            try:
+                result["quick_marks"] = _quick_marks(saved.get("quick_marks", DEFAULT_QUICK_MARKS))
+            except ValueError:
+                pass
     except (OSError, ValueError):
         pass
     return result
@@ -410,7 +427,8 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
             data_dir, view=request.args.get("view", "discover"), query=request.args.get("query", ""),
             status=request.args.get("status", ""), country=request.args.get("country", ""),
             experience=request.args.get("experience") or None, sort=request.args.get("sort", "match"),
-            offset=number("offset", 0), limit=number("limit", 200))
+            offset=number("offset", 0), limit=number("limit", 200), posted=number("posted", 0),
+            min_score=number("min_score", 0), remote=request.args.get("remote") == "1")
         # Descriptions, raw provider JSON and full match evidence are loaded
         # only for the selected vacancy; cards need just these summary fields.
         jobs = [{**{key: job.get(key) for key in _LIST_FIELDS if key in job}, "match": _list_match(job["match"])}
@@ -434,6 +452,13 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
     def import_job():
         identifier, created = service.import_vacancy(data_dir, body())
         return jsonify(id=identifier, created=created)
+
+    @app.post("/api/jobs/<int:identifier>/stage")
+    def stage(identifier):
+        # A quick mark from the list: only the stage changes.
+        service.get_vacancy(data_dir, identifier)
+        service.update_stage(data_dir, identifier, _text(body().get("status"), "Status", 50))
+        return jsonify(ok=True, status=service.get_vacancy(data_dir, identifier)["status"])
 
     @app.post("/api/jobs/<int:identifier>/workflow")
     def workflow(identifier):
@@ -466,13 +491,18 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
         with state.lock:
             values = _appearance(data_dir)
             if request.method == "PUT":
-                theme = _text(body().get("theme"), "Theme", 10)
-                if theme not in {"light", "dark"}:
-                    raise ValueError("Choose a light or dark theme.")
-                values["theme"] = theme
+                value = body()
+                theme = None
+                if "theme" in value or "quick_marks" not in value:
+                    theme = _text(value.get("theme"), "Theme", 10)
+                    if theme not in {"light", "dark"}:
+                        raise ValueError("Choose a light or dark theme.")
+                    values["theme"] = theme
+                if "quick_marks" in value:
+                    values["quick_marks"] = _quick_marks(value["quick_marks"])
                 service._write_json(data_dir / "appearance.json", values)
                 hook = app.config.get("THEME_CHANGED")
-                if hook is not None:
+                if hook is not None and theme is not None:
                     try:
                         hook(theme)  # Native title bar colour; cosmetic only.
                     except Exception:

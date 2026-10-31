@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import hashlib
 import os
+import re
 import tempfile
 import threading
 import zipfile
@@ -738,29 +739,54 @@ def vacancies(data_dir: Path, query: str = "", status: str = "", country: str = 
 LIST_VIEWS = {"discover", "saved", "applications", "for-you"}
 
 
+EXPERIENCE_GROUPS = ("fits", "stretch", "above")
+_LEGACY_EXPERIENCE = {"all": set(), "relevant": {"fits", "stretch"}, "mismatch": {"above"}}
+_REMOTE = re.compile(r"remote|віддален|удален|fjern|home\s*office|homeoffice", re.IGNORECASE)
+
+
+def _experience_groups(experience: str | None, view: str) -> set[str]:
+    """Experience filter: "fits", "stretch" and/or "above"; empty means every level."""
+    value = experience or ("relevant" if view == "for-you" else "all")
+    if value in _LEGACY_EXPERIENCE:
+        return set(_LEGACY_EXPERIENCE[value])
+    groups = {part for part in value.split(",") if part}
+    if not groups or not groups <= set(EXPERIENCE_GROUPS):
+        raise ValueError("Choose experience levels: fits, stretch or above.")
+    return set() if groups == set(EXPERIENCE_GROUPS) else groups
+
+
+def _experience_group(row: dict) -> str:
+    return "above" if row["mismatch"] else "stretch" if row.get("experience_status") == "stretch" else "fits"
+
+
 def list_page(data_dir: Path, *, view: str = "discover", query: str = "", status: str = "", country: str = "",
               experience: str | None = None, sort: str = "match", offset: int = 0, limit: int = 80,
-              progress=None) -> dict:
+              posted: int = 0, min_score: int = 0, remote: bool = False, progress=None) -> dict:
     """One page of a vacancy view plus the counts the interface shows.
 
     Filtering and counting use stored matches only; full records and match
-    evidence are loaded for the returned page alone.
+    evidence are loaded for the returned page alone. status may name several
+    stages ("applied,rejected"); experience several levels ("fits,stretch");
+    posted keeps adverts from the last N days; min_score a lowest match %.
     """
+    from datetime import date, timedelta
     from . import job_index
     if view not in LIST_VIEWS:
         raise ValueError("Choose a vacancy view.")
-    experience = experience or ("relevant" if view == "for-you" else "all")
-    if experience not in {"all", "relevant", "mismatch"}:
-        raise ValueError("Choose relevant, all or mismatch experience levels.")
-    if sort not in {"match", "newest", "company"}:
-        raise ValueError("Choose match, newest or company sorting.")
+    groups = _experience_groups(experience, view)
+    if sort not in job_index.SORTS:
+        raise ValueError("Choose a supported sort order.")
+    for value, top in ((posted, 3650), (min_score, 100)):
+        if isinstance(value, bool) or not isinstance(value, int) or not 0 <= value <= top:
+            raise ValueError("Choose a posting age of 0 to 3650 days and a match score from 0 to 100.")
     if isinstance(offset, bool) or not isinstance(offset, int) or offset < 0 or isinstance(limit, bool) or not isinstance(limit, int) or not 1 <= limit <= 500:
         raise ValueError("Choose a page offset of 0 or more and a page size from 1 to 500.")
     stages = None
     if view == "saved":
         stages = {"saved"}
     elif view == "applications":
-        stages = {"preparing", "ready", "applied", "interview", "rejected"} | ({"archived"} if status == "archived" else set())
+        stages = {"preparing", "ready", "applied", "interview", "rejected"} | (
+            {"archived"} if "archived" in status.split(",") else set())
     with _open_index(data_dir, progress=progress) as store:
         rows = _scoped_rows(store, query=query, status=status, country=country,
                             include_inactive=view in {"saved", "applications"})
@@ -771,8 +797,15 @@ def list_page(data_dir: Path, *, view: str = "discover", query: str = "", status
             rows = [row for row in rows if row["track"] in {"target", "horizon"} and not row["excluded"] and not row["expired"]]
         summary["role_matches"] = sum(row["track"] in {"target", "horizon"} for row in rows)
         summary["experience_mismatches"] = sum(bool(row["mismatch"]) for row in rows)
-        if experience != "all":
-            rows = [row for row in rows if bool(row["mismatch"]) == (experience == "mismatch")]
+        if groups:
+            rows = [row for row in rows if _experience_group(row) in groups]
+        if posted:
+            cutoff = (date.today() - timedelta(days=posted)).isoformat()
+            rows = [row for row in rows if str(row.get("published_at") or row.get("discovered_at") or "")[:10] >= cutoff]
+        if min_score:
+            rows = [row for row in rows if row["score"] is not None and row["score"] >= min_score]
+        if remote:
+            rows = [row for row in rows if _REMOTE.search(str(row.get("location") or ""))]
         summary["shown"] = len(rows)
         summary["shown_employers"] = len({row["company"] for row in rows})
         if query and sort == "match":
@@ -839,6 +872,12 @@ def import_vacancy(data_dir: Path, job: dict) -> tuple[int, bool]:
     from .collection import validate_job
     with JobStore(Path(data_dir) / "vacancies.db") as store:
         return store.upsert_job(validate_job(job))
+
+
+def update_stage(data_dir: Path, id: int, status: str) -> None:
+    """Change only the stage (a quick mark in the list); notes stay as they are."""
+    with JobStore(Path(data_dir) / "vacancies.db") as store:
+        store.update_status(id, status)
 
 
 def update_workflow(data_dir: Path, id: int, status: str, notes: str) -> None:
