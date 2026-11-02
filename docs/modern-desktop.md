@@ -1,6 +1,6 @@
 # Modern local desktop
 
-Personal Job Agent 0.3 opens in its own desktop window. Python still manages collection, matching, the database, local AI, and reviewed delivery. The new interface uses locally packaged HTML, CSS and JavaScript inside pywebview; Windows renders that interface with WebView2. The workspace is a desktop application, with no hosted account, public website or cloud deployment to configure.
+Personal Job Agent 0.3 opens in its own desktop window. Python still manages collection, matching, the database, local AI, and reviewed delivery. The new interface uses locally packaged HTML, CSS and JavaScript inside pywebview; Windows renders that interface with WebView2; Linux uses WebKitGTK or Qt WebEngine (see [Linux](linux.md)). The workspace is a desktop application, with no hosted account, public website or cloud deployment to configure.
 
 The rationale, alternatives and design references—including the supplied Uizard templates—are in [UI/UX research](ui-ux-research.md). The interface follows a list-and-detail workflow, with larger editors, task feedback and clearly separated preparation and delivery.
 

@@ -73,14 +73,15 @@ def start_ollama() -> str:
         time.sleep(0.5)
         if _running():
             return "Ollama is running. Download or select a local model next."
-    raise RuntimeError("Ollama did not become ready within a minute. Open the Ollama app from the Start menu, then retry.")
+    raise RuntimeError("Ollama did not become ready within a minute. Open the Ollama app from the Start menu, then retry." if os.name == "nt"
+                       else "Ollama did not become ready within a minute. Run ollama serve in a terminal (or sudo systemctl start ollama), then retry.")
 
 
 def ensure_ollama(progress=None) -> None:
     """Start an installed Ollama before local AI work instead of failing.
 
     Ollama only answers while its background server runs, and it is often
-    not started with Windows. A missing installation still raises the
+    not started with Windows (or, on Linux, installed without its service). A missing installation still raises the
     actionable error from local_ai when the request is made.
     """
     if _running() or not ollama_executable():
@@ -92,6 +93,9 @@ def ensure_ollama(progress=None) -> None:
 
 def memory_available_gb() -> float | None:
     """Free physical memory, or None where it cannot be measured."""
+    if sys.platform.startswith("linux"):
+        from .linux_integration import memory_available_gb as linux_free
+        return linux_free()
     if os.name != "nt":
         return None
     import ctypes
@@ -114,7 +118,7 @@ def speed_advice(tokens_per_second, available_gb=None) -> str | None:
         return None
     advice = f"Your local model wrote only {tokens_per_second:.1f} tokens per second."
     if available_gb is not None and available_gb < 2:
-        advice += f" Only {available_gb:.1f} GB of memory was free, so Windows was swapping the model to disk; closing browsers, games or other large programs while drafting helps most."
+        advice += f" Only {available_gb:.1f} GB of memory was free, so {"Windows" if os.name == "nt" else "the system"} was swapping the model to disk; closing browsers, games or other large programs while drafting helps most."
     else:
         advice += " Closing other large programs helps; a smaller model such as qwen3:1.7b in Settings is faster but writes less carefully."
     return advice

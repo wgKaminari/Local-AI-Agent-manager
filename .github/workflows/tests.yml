@@ -27,3 +27,28 @@ jobs:
           $errors = $null
           [void][System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path 'install.ps1'), [ref]$null, [ref]$errors)
           if ($errors) { $errors | ForEach-Object { Write-Error $_.ToString() }; exit 1 }
+
+  test-linux:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-tk xvfb
+          python -m pip install -r requirements.txt
+      - name: Run tests
+        env:
+          JOB_AGENT_KEYRING: "off"
+        run: xvfb-run -a python -m unittest discover -s tests
+      - name: Check the installer parses
+        run: bash -n install.sh start-personal-job-agent.sh
+      - name: Test a fresh install from this commit
+        run: |
+          git archive --format=zip --prefix=PersonalJobAgent/ -o source.zip HEAD
+          bash install.sh --source-zip source.zip --tag v0.0.0 --install-root "$RUNNER_TEMP/PersonalJobAgent" --quiet --no-shortcuts --no-launch --gui none
+          "$RUNNER_TEMP/PersonalJobAgent/venv/bin/python" "$RUNNER_TEMP/PersonalJobAgent/app/run.py" --help

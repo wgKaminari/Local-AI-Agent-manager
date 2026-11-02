@@ -10,6 +10,9 @@ from pathlib import Path
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+# Never write to the real login keyring on Linux (see linux_integration).
+import os  # noqa: E402
+os.environ.setdefault("JOB_AGENT_KEYRING", "off")
 
 from norway_job_agent import cloud_ai, local_ai
 

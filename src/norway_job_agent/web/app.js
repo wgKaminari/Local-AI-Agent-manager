@@ -115,6 +115,8 @@ const titles = {
 // On a phone (served by the PC over home Wi-Fi) the page carries no token:
 // the phone pairs once with a code shown on the PC and keeps its own token.
 const REMOTE = document.body.dataset.remote === '1';
+// Set from /api/bootstrap: Linux wording for menus, installer and firewall.
+let LINUX = false;
 const DEVICE_KEY = 'job-agent-device';
 const THEME_KEY = 'job-agent-theme';
 const local = {
@@ -228,12 +230,36 @@ window.hasUnsavedChanges = dirty;
 // A new renderer starts beyond the previous renderer's sequence after reload.
 let closeStateRevision = Date.now() * 1000;
 
+function nativeBridgeCall(name, args) {
+  const pv = window.pywebview;
+  if (typeof pv?.api?.[name] === 'function') return Promise.resolve(pv.api[name](...args));
+  // On Linux (WebKitGTK, Qt) pywebview builds pywebview.api with new Function,
+  // which this page's Content-Security-Policy forbids. Its message bridge
+  // needs no eval, so call the same Python method through it directly.
+  if (typeof pv?._jsApiCallback !== 'function' || typeof pv._checkValue !== 'function' || !pv._returnValuesCallbacks) return null;
+  if (pv.platform === 'qtwebengine' && !pv._QWebChannel) {
+    // The step that throws also skipped opening Qt's channel; open it here.
+    if (typeof QWebChannel !== 'function' || !window.qt?.webChannelTransport) return null;
+    if (!pv._jobAgentChannel) pv._jobAgentChannel = new QWebChannel(qt.webChannelTransport, channel => {
+      pv._QWebChannel = channel;
+      syncNativeCloseState();
+    });
+    return null;
+  }
+  const id = String(Math.random()).slice(2);
+  pv._returnValuesCallbacks[name] ||= {};
+  const result = new Promise((resolve, reject) => pv._checkValue(name, resolve, reject, id));
+  pv._jsApiCallback(name, args, id);
+  return result;
+}
+
 function syncNativeCloseState() {
-  const bridge = window.pywebview?.api;
-  if (!bridge?.update_close_state) return;
   // Cache state before closing: asking JavaScript from the native close callback
   // blocks WebView2's UI thread. Revisions also reject out-of-order bridge calls.
-  Promise.resolve(bridge.update_close_state(token, dirty(), ++closeStateRevision)).catch(() => {});
+  const sent = nativeBridgeCall('update_close_state', [token, dirty(), closeStateRevision + 1]);
+  if (!sent) return;
+  closeStateRevision += 1;
+  sent.catch(() => {});
 }
 window.addEventListener('pywebviewready', syncNativeCloseState);
 window.addEventListener('beforeunload', e => {
@@ -960,7 +986,7 @@ function updatesPanel() {
     `You have version ${esc(u.current)}. ${esc(u.reason || '')}`;
   const notes = u?.newer && u.notes ? `<details class="evidence"><summary>What's new in ${esc(u.latest)}</summary><div class="prose">${esc(u.notes)}</div></details>` : '';
   const action = u?.newer ? (REMOTE ? '<p class="evidence">Update from the PC: it closes and reopens Job Agent there.</p>' : u.can_update ? button('Update now', 'apply-update', 'primary') : `<p class="evidence">${esc(u.reason)}</p>`) : '';
-  const install = u?.kind === 'source' ? `<p class="evidence">Install once from PowerShell, then the app updates itself: <code>${esc(u.install_command)}</code></p>` : '';
+  const install = u?.kind === 'source' ? `<p class="evidence">Install once from ${LINUX ? 'a terminal' : 'PowerShell'}, then the app updates itself: <code>${esc(u.install_command)}</code></p>` : '';
   return `<section class="panel"><div class="panel-title"><div><h2>Updates</h2><p>${status}</p></div>${pill('v' + version)}</div>${notes}<div class="section-actions">${button('Check for updates', 'check-updates')}${action}${link('Releases on GitHub', u?.url || 'https://github.com/wgKaminari/Local-AI-Agent-manager/releases')}</div>${install}<p class="evidence">Updating closes the app, installs the new version and reopens it. Your profile, vacancies and drafts are not changed.</p></section>`;
 }
 
@@ -983,7 +1009,7 @@ function renderSettings() {
   const settings = S.settingsDraft || S.boot.settings;
   $('#main').insertAdjacentHTML('beforeend', `<div class="content-width">${aiPanel(settings)}
   ${jobSitesPanel(settings)}<section class="panel"><div class="panel-title"><div><h2>Connected job sources</h2><p>${S.boot.settings.sources.length} configured. One refresh collects every target country; the country switch only filters what you see.</p></div>${button('Browse library','go-sources')}</div><div class="table-wrap"><table><thead><tr><th>Source</th><th>Countries</th><th>Action</th></tr></thead><tbody>${settings.sources.map((s,i)=>`<tr><td>${esc(s.name||s.board||cap(s.type))}<span class="sub">${esc(s.type)}</span></td><td>${esc(s.countries?.join(', ')||(s.type==='nav'?'NO':'Any'))}</td><td>${button('Remove','remove-source','quiet',`data-source-index="${i}"`)}</td></tr>`).join('')}</tbody></table></div><details class="evidence"><summary>Advanced source configuration</summary><p>Edit the source array for custom boards, locations or limits. Invalid changes are rejected when you save.</p><textarea id="sources-json" rows="10" aria-label="Advanced sources JSON">${esc(S.sourcesText??JSON.stringify(settings.sources,null,2))}</textarea></details><div class="savebar"><small>${S.settingsDirty?'Unsaved settings':'Changes apply after saving.'}</small>${button('Save settings','save-settings','primary')}</div></section>
-  ${quickMarksPanel()}${phonePanel()}<section class="panel"><div class="panel-title"><div><h2>Collection activity</h2><p>See what was collected and which sources need attention.</p></div>${button('Find opportunities','collect')}</div>${collectionReport()}</section><section class="panel"><div class="panel-title"><div><h2>Desktop app</h2><p>Open Job Agent from the Start menu or desktop like any other program: its own icon, no console window, and only one window at a time.</p></div></div><p class="evidence">The app runs entirely on this computer. Your profile, database, notes and drafts stay in your private data folder.</p><div class="section-actions">${REMOTE?'':button('Add Start menu & desktop shortcuts','create-shortcuts','primary')}${button('Switch theme','theme')}${button('Keyboard shortcuts','help')}</div></section>${updatesPanel()}</div>`);
+  ${quickMarksPanel()}${phonePanel()}<section class="panel"><div class="panel-title"><div><h2>Collection activity</h2><p>See what was collected and which sources need attention.</p></div>${button('Find opportunities','collect')}</div>${collectionReport()}</section><section class="panel"><div class="panel-title"><div><h2>Desktop app</h2><p>Open Job Agent from the ${LINUX ? 'applications menu' : 'Start menu'} or desktop like any other program: its own icon, no console window, and only one window at a time.</p></div></div><p class="evidence">The app runs entirely on this computer. Your profile, database, notes and drafts stay in your private data folder.</p><div class="section-actions">${REMOTE?'':button(LINUX ? 'Add to applications menu & desktop' : 'Add Start menu & desktop shortcuts','create-shortcuts','primary')}${button('Switch theme','theme')}${button('Keyboard shortcuts','help')}</div></section>${updatesPanel()}</div>`);
   loadPhonePanel();
 }
 
@@ -1243,7 +1269,7 @@ function renderPhoneBody() {
   if (badge) badge.outerHTML = pill(p.running ? 'On' : 'Off', p.running ? 'green' : '');
   const devices = (p.devices || []).length ? `<h3>Paired phones</h3><div class="table-wrap"><table><thead><tr><th>Phone</th><th>Paired</th><th>Last used</th><th>Action</th></tr></thead><tbody>${p.devices.map(d => `<tr><td>${esc(d.name)}</td><td>${esc((d.created_at || '').slice(0, 10))}</td><td>${d.last_seen ? esc(ago(d.last_seen)) : '–'}</td><td>${button('Remove', 'phone-remove', 'quiet', `data-device="${esc(d.id)}"`)}</td></tr>`).join('')}</tbody></table></div>` : '';
   if (!p.running) {
-    el.innerHTML = `${p.error ? `<div class="notice warning">${esc(p.error)}</div>` : ''}<p class="evidence">Your phone and this PC must be on the same Wi-Fi. When you turn this on, Windows may ask whether Python can use private networks: choose Allow.</p><div class="section-actions">${button(icon('phone') + ' Turn on phone access', 'phone-on', 'primary button-icon')}</div>${devices}`;
+    el.innerHTML = `${p.error ? `<div class="notice warning">${esc(p.error)}</div>` : ''}<p class="evidence">Your phone and this PC must be on the same Wi-Fi. ${LINUX ? 'If your phone cannot connect, your firewall may block the port shown after you turn this on: allow it, for example <code>sudo firewall-cmd --add-port=8765/tcp</code> (Fedora) or <code>sudo ufw allow 8765/tcp</code> (Ubuntu).' : 'When you turn this on, Windows may ask whether Python can use private networks: choose Allow.'}</p><div class="section-actions">${button(icon('phone') + ' Turn on phone access', 'phone-on', 'primary button-icon')}</div>${devices}`;
     return;
   }
   const minutes = Math.max(1, Math.ceil((p.code_seconds || 0) / 60));
@@ -2637,6 +2663,7 @@ async function boot() {
   if (REMOTE && location.search) history.replaceState(null, '', '/');
   try {
     S.boot = await api('/bootstrap');
+    LINUX = S.boot.platform === 'linux';
     S.profile = clone(S.boot.profile);
     S.country = S.boot.settings.active_country || '';
     S.theme = (REMOTE && local.get(THEME_KEY)) || S.boot.appearance?.theme || 'light';

@@ -1,9 +1,10 @@
-"""Native WebView2 window around a private, loopback-only Python workspace."""
+"""Native window (WebView2 on Windows, WebKitGTK or Qt on Linux) around a private, loopback-only Python workspace."""
 from __future__ import annotations
 
 import contextlib
 import logging
 import secrets
+import socket
 import sys
 import threading
 from pathlib import Path
@@ -84,6 +85,10 @@ class LocalWorkspace:
                     # listening socket now, but keep its wake-up socket available
                     # until the last request worker exits.
                     from waitress.wasyncore import dispatcher
+                    # On Linux, closing a socket another thread is polling
+                    # does not stop it listening; shutdown() does, at once.
+                    with contextlib.suppress(OSError):
+                        self.server.socket.shutdown(socket.SHUT_RDWR)
                     dispatcher.close(self.server)
                     self._cleanup_thread = threading.Thread(
                         target=self._finish_after_requests, name="local-workspace-cleanup", daemon=True)
@@ -218,11 +223,26 @@ def launch(data_dir: Path, *, preview: bool = False):
         # pywebview follows the Windows theme; follow the app's theme instead.
         window.events.shown += lambda: windows.set_title_bar_theme(dark)
         workspace.app.config["THEME_CHANGED"] = lambda theme: windows.set_title_bar_theme(theme == "dark")
+
+        def bring_to_front():
+            # Linux: a second start asked this window to come forward.
+            window.restore()
+            window.show()
+            window.on_top = True
+            window.on_top = False
+
+        windows.on_focus_request(bring_to_front)
         # Explicit Chromium renderer: never silently fall back to Internet Explorer.
         webview.start(gui="edgechromium" if sys.platform == "win32" else None,
-                      debug=False, private_mode=True, icon=str(windows.icon_path()))
+                      debug=False, private_mode=True, icon=str(windows.window_icon_path()))
     except Exception as exc:
-        hint = " Check that Microsoft Edge WebView2 Runtime is installed." if sys.platform == "win32" else ""
+        hint = ""
+        if sys.platform == "win32":
+            hint = " Check that Microsoft Edge WebView2 Runtime is installed."
+        elif sys.platform.startswith("linux"):
+            hint = (" Linux needs WebKitGTK with PyGObject (for example: sudo dnf install python3-gobject webkit2gtk4.1, "
+                    "or sudo apt install python3-gi gir1.2-webkit2-4.1) or Qt (python -m pip install \"pywebview[qt]\"). "
+                    "See docs/linux.md.")
         raise RuntimeError(f"The desktop window could not start.{hint}\n{exc}") from exc
     finally:
         workspace.close()

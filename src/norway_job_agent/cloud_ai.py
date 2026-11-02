@@ -7,7 +7,9 @@ account there. Chat subscriptions (ChatGPT Plus, Claude Pro, Gemini
 Advanced) do not include API use.
 
 Keys are saved in ai-keys.json in the data folder, encrypted for your Windows
-account (DPAPI), never in sources.json or backups, and never sent back to the
+account (DPAPI); on Linux the key itself goes to your login keyring (Secret
+Service, through secret-tool) and ai-keys.json only names it. Keys are never
+in sources.json or backups, and never sent back to the
 page: it only learns whether a key is saved and its last characters. A monthly
 token limit, counted in ai-usage.json, stops cloud requests once the month's
 allowance is used.
@@ -24,6 +26,7 @@ import base64
 import json
 import os
 import re
+import sys
 import tempfile
 import threading
 import time
@@ -140,8 +143,15 @@ def _write(path: Path, value: dict) -> None:
 
 # ---------------------------------------------------------------- keys
 
-def _protect(secret: str) -> dict:
+def _protect(secret: str, data_dir: Path | None = None, provider: str = "") -> dict:
     data = secret.encode("utf-8")
+    if sys.platform.startswith("linux") and data_dir is not None and provider:
+        from . import linux_integration as linux
+        try:
+            return linux.keyring_store(data_dir, f"ai-key-{provider}", data,
+                                       f"Personal Job Agent: {PROVIDERS.get(provider, {}).get('name', provider)} API key")
+        except linux.KeyringUnavailable:
+            pass  # No keyring (e.g. a minimal desktop): a file only you can read.
     if os.name != "nt":
         return {"protection": "none", "data": base64.b64encode(data).decode("ascii")}
     from .gmail import _windows_protect
@@ -151,7 +161,16 @@ def _protect(secret: str) -> dict:
         raise CloudAIError("Windows could not encrypt the API key for your account, so it was not saved.") from None
 
 
-def _unprotect(entry: dict) -> str:
+def _unprotect(entry: dict, data_dir: Path | None = None) -> str:
+    if entry.get("protection") == "linux-keyring":
+        from . import linux_integration as linux
+        if not sys.platform.startswith("linux") or data_dir is None:
+            raise CloudAIError("This API key was saved in a Linux keyring. Add it again on this computer.")
+        try:
+            return linux.keyring_lookup(data_dir, str(entry.get("item", ""))).decode("utf-8")
+        except (linux.KeyringUnavailable, ValueError):
+            raise CloudAIError("The saved API key is not in your login keyring. Unlock the keyring, "
+                               "or remove the key and add it again.") from None
     try:
         data = base64.b64decode(entry["data"], validate=True)
         if entry.get("protection") == "windows-dpapi":
@@ -177,7 +196,7 @@ def _key(data_dir: Path, provider: str) -> str:
     entry = _keys(data_dir).get(provider)
     if not entry:
         raise CloudAIError(f"Add your {PROVIDERS[provider]['name']} API key in Settings → AI assistant first.")
-    return _unprotect(entry)
+    return _unprotect(entry, data_dir)
 
 
 def save_key(data_dir: Path, provider: str, key: str) -> dict:
@@ -190,7 +209,7 @@ def save_key(data_dir: Path, provider: str, key: str) -> dict:
     with _lock:
         stored = _read(Path(data_dir) / KEY_FILE)
         keys = stored.get("keys") if isinstance(stored.get("keys"), dict) else {}
-        keys[provider] = {**_protect(key), "hint": "…" + key[-4:], "saved_at": _now()}
+        keys[provider] = {**_protect(key, data_dir, provider), "hint": "…" + key[-4:], "saved_at": _now()}
         _write(Path(data_dir) / KEY_FILE, {"keys": keys})
     settings = read_settings(data_dir)
     if provider not in settings["models"]:
@@ -204,8 +223,11 @@ def delete_key(data_dir: Path, provider: str) -> dict:
     _provider(provider)
     with _lock:
         keys = _keys(data_dir)
-        keys.pop(provider, None)
+        removed = keys.pop(provider, None)
         _write(Path(data_dir) / KEY_FILE, {"keys": keys})
+        if isinstance(removed, dict) and removed.get("protection") == "linux-keyring":
+            from . import linux_integration
+            linux_integration.keyring_clear(data_dir, str(removed.get("item", "")))
     settings = read_settings(data_dir)
     if settings["provider"] == provider:
         settings["provider"] = "local"

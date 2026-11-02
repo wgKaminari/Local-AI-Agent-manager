@@ -18,6 +18,7 @@ import math
 import os
 import re
 import secrets
+import sys
 import tempfile
 import time
 import webbrowser
@@ -143,6 +144,14 @@ def _save_token(data_dir: Path, token: dict) -> None:
     content = json.dumps(token, ensure_ascii=False).encode("utf-8")
     if os.name == "nt":
         content = json.dumps({"protection": "windows-dpapi", "data": base64.b64encode(_windows_protect(content)).decode("ascii")}).encode("utf-8")
+    elif sys.platform.startswith("linux"):
+        from . import linux_integration as linux
+        try:
+            # The token lives in the login keyring; the file only names it.
+            content = json.dumps(linux.keyring_store(data_dir, "gmail-token", content,
+                                                     "Personal Job Agent: Gmail read-only access")).encode("utf-8")
+        except linux.KeyringUnavailable:
+            pass  # No keyring: the token stays in a file only you can read.
     descriptor, temporary = tempfile.mkstemp(prefix=".gmail-", dir=path.parent)
     try:
         os.chmod(temporary, 0o600)
@@ -167,6 +176,14 @@ def _load_token(data_dir: Path) -> dict:
             if os.name != "nt":
                 raise GmailError("These Gmail credentials belong to Windows. Connect Gmail on this computer.")
             token = json.loads(_windows_protect(base64.b64decode(token["data"], validate=True), decrypt=True))
+        elif isinstance(token, dict) and token.get("protection") == "linux-keyring":
+            from . import linux_integration as linux
+            if not sys.platform.startswith("linux"):
+                raise GmailError("These Gmail credentials belong to a Linux keyring. Connect Gmail on this computer.")
+            try:
+                token = json.loads(linux.keyring_lookup(data_dir, "gmail-token"))
+            except linux.KeyringUnavailable:
+                raise GmailError("Gmail credentials are not in your login keyring. Unlock it, or connect Gmail again.") from None
         if not isinstance(token, dict) or token.get("scope") != SCOPE:
             raise GmailError("Gmail credentials are invalid. Connect Gmail again.")
         return token
@@ -340,6 +357,9 @@ def disconnect(data_dir: Path) -> dict:
     can revoke the grant separately; no remote account mutation occurs here.
     """
     _token_path(data_dir).unlink(missing_ok=True)
+    if sys.platform.startswith("linux"):
+        from . import linux_integration
+        linux_integration.keyring_clear(data_dir, "gmail-token")
     return connection_status(data_dir)
 
 

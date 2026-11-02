@@ -1,3 +1,3 @@
 """Personal job discovery and preparation, with applications kept under user control."""
 
-__version__ = "0.9.1"
+__version__ = "0.10.0"

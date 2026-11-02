@@ -17,6 +17,9 @@ from urllib.error import HTTPError
 from urllib.parse import parse_qs, quote, urlencode, urlsplit
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+# Never write to the real login keyring on Linux (see linux_integration).
+import os  # noqa: E402
+os.environ.setdefault("JOB_AGENT_KEYRING", "off")
 from norway_job_agent import gmail
 
 

@@ -5,7 +5,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
@@ -97,7 +97,7 @@ class UpdateCheckTests(unittest.TestCase):
             updates.start_update("v0.7.1")
         command = popen.call_args.args[0]
         self.assertEqual(command[command.index("-Checkout") + 1], str(self.folder))
-        self.assertEqual(Path(command[command.index("-Python") + 1]).name, "python.exe")
+        self.assertEqual(PureWindowsPath(command[command.index("-Python") + 1]).name, "python.exe")
 
     def test_updates_refuse_bad_versions_and_plain_copies(self):
         with patch("norway_job_agent.updates.sys.platform", "win32"):

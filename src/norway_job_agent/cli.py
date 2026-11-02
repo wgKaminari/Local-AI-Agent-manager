@@ -42,7 +42,7 @@ def parser() -> argparse.ArgumentParser:
     commands.add_parser("init", help="Create empty database, profile and source configuration.")
     gui = commands.add_parser("gui", help="Open the modern private desktop app.")
     gui.add_argument("--classic", action="store_true", help="Use the previous Tkinter interface.")
-    shortcuts = commands.add_parser("shortcuts", help="Add Start menu and desktop shortcuts that open the app without a console (Windows).")
+    shortcuts = commands.add_parser("shortcuts", help="Add Start menu and desktop shortcuts (Windows) or applications menu and desktop launchers (Linux) that open the app without a console.")
     shortcuts.add_argument("--remove", action="store_true", help="Remove the shortcuts instead.")
     commands.add_parser("models", help="List verified local Ollama models.")
     generate = commands.add_parser("letter", help="Generate a draft cover letter with your local Ollama model.")

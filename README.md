@@ -1,6 +1,6 @@
 # Personal Job Agent
 
-A private **Python desktop application** for discovering vacancies in Norway, the USA, Germany and Ukraine, organizing opportunities, and preparing application answers and cover letters. It opens in its own desktop window with a locally packaged interface; your profile, database and drafts stay on your computer.
+A private **Python desktop application** for Windows and Linux for discovering vacancies in Norway, the USA, Germany and Ukraine, organizing opportunities, and preparing application answers and cover letters. It opens in its own desktop window with a locally packaged interface; your profile, database and drafts stay on your computer.
 
 ## Install (Windows)
 
@@ -12,9 +12,19 @@ irm https://raw.githubusercontent.com/wgKaminari/Local-AI-Agent-manager/main/ins
 
 The installer downloads the latest release, creates a private Python environment in `%LOCALAPPDATA%\PersonalJobAgent`, and adds **Personal Job Agent** to the Start menu and desktop. It needs Python 3.12 or newer and offers to install it (and the free local AI, Ollama) with winget if they are missing. Your data in `%USERPROFILE%\.norway-job-agent` is never changed by installing or updating, so an existing profile and database are picked up automatically. Prefer to read the script first? Download [install.ps1](install.ps1), review it, and run `powershell -ExecutionPolicy Bypass -File install.ps1`.
 
+## Install (Linux)
+
+Open a terminal and run:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/wgKaminari/Local-AI-Agent-manager/main/install.sh | bash
+```
+
+The installer downloads the latest release to `~/.local/share/PersonalJobAgent`, creates a private Python environment (Python 3.12 or newer; it offers to install it with dnf, apt, pacman or zypper), picks a window toolkit (WebKitGTK from your distribution, or Qt from PyPI when GTK is not available) and adds **Personal Job Agent** to the applications menu and desktop. Your data in `~/.norway-job-agent` is never changed by installing or updating, and a data folder copied from Windows works as it is. API keys and the Gmail token are kept in your login keyring (GNOME Keyring, KWallet). Updates work as on Windows. See [Linux](docs/linux.md) for the toolkit packages per distribution, running from source, phone access through the firewall, moving from Windows and troubleshooting.
+
 ### Update
 
-The app checks GitHub for a newer release once per start and shows a notice. **Settings & activity → Updates → Update now** closes the app, installs the new version and reopens it; if anything fails, the version you had opens again. Running the install command again also updates. A developer checkout (a `git clone`) updates itself with `git pull` instead, and only when it has no local changes. Releases are published from version tags by GitHub Actions, after the tests and a test install pass; see [Releases](https://github.com/wgKaminari/Local-AI-Agent-manager/releases).
+The app checks GitHub for a newer release once per start and shows a notice. **Settings & activity → Updates → Update now** closes the app, installs the new version and reopens it; if anything fails, the version you had opens again. Running the install command again also updates. A developer checkout (a `git clone`) updates itself with `git pull` instead, and only when it has no local changes. Releases are published from version tags by GitHub Actions, after the tests and a test install pass on Windows and Linux; see [Releases](https://github.com/wgKaminari/Local-AI-Agent-manager/releases).
 
 ## Run from source
 
@@ -178,13 +188,13 @@ Without `locations`, a company board returns all locations. Lever also supports 
 
 ## Development and checks
 
-Python 3.12+, Flask, Waitress and pywebview run the local desktop shell; `pypdf` handles PDFs. Tkinter is needed for the classic fallback and its tests. UI assets and employer catalogs ship in the Python package, with no remote font or UI CDN.
+Python 3.12+, Flask, Waitress and pywebview (WebView2 on Windows, WebKitGTK or Qt on Linux) run the local desktop shell; `pypdf` handles PDFs. Tkinter is needed for the classic fallback and its tests. UI assets and employer catalogs ship in the Python package, with no remote font or UI CDN.
 
 ```powershell
 python -m unittest discover -s tests -v
 ```
 
-Tests use temporary fictional profiles/databases and mocked external services. They cover collection, countries, profile grounding, migrations, duplicate identity, batch rollback, histories, reviewed delivery and local API request boundaries. Native launcher unit tests cover lifecycle logic; they do not by themselves prove a real WebView2 window opens correctly.
+The same command runs the suite on Linux (`python3 -m unittest discover -s tests -v`); CI runs it on Windows and Ubuntu. Tests use temporary fictional profiles/databases and mocked external services, and never touch the real login keyring. They cover collection, countries, profile grounding, migrations, duplicate identity, batch rollback, histories, reviewed delivery and local API request boundaries. Native launcher unit tests cover lifecycle logic; they do not by themselves prove a real WebView2 window opens correctly.
 
 Enable real Chromium tests after installing the optional browser runtime:
 

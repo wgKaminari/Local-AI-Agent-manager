@@ -4,13 +4,15 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "norway-job-agent"
-version = "0.9.1"
-description = "A local job discovery and application preparation assistant for Norway, USA, Germany and Ukraine."
+version = "0.10.0"
+description = "A local job discovery and application preparation assistant for Norway, USA, Germany and Ukraine, for Windows and Linux."
 requires-python = ">=3.12"
 dependencies = ["pypdf>=6.18,<7", "Flask>=3.1,<4", "waitress>=3,<4", "pywebview>=6,<7", "segno>=1.6,<2"]
 
 [project.optional-dependencies]
 browser = ["playwright>=1.49,<2"]
+# Linux without WebKitGTK: the Qt window toolkit for pywebview.
+qt = ["pywebview[qt]>=6,<7"]
 
 [project.scripts]
 norway-jobs = "norway_job_agent.cli:main"

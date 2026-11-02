@@ -2,14 +2,16 @@
 
 Three kinds of installation exist:
 
-* installed - by install.ps1, under %LOCALAPPDATA%\\PersonalJobAgent\\app with
+* installed - by install.ps1, under %LOCALAPPDATA%\\PersonalJobAgent\\app, or
+  on Linux by install.sh, under ~/.local/share/PersonalJobAgent/app, with
   an install.json next to it. Updating downloads the release and swaps the
   app folder; the private Python environment and your data stay.
 * git - a clone of the repository (a developer checkout). Updating runs
   git pull --ff-only, and only when the checkout has no local changes.
 * source - an unzipped copy without either; it is updated by reinstalling.
 
-The update itself runs in install.ps1, started as a separate process: it
+The update itself runs in install.ps1 (install.sh on Linux), started as a
+separate process: it
 waits for this app to close, replaces files the app cannot replace while it
 runs, and reopens the app (the previous version if anything fails). Your
 data folder is never touched. Checking sends one anonymous request to
@@ -25,7 +27,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 
 from . import __version__
 
@@ -33,6 +35,15 @@ REPOSITORY = "wgKaminari/Local-AI-Agent-manager"
 LATEST_RELEASE_URL = f"https://api.github.com/repos/{REPOSITORY}/releases/latest"
 RELEASES_PAGE = f"https://github.com/{REPOSITORY}/releases"
 INSTALL_COMMAND = (f"irm https://raw.githubusercontent.com/{REPOSITORY}/main/install.ps1 | iex")
+LINUX_INSTALL_COMMAND = f"curl -fsSL https://raw.githubusercontent.com/{REPOSITORY}/main/install.sh | bash"
+
+
+def _linux() -> bool:
+    return sys.platform.startswith("linux")
+
+
+def install_command() -> str:
+    return LINUX_INSTALL_COMMAND if _linux() else INSTALL_COMMAND
 
 
 def checkout() -> Path:
@@ -80,7 +91,7 @@ def check() -> dict:
     from .sources import SourceError, _fetch
     info = installation()
     result = {"current": __version__, "latest": None, "newer": False, "notes": "", "url": RELEASES_PAGE,
-              "kind": info["kind"], "can_update": False, "reason": "", "install_command": INSTALL_COMMAND}
+              "kind": info["kind"], "can_update": False, "reason": "", "install_command": install_command()}
     try:
         _, _, body, _ = _fetch(LATEST_RELEASE_URL, allow_missing=True, headers={"Accept": "application/vnd.github+json"})
         release = json.loads(body) if body else {}
@@ -95,8 +106,8 @@ def check() -> dict:
     result["newer"] = parse_version(tag) > (parse_version(__version__) or (0, 0, 0))
     if not result["newer"]:
         result["reason"] = "You have the latest version."
-    elif sys.platform != "win32":
-        result["reason"] = "Automatic updates are available on Windows; download the release from GitHub."
+    elif sys.platform != "win32" and not _linux():
+        result["reason"] = "Automatic updates are available on Windows and Linux; download the release from GitHub."
     elif info["kind"] == "source":
         result["reason"] = "This copy was not installed with the installer. Install it once with the command shown, then it updates itself."
     elif info["kind"] == "git" and (blocker := git_blocker(info["folder"])):
@@ -108,10 +119,12 @@ def check() -> dict:
 
 def start_update(tag: str) -> dict:
     """Start install.ps1 in its own window; the caller then closes the app."""
-    if sys.platform != "win32":
-        raise ValueError("Automatic updates are available on Windows only.")
     if parse_version(tag) is None:
         raise ValueError("Choose a release version to install.")
+    if _linux():
+        return _start_linux_update(tag)
+    if sys.platform != "win32":
+        raise ValueError("Automatic updates are available on Windows and Linux only.")
     info = installation()
     script = Path(info["folder"]) / "install.ps1"
     if not script.is_file():
@@ -128,10 +141,37 @@ def start_update(tag: str) -> dict:
     elif info["kind"] == "git":
         if blocker := git_blocker(info["folder"]):
             raise ValueError(blocker)
-        python = Path(sys.executable)
+        python = PureWindowsPath(sys.executable)
         console_python = python.with_name("python.exe") if python.name.lower() == "pythonw.exe" else python
         command += ["-Checkout", info["folder"], "-Python", str(console_python)]
     else:
         raise ValueError("This copy was not installed with the installer; install it once with the command from GitHub.")
     subprocess.Popen(command, cwd=str(folder), creationflags=getattr(subprocess, "CREATE_NEW_CONSOLE", 0), close_fds=True)
     return {"started": True, "kind": info["kind"], "tag": tag}
+
+
+def _start_linux_update(tag: str) -> dict:
+    """Start install.sh detached; it logs to update.log beside the installation."""
+    info = installation()
+    script = Path(info["folder"]) / "install.sh"
+    if not script.is_file():
+        raise ValueError("The installer is missing from this copy; reinstall with the command from GitHub.")
+    folder = Path(tempfile.mkdtemp(prefix="job-agent-update-"))
+    runner = folder / "install.sh"
+    shutil.copyfile(script, runner)
+    command = ["/bin/bash", str(runner), "--wait-pid", str(os.getpid()), "--quiet"]
+    if info["kind"] == "installed":
+        command += ["--install-root", info["root"], "--tag", tag]
+        log = Path(info["root"]) / "update.log"
+    elif info["kind"] == "git":
+        if blocker := git_blocker(info["folder"]):
+            raise ValueError(blocker)
+        command += ["--checkout", info["folder"], "--python", sys.executable]
+        log = folder / "update.log"
+    else:
+        raise ValueError("This copy was not installed with the installer; install it once with the command from GitHub.")
+    with open(log, "ab") as output:
+        # A new session: the update outlives this app, which closes next.
+        subprocess.Popen(command, cwd=str(folder), stdin=subprocess.DEVNULL, stdout=output, stderr=subprocess.STDOUT,
+                         start_new_session=True, close_fds=True)
+    return {"started": True, "kind": info["kind"], "tag": tag, "log": str(log)}

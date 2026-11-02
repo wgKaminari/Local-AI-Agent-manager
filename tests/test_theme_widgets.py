@@ -36,7 +36,9 @@ class ThemeWidgetTests(unittest.TestCase):
         self.root.update_idletasks()
 
     def test_theme_changes_keep_editor_identity_selection_scroll_and_undo(self):
-        editor = tk.Text(self.root, undo=True, autoseparators=False, height=8)
+        # Not exported to the X11 PRIMARY selection: another owner there (a
+        # clipboard manager, XWayland) would clear "sel" mid-test on Linux.
+        editor = tk.Text(self.root, undo=True, autoseparators=False, height=8, exportselection=False)
         editor.pack(fill="both", expand=True)
         original = "".join(f"Draft line {index}\n" for index in range(100))
         editor.insert("1.0", original)

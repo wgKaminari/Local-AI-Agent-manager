@@ -5,7 +5,9 @@ pythonw.exe's icon, groups it with other Python programs and pins python
 itself. Here the process gets its own AppUserModelID, the Start menu shortcut
 carries the same ID (so the taskbar, pinning and jump lists resolve to it),
 only one window per data folder opens, and the title bar follows the app's
-light/dark theme. Every function is a harmless no-op off Windows.
+light/dark theme. On Linux every function hands over to linux_integration
+(menu entries, a lock file and the GTK theme); elsewhere they are harmless
+no-ops.
 """
 from __future__ import annotations
 
@@ -22,6 +24,7 @@ APP_NAME = "Personal Job Agent"
 WINDOW_TITLE = APP_NAME
 SHORTCUT_NAME = APP_NAME + ".lnk"
 _IS_WINDOWS = sys.platform == "win32"
+_IS_LINUX = sys.platform.startswith("linux")
 _mutex = None
 
 
@@ -29,9 +32,34 @@ def icon_path() -> Path:
     return Path(__file__).resolve().parent / "assets" / "job-agent.ico"
 
 
+def window_icon_path() -> Path:
+    """The icon for the native window: ICO on Windows, PNG for GTK and Qt."""
+    if _IS_WINDOWS:
+        return icon_path()
+    return Path(__file__).resolve().parent / "web" / "icon-512.png"
+
+
+def on_focus_request(callback) -> None:
+    """Linux: run callback when a second start asks the window to come forward.
+
+    Windows focuses the open window from the second process instead.
+    """
+    if _IS_LINUX:
+        from . import linux_integration
+        linux_integration.on_focus_request(callback)
+
+
+def shortcut_locations() -> str:
+    """Where create_shortcuts puts the app, in words for messages."""
+    return "applications menu and desktop" if _IS_LINUX else "Start menu and desktop"
+
+
 def set_app_id() -> None:
     """Give this process its own taskbar identity instead of Python's."""
-    if _IS_WINDOWS:
+    if _IS_LINUX:
+        from . import linux_integration
+        linux_integration.set_app_id()
+    elif _IS_WINDOWS:
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(APP_ID)
 
 
@@ -42,6 +70,9 @@ def claim_single_instance(data_dir: Path) -> bool:
     database. A different --data-dir may still open its own window.
     """
     global _mutex
+    if _IS_LINUX:
+        from . import linux_integration
+        return linux_integration.claim_single_instance(data_dir)
     if not _IS_WINDOWS:
         return True
     digest = hashlib.sha256(str(Path(data_dir).resolve()).casefold().encode()).hexdigest()[:16]
@@ -90,6 +121,10 @@ def focus_existing_window() -> None:
 
 def set_title_bar_theme(dark: bool) -> None:
     """Dark or light native title bar for this process's app window."""
+    if _IS_LINUX:
+        from . import linux_integration
+        linux_integration.set_title_bar_theme(dark)
+        return
     if not _IS_WINDOWS:
         return
     value = ctypes.c_int(1 if dark else 0)
@@ -178,7 +213,7 @@ foreach ($folder in $folders) {
 
 def _run_shortcut_script(*, start_menu: bool, desktop: bool, remove: bool, folder: Path | None = None) -> list[str]:
     if not _IS_WINDOWS:
-        raise RuntimeError("Shortcuts are available on Windows only.")
+        raise RuntimeError("Shortcuts are available on Windows and Linux only.")
     target, arguments, working_dir = launch_command()
     environment = {**os.environ, "JA_START": "1" if start_menu else "0", "JA_DESKTOP": "1" if desktop else "0",
                    "JA_REMOVE": "1" if remove else "0", "JA_NAME": SHORTCUT_NAME, "JA_TARGET": target,
@@ -204,9 +239,18 @@ def create_shortcuts(*, start_menu: bool = True, desktop: bool = True, folder: P
 
     folder replaces both locations (used by tests). Existing shortcuts are
     replaced, so running this again after moving the project repairs them.
+    On Linux these are freedesktop launchers in the applications menu and on
+    the desktop.
     """
+    if _IS_LINUX:
+        from . import linux_integration
+        return linux_integration.create_shortcuts(start_menu=start_menu, desktop=desktop, folder=folder)
     return _run_shortcut_script(start_menu=start_menu, desktop=desktop, remove=False, folder=folder)
 
 
 def remove_shortcuts() -> None:
+    if _IS_LINUX:
+        from . import linux_integration
+        linux_integration.remove_shortcuts()
+        return
     _run_shortcut_script(start_menu=True, desktop=True, remove=True)

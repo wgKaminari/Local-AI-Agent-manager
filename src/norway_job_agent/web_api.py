@@ -9,6 +9,7 @@ from __future__ import annotations
 import copy
 import json
 import secrets
+import sys
 import tempfile
 import threading
 from concurrent.futures import ThreadPoolExecutor
@@ -407,6 +408,9 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
             return jsonify(error="Asset not found."), 404
         return send_from_directory(assets, filename)
 
+    def _platform():
+        return "windows" if sys.platform == "win32" else "linux" if sys.platform.startswith("linux") else sys.platform
+
     @app.get("/api/bootstrap")
     def bootstrap():
         from .storage import STATUS_ORDER as STATUSES
@@ -418,7 +422,8 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
                        countries=COUNTRIES, statuses=STATUSES, catalog=company_catalog(), boards=job_board_catalog(),
                        gmail=gmail.connection_status(data_dir), collection=service.read_collection_report(data_dir),
                        adzuna=adzuna_status(data_dir), ai=cloud_ai.status(data_dir),
-                       client={"phone": bool(g.phone), "device": (g.device or {}).get("name", "")})
+                       client={"phone": bool(g.phone), "device": (g.device or {}).get("name", "")},
+                       platform=_platform())
 
     @app.get("/api/jobs")
     def jobs():
@@ -768,8 +773,10 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
             callback = lambda progress: gmail.disconnect(data_dir)
         elif action == "shortcuts":
             def callback(progress):
-                from .windows_integration import create_shortcuts
+                from .windows_integration import _IS_LINUX, create_shortcuts
                 created = create_shortcuts()
+                if _IS_LINUX:
+                    return {"message": f"Added Personal Job Agent to the applications menu{' and the desktop' if len(created) > 1 else ''}. Add it to your favourites or dock from there if you like."}
                 return {"message": f"Added {len(created)} shortcuts: Start menu and desktop. Pin the app from the Start menu if you like."}
         else:
             raise ValueError("Choose a supported background action.")
