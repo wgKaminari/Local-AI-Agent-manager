@@ -174,6 +174,10 @@ def validate_model_name(model: str) -> str:
 
 
 def _setup_hint(model: str = DEFAULT_MODEL) -> str:
+    import sys
+    if sys.platform.startswith("linux"):
+        return (f"Install Ollama with: curl -fsSL https://ollama.com/install.sh | sh, then download the model under "
+                f"Settings & activity → Download saved model, or run 'ollama pull {model}' once.")
     return f"Install Ollama from https://ollama.com/download/windows, open Ollama, then run 'ollama pull {model}' once."
 
 
