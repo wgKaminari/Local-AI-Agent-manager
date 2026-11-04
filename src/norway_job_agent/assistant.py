@@ -146,10 +146,15 @@ def _vacancy(job: dict) -> dict:
             for key in ("title", "company", "location", "description", "employment_type", "deadline")}
 
 
-def _facts(profile: dict) -> dict:
-    facts = _candidate_facts(profile)
+def _facts(profile: dict, context: str = "") -> dict:
+    facts = _candidate_facts(profile, context)
     facts["target_roles"] = local_ai._strings(profile.get("target_roles", []), "Profile target roles")
     return facts
+
+
+def _context(vacancy: dict) -> str:
+    """Text whose named skills are sent first when the profile has many."""
+    return " ".join((vacancy["title"], vacancy["description"]))
 
 
 def _sources(facts: dict) -> list[str]:
@@ -197,7 +202,7 @@ def analyze_vacancy(job: dict, profile: dict, model, *, progress=None) -> dict:
     vacancy = _vacancy(job)
     if not vacancy["description"]:
         raise ValueError("Load or add the vacancy description before analysing it.")
-    data = {"candidate_facts": _facts(profile), "vacancy": vacancy, "requested_language": "English"}
+    data = {"candidate_facts": _facts(profile, _context(vacancy)), "vacancy": vacancy, "requested_language": "English"}
 
     def attempt(feedback, number):
         result = local_ai._chat(model, _ANALYSIS_INSTRUCTIONS, data, _ANALYSIS_SCHEMA, feedback=feedback,
@@ -220,7 +225,7 @@ def interview_prep(job: dict, profile: dict, model, *, progress=None) -> dict:
     vacancy = _vacancy(job)
     if not vacancy["description"]:
         raise ValueError("Load or add the vacancy description before preparing for its interview.")
-    facts = _facts(profile)
+    facts = _facts(profile, _context(vacancy))
     data = {"candidate_facts": facts, "vacancy": vacancy, "requested_language": _language(profile)}
     sources = _sources(facts)
 
@@ -252,7 +257,7 @@ def reply_draft(email_text: str, profile: dict, model, *, goal: str = "", job: d
     email = local_ai._text(email_text, "Email", MAX_EMAIL_CHARS)
     if not email:
         raise ValueError("Paste the email you want to reply to.")
-    facts = _facts(profile)
+    facts = _facts(profile, " ".join((email, _context(_vacancy(job)) if job else "")))
     data = {"candidate_facts": facts, "email_text": email, "goal": local_ai._text(goal, "What to say", 1000),
             "requested_language": local_ai._text(language, "Reply language", 80)}
     if job:
@@ -278,7 +283,7 @@ def chat_context(profile: dict | None, job: dict | None) -> str:
     """The chat instructions plus the attached profile and vacancy."""
     parts = [CHAT_INSTRUCTIONS]
     if profile is not None:
-        facts = _facts(profile)
+        facts = _facts(profile, _context(_vacancy(job)) if job else "")
         facts["related_roles"] = local_ai._strings(profile.get("related_roles", []), "Profile related roles")
         facts["preferred_locations"] = local_ai._strings(profile.get("preferred_locations", []), "Profile locations")
         parts.append("USER PROFILE (facts the user saved about themselves; preferences are not qualifications):\n"

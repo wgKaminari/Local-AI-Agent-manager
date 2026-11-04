@@ -50,6 +50,28 @@ class LocalAITests(unittest.TestCase):
     def requests(self):
         return [(call.args[0], call.args[1], json.loads(call.kwargs["body"]) if call.kwargs["body"] else None) for call in self.connection.request.call_args_list]
 
+    def test_long_skill_lists_never_block_drafting(self):
+        # The profile accepts any number of skills; a prompt carries at most 50,
+        # those the vacancy names first.
+        self.profile["skills"] = [f"Fixture Skill {index}" for index in range(125)] + ["Python"]
+        self.replies(LOCAL_DETAILS, chat_result(self.draft))
+        result = local_ai.generate_cover_letter(self.job, self.profile)
+        self.assertEqual(result["cover_letter"], self.draft["cover_letter"])
+        prompt = json.dumps(self.requests()[1][2], ensure_ascii=False)
+        self.assertIn("Python", prompt)
+        self.assertIn("Fixture Skill 48", prompt)
+        self.assertNotIn("Fixture Skill 49", prompt)
+        self.assertEqual(len(self.profile["skills"]), 126)  # The saved profile is unchanged.
+
+    def test_prompt_skills_put_the_vacancy_named_ones_first(self):
+        skills = [f"Skill {index}" for index in range(60)] + ["PyTorch", "LLMs"]
+        chosen = local_ai.prompt_skills({"skills": skills}, "Applied AI Engineer: PyTorch and LLMs in production")
+        self.assertEqual(len(chosen), local_ai.MAX_PROMPT_SKILLS)
+        self.assertEqual(chosen[:2], ["PyTorch", "LLMs"])
+        self.assertEqual(local_ai.prompt_skills({"skills": ["Python", "SQL"]}, ""), ["Python", "SQL"])
+        with self.assertRaises(ValueError):
+            local_ai.prompt_skills({"skills": "Python"})
+
     def test_generation_uses_only_loopback_verified_model_and_factual_fields(self):
         self.replies(LOCAL_DETAILS, chat_result(self.draft))
         original = json.loads(json.dumps(self.profile))

@@ -278,6 +278,26 @@ def _strings(value, label: str, *, maximum: int = 50) -> list[str]:
     return [_text(item, label, 1200) for item in value if item != ""]
 
 
+MAX_PROMPT_SKILLS = 50
+
+
+def prompt_skills(profile: dict, context: str = "") -> list[str]:
+    """At most MAX_PROMPT_SKILLS saved skills for one AI request.
+
+    Matching uses every saved skill and the profile accepts any number, so a
+    long list must never block drafting. A prompt carries the skills the
+    vacancy (or email) names first, then the rest in the user's order, which
+    also keeps requests small enough for local models.
+    """
+    skills = _strings(profile.get("skills", []), "Profile skills", maximum=5000)
+    if len(skills) <= MAX_PROMPT_SKILLS:
+        return skills
+    from .profile import contains_phrase
+    named = [skill for skill in skills if context and contains_phrase(context, skill)]
+    chosen = set(named)
+    return (named + [skill for skill in skills if skill not in chosen])[:MAX_PROMPT_SKILLS]
+
+
 def _normalized(text: str) -> str:
     return " ".join(text.split()).casefold()
 
@@ -515,7 +535,7 @@ def generate_cover_letter(job: dict, profile: dict, model: str = DEFAULT_MODEL, 
         raise ValueError("Add the vacancy description before generating a cover letter.")
     facts = {key: _text(profile.get(key) or "", "Profile " + key, MAX_CV_CHARS if key == "cv_text" else 4000)
              for key in ("name", "summary", "work_authorization", "cv_text")}
-    facts["skills"] = _strings(profile.get("skills", []), "Profile skills")
+    facts["skills"] = prompt_skills(profile, " ".join((vacancy["title"], vacancy["description"])))
     facts["evidence"] = _strings(profile.get("evidence", []), "Profile evidence")
     from .experience_matching import experience_fact, validate_experience_years
     facts["years_of_experience"] = validate_experience_years(profile.get("years_of_experience"))

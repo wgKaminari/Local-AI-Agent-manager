@@ -97,12 +97,13 @@ def validate_writing_style(value=None) -> dict:
     return result
 
 
-def _candidate_facts(profile):
+def _candidate_facts(profile, context=""):
     facts = {key: local_ai._text(profile.get(key) or "", "Profile " + key,
                                local_ai.MAX_CV_CHARS if key == "cv_text" else 4000)
              for key in ("name", "summary", "work_authorization", "cv_text")}
-    for key in ("skills", "evidence"):
-        facts[key] = local_ai._strings(profile.get(key, []), "Profile " + key)
+    # Skills the vacancy (or email) names come first when there are many.
+    facts["skills"] = local_ai.prompt_skills(profile, context)
+    facts["evidence"] = local_ai._strings(profile.get("evidence", []), "Profile evidence")
     from .experience_matching import experience_fact, validate_experience_years
     facts["years_of_experience"] = validate_experience_years(profile.get("years_of_experience"))
     facts["experience_summary"] = experience_fact(facts["years_of_experience"])
@@ -190,9 +191,10 @@ def generate_application_answers(job: dict, profile: dict, form: dict, writing_s
     style = validate_writing_style(writing_style if writing_style is not None else profile.get("writing_style"))
     if not style["language"]:
         style["language"] = local_ai._text(profile.get("cover_letter_language") or "English", "Answer language", 80)
-    facts = _candidate_facts(profile)
     vacancy = {key: local_ai._text(job.get(key) or "", "Vacancy " + key, local_ai.MAX_JOB_CHARS if key == "description" else 1000)
                for key in ("title", "company", "location", "description")}
+    questions = " ".join(str(field.get("label") or "") for field in form["fields"] if isinstance(field, dict))
+    facts = _candidate_facts(profile, " ".join((vacancy["title"], vacancy["description"], questions)))
     accepted, pending = {}, []
     for field in form["fields"]:
         if field.get("review_only") or needs_personal_decision(field["label"] + " " + field["id"]):
