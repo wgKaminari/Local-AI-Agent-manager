@@ -48,7 +48,9 @@ class DesktopEntryTests(unittest.TestCase):
         self.assertIn(f"Path={ROOT}\n", entry)
         exec_line = next(line for line in entry.splitlines() if line.startswith("Exec="))
         self.assertTrue(exec_line.endswith(" gui"))
-        self.assertIn(str(ROOT / "run.py"), exec_line)
+        # Exec= escapes backslashes, so compare the path as the file writes it
+        # (this also runs on Windows CI, where paths contain backslashes).
+        self.assertIn(linux._exec_quote(str(ROOT / "run.py")), exec_line)
 
     def test_icon_is_a_png(self):
         self.assertEqual(linux.png_icon().read_bytes()[:8], b"\x89PNG\r\n\x1a\n")
