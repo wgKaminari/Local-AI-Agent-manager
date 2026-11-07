@@ -392,6 +392,27 @@ def _arbeitnow(queries: list[str], country: str, limit: int, *, newest: int = 0,
     return jobs
 
 
+def _site_level(site: str, value) -> dict | None:
+    """The experience a level-filtered feed guarantees for every job in it.
+
+    Djinni's levels are exact (its "2y" feed lists jobs asking for 24 months);
+    DOU's are ranges, whose lower end is the minimum asked.
+    """
+    if not value:
+        return None
+    if site == "Djinni":
+        years = 0.0 if value == "no_exp" else float(value[:-1]) if re.fullmatch(r"\d{1,2}y", value) else None
+        label = "no experience" if years == 0 else f"{years:g} years of experience"
+    else:
+        found = re.fullmatch(r"(\d+)(?:-(\d+)|plus)", value)
+        years = float(found.group(1)) if found else None
+        label = (f"{found.group(1)}-{found.group(2)} years of experience" if found and found.group(2)
+                 else f"{years:g}+ years of experience") if found else ""
+    if years is None:
+        return None
+    return {"experience_years": years, "source": site, "experience_label": label}
+
+
 def _djinni_jobs(params: dict) -> list[dict]:
     jobs = []
     for item in _rss("https://djinni.co/jobs/rss/" + ("?" + urlencode(params) if params else "")):
@@ -478,9 +499,11 @@ def _djinni_everything(run: "ProviderRun", tags: list[str], state: dict, seen: s
             break
         found = _djinni_jobs(params)
         category = _djinni_it_category(tops[params["primary_keyword"]])
+        level = _site_level("Djinni", params.get("exp_level"))
         for job in found:
             job["raw_json"] = {"board_category": params["primary_keyword"],
-                               **({"it_category": category} if category is not None else {})}
+                               **({"it_category": category} if category is not None else {}),
+                               **({"site_requirements": level} if level else {})}
         _keep(run, found, tags, "UA", seen)
         if len(found) >= DJINNI_FEED_SIZE:
             # A full feed hides older jobs: narrow it.
@@ -587,9 +610,11 @@ def _dou_everything(run: "ProviderRun", tags: list[str], state: dict, seen: set,
         found = _dou_jobs(params)
         read += 1
         category = _dou_it_category(params.get("category", ""))
+        level = _site_level("DOU", params.get("exp"))
         for job in found:
             job["raw_json"] = {"board_category": params.get("category", ""),
-                               **({"it_category": category} if category is not None else {})}
+                               **({"it_category": category} if category is not None else {}),
+                               **({"site_requirements": level} if level else {})}
         _keep(run, found, tags, "UA", seen)
         if len(found) >= DOU_FEED_SIZE:
             if "exp" not in params:
@@ -868,7 +893,8 @@ def fetch_details(job: dict, state: dict | None = None) -> dict:
         from .sources import fetch_job_url
         found = fetch_job_url(job["source_url"])
         return {"description": found[0].get("description", ""), "company": found[0].get("company", ""),
-                "employment_type": found[0].get("employment_type", "")}
+                "employment_type": found[0].get("employment_type", ""),
+                "site_requirements": found[0].get("site_requirements") or {}}
     raise SourceError("This vacancy's source already includes its full description.")
 
 
@@ -885,6 +911,9 @@ def apply_details(job: dict, details: dict) -> dict:
         raw["external_apply_url"] = details["external_apply_url"]
     if details.get("seniority"):
         raw["seniority"] = details["seniority"]
+    if details.get("site_requirements"):
+        # The advert page is more specific than a feed's level filter.
+        raw["site_requirements"] = {**(raw.get("site_requirements") or {}), **details["site_requirements"]}
     job["raw_json"] = raw
     return job
 

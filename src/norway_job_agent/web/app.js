@@ -513,6 +513,8 @@ function jobTags(j) {
   if (e.status === 'mismatch') tags.push(pill(e.minimum_years != null ? `${e.minimum_years}+ yrs asked` : 'Above your level', 'amber'));
   else if (e.status === 'stretch') tags.push(pill(`Stretch: ${e.minimum_years}+ yrs`, 'blue'));
   else if (j.match?.track === 'horizon' && S.view !== 'for-you') tags.push(pill('Related role'));
+  const gaps = j.match?.language_gaps || [];
+  if (gaps.length) tags.push(pill(`${gaps.join(', ')} required`, 'amber'));
   return tags.join('');
 }
 
@@ -763,10 +765,38 @@ function fitTiles(j) {
     e.status === 'mismatch' ? ['bad', 'Experience mismatch', `${e.minimum_years!=null?`Asks for ${e.minimum_years}+ years`:`${cap(e.seniority)} title`} · you have ${years}`] :
     years == null ? ['warn', 'Not screened', 'Add your years of experience in Profile & writing'] :
     e.status === 'no_conflict' ? ['good', `${e.minimum_years}+ years asked`, `You have ${years}`] :
+    e.minimum_years == null && (e.requirements || []).some(r => r.kind === 'unspecified') ?
+      ['warn', 'Experience asked', `No number given · you have ${years}`] :
     ['warn', 'Needs review', e.minimum_years != null ? `Asks for ${e.minimum_years}+ years · you have ${years}` : 'No clear minimum stated'];
   const skill = skills.length ? [matched.length * 2 >= skills.length ? 'good' : 'warn', `${matched.length} of ${skills.length} skills`, matched.join(', ') || 'None of your skills are mentioned'] :
     ['', 'Skills not set', 'Add skills in Profile & writing'];
-  return `<div class="fit-grid">${tile('Role', role)}${tile('Experience', experience)}${tile('Skills', skill)}</div>`;
+  return `<div class="fit-grid">${tile('Role', role)}${tile('Experience', experience)}${tile('Skills', skill)}${tile('Languages', languageFit(m.languages))}</div>`;
+}
+
+// One stated language: "Norwegian B2" or "English (fluent)".
+function languageLabel(l) {
+  const level = l.cefr && l.cefr !== l.level && l.cefr !== 'native' ? `${l.level} ≈ ${l.cefr}` : l.level;
+  return level ? `${l.language} (${level})` : l.language;
+}
+
+function languageFit(langs) {
+  if (!langs) return ['', 'Not screened', 'Refresh to read language requirements'];
+  const required = langs.required || [], preferred = langs.preferred || [];
+  const extra = preferred.length ? ` · Preferred: ${preferred.map(languageLabel).join(', ')}` : '';
+  if (!required.length) return preferred.length ? ['good', 'None required', 'Preferred: ' + preferred.map(languageLabel).join(', ')] :
+    ['', 'Not stated', 'No language requirement found in the advert'];
+  const gaps = required.filter(l => l.status === 'gap'), checks = required.filter(l => l.status === 'check');
+  const list = required.map(languageLabel).join(', ');
+  if (gaps.length) return ['bad', 'Language gap', `Requires ${list}${extra}`];
+  if (checks.length) return ['warn', 'Check level', `Requires ${list}${extra}`];
+  return ['good', 'You meet them', `Requires ${list}${extra}`];
+}
+
+function languageDetails(langs) {
+  if (!langs || !((langs.required || []).length || (langs.preferred || []).length)) return '';
+  const status = {meets: 'meets your level', check: 'check your level', gap: 'not met by your profile'};
+  const row = (kind, l) => `<p><strong>${kind}: ${esc(languageLabel(l))}</strong> — ${esc(status[l.status] || '')}${l.yours ? ` (you: ${esc(l.yours)})` : ''}<br><span class="sub">${esc(l.evidence)}</span></p>`;
+  return `<details class="evidence"><summary>How languages were read</summary>${(langs.required || []).map(l => row('Required', l)).join('')}${(langs.preferred || []).map(l => row('Preferred', l)).join('')}<p class="sub">Levels are read from the advert's wording (≈ is the nearest CEFR level). Check the original advert before applying.</p></details>`;
 }
 
 function overview(j, data) {
@@ -777,7 +807,7 @@ function overview(j, data) {
   const missing = needsDetails(j) ? (failure ? `${siteLabel(j.source)} could not show the full advert: ${failure} Open it on the site instead.` :
     `Loading the full advert from ${siteLabel(j.source)}…`) : 'No full description was imported. Read the original posting for details.';
   const analysis = data?.insights?.analysis?.payload;
-  return `${mailNotice(data?.mail)}${fitTiles(j)}${analysis ? keyFacts(analysis.key_facts, ['salary', 'remote_policy', 'visa_relocation', 'languages_required']) : ''}<div class="prose">${esc(String(j.description||'').trim()?j.description:missing)}</div>${experience}<details class="evidence"><summary>Things to check before applying</summary>${(m.warnings||[]).map(w=>`<p>${esc(w)}</p>`).join('')}<p>${m.score==null?'No fit score yet: add target roles, skills or your years of experience.':`${m.score}% fit: role 50%, skills 30% (full credit at 8 of your skills), experience 20%.`} It estimates fit from the advert's text, not eligibility or hiring probability.</p></details>`;
+  return `${mailNotice(data?.mail)}${fitTiles(j)}${analysis ? keyFacts(analysis.key_facts, ['salary', 'remote_policy', 'visa_relocation', 'languages_required']) : ''}<div class="prose">${esc(String(j.description||'').trim()?j.description:missing)}</div>${experience}${languageDetails(m.languages)}<details class="evidence"><summary>Things to check before applying</summary>${(m.warnings||[]).map(w=>`<p>${esc(w)}</p>`).join('')}<p>${m.score==null?'No fit score yet: add target roles, skills or your years of experience.':`${m.score}% fit: role 50%, skills 30% (full credit at 8 of your skills), experience 20%.`} It estimates fit from the advert's text, not eligibility or hiring probability.</p></details>`;
 }
 
 // What the AI assistant found: analysis, key facts and interview preparation.

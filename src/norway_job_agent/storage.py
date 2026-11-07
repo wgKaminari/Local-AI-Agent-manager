@@ -31,12 +31,12 @@ _SCHEMA_OBJECTS = frozenset({
     "jobs", "jobs_source_identity", "jobs_source_url", "jobs_status", "job_identities", "drafts",
     "drafts_job", "job_provenance", "application_preparations", "application_preparations_job",
     "application_deliveries", "job_matches", "job_matches_fingerprint", "job_matches_profile", "jobs_fts",
-    "jobs_fts_insert", "jobs_fts_delete", "jobs_fts_update", "job_matches_stale", "jobs_last_seen",
+    "jobs_fts_insert", "jobs_fts_delete", "jobs_fts_update", "job_matches_stale_v2", "jobs_last_seen",
     "job_identities_job", "job_provenance_job", "application_deliveries_job",
     "job_insights", "job_insights_job", "ai_chats", "ai_messages", "ai_messages_chat",
     "email_applications", "email_applications_job",
 })
-SCHEMA_VERSION = 6
+SCHEMA_VERSION = 7
 # Version 5 keeps what the AI assistant wrote: vacancy analyses and interview
 # preparation per vacancy, and chat conversations. Version 6 keeps the
 # applications found in your mailbox (and which messages were not one).
@@ -89,12 +89,15 @@ _DERIVED_SCHEMA = """
         INSERT INTO jobs_fts(rowid, title, company, location, description)
         VALUES (new.id, new.title, new.company, new.location, new.description);
     END;
-    CREATE TRIGGER IF NOT EXISTS job_matches_stale AFTER UPDATE ON jobs
+    DROP TRIGGER IF EXISTS job_matches_stale;
+    CREATE TRIGGER IF NOT EXISTS job_matches_stale_v2 AFTER UPDATE ON jobs
     WHEN old.title IS NOT new.title OR old.company IS NOT new.company OR old.location IS NOT new.location
       OR old.description IS NOT new.description OR old.deadline IS NOT new.deadline
       OR old.countries IS NOT new.countries OR old.status IS NOT new.status
       OR old.is_active IS NOT new.is_active OR old.source IS NOT new.source
-      OR old.employment_type IS NOT new.employment_type BEGIN
+      OR old.employment_type IS NOT new.employment_type
+      OR (CASE WHEN json_valid(old.raw_json) THEN json_extract(old.raw_json, '$.site_requirements') END)
+         IS NOT (CASE WHEN json_valid(new.raw_json) THEN json_extract(new.raw_json, '$.site_requirements') END) BEGIN
         DELETE FROM job_matches WHERE job_id = new.id;
     END;
 """
@@ -454,6 +457,8 @@ class JobStore:
             else:
                 job_id = matches.pop()
                 fields = {key: value for key, value in incoming.items() if value}
+                if "raw_json" in fields:
+                    fields["raw_json"] = self._keep_site_facts(job_id, fields["raw_json"])
                 if fill_only:
                     current = self.get_job(job_id)
                     fields = {key: value for key, value in fields.items() if not current.get(key)}
@@ -482,6 +487,30 @@ class JobStore:
                     (kind, value, job_id),
                 )
         return int(job_id), created
+
+    # Requirements a site states as data (Djinni's experience and languages, a
+    # level-filtered feed) arrive with some refreshes only; a later feed
+    # without them must not erase them.
+    _STICKY_RAW = ("site_requirements",)
+
+    def _keep_site_facts(self, job_id: int, incoming: str) -> str:
+        try:
+            new = json.loads(incoming)
+            row = self._connection.execute("SELECT raw_json FROM jobs WHERE id = ?", (job_id,)).fetchone()
+            old = json.loads(row[0] or "{}") if row else {}
+        except (ValueError, TypeError):
+            return incoming
+        if not isinstance(new, dict) or not isinstance(old, dict):
+            return incoming
+        kept = {}
+        for key in self._STICKY_RAW:
+            if isinstance(old.get(key), dict):
+                # Facts from the advert page (languages) survive a feed that
+                # only knows the experience level, and vice versa.
+                kept[key] = {**old[key], **new[key]} if isinstance(new.get(key), dict) else old[key]
+        if not kept:
+            return incoming
+        return json.dumps({**new, **kept}, ensure_ascii=False, sort_keys=True)
 
     def record_provenance(self, job_id: int, kind: str, external_id: str, payload: dict) -> None:
         if not external_id:

@@ -440,6 +440,11 @@ def match_job(job: dict, profile: dict, today: date | None = None, *, recommenda
     from .experience_matching import assess_experience
     experience = assess_experience(job, profile.get("years_of_experience"))
     warnings.extend(experience["reasons"])
+    languages = assess_languages(job, profile.get("languages", {}))
+    for gap in languages["gaps"]:
+        level = f" ({gap['level']})" if gap["level"] else ""
+        yours = f"you recorded {gap['yours']}" if gap["yours"] else "it is not in your profile"
+        warnings.append(f"Requires {gap['language']}{level}; {yours}.")
     # Role fit carries half the score, so related roles and adverts in your
     # field rank well instead of scoring at most 41%.
     if profile.get("target_roles") or profile.get("related_roles"):
@@ -475,7 +480,8 @@ def match_job(job: dict, profile: dict, today: date | None = None, *, recommenda
                 warnings.append("The stated application deadline has passed.")
         except ValueError:
             warnings.append("Deadline needs manual review: " + deadline)
-    warnings.append("Check language requirements, work authorization and remote eligibility in the original vacancy.")
+    warnings.append("Check work authorization and remote eligibility in the original vacancy"
+                    + ("; no language requirement was found in the advert text." if not (languages["required"] or languages["preferred"]) else "."))
     if profile.get("work_authorization"):
         warnings.append("Your recorded work authorization: " + profile["work_authorization"])
     actual_norwegian = profile.get("languages", {}).get("Norwegian", "")
@@ -496,7 +502,16 @@ def match_job(job: dict, profile: dict, today: date | None = None, *, recommenda
             "matched_skills": matched_skills, "matched_locations": matched_locations,
             "excluded_terms": exclusions, "expired": expired, "warnings": warnings,
             "track": track, "reasons": reasons, "related_roles": related_roles,
-            "experience": experience}
+            "experience": experience, "languages": languages}
+
+
+def assess_languages(job: dict, profile_languages: dict) -> dict:
+    """Required and preferred languages (advert text and site data) against your levels."""
+    from .experience_matching import site_requirements
+    from .language_requirements import combine, compare_languages, language_requirements, site_languages
+    stated = language_requirements(str(job.get("description") or ""))
+    listed = site_languages(site_requirements(job).get("languages"))
+    return compare_languages(combine(stated, listed) if listed["required"] else stated, profile_languages)
 
 
 def preparation_brief(job: dict, profile: dict) -> str:

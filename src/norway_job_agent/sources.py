@@ -671,6 +671,53 @@ def _location(value) -> str:
     return ", ".join(dict.fromkeys(filter(None, parts))) or _name(value)
 
 
+def _experience_years(value) -> float | None:
+    """Years from JobPosting.experienceRequirements, when stated as a number."""
+    for entry in value if isinstance(value, list) else [value]:
+        if isinstance(entry, dict):
+            months = entry.get("monthsOfExperience")
+            try:
+                months = float(months)
+            except (TypeError, ValueError):
+                continue
+            if 0 <= months <= 600:
+                return round(months / 12, 1)
+    return None
+
+
+# Djinni's summary beside the advert: "Only from 2 years of experience ...
+# English B1 - Intermediate  Ukrainian Native ...". Languages there are the
+# employer's stated minimum.
+_DJINNI_LANGUAGE = re.compile(
+    r"\b(English|Ukrainian|Polish|German|Russian|French|Spanish|Italian|Portuguese|Dutch|Swedish|Norwegian|Danish|"
+    r"Finnish|Czech|Turkish|Romanian|Hungarian|Japanese|Chinese|Korean|Arabic|Hebrew)\s+"
+    r"((?:[ABC][12])\s*-\s*(?:Upper[- ]Intermediate|Pre[- ]Intermediate|Intermediate|Advanced|Proficient|Elementary|"
+    r"Beginner|Fluent)|Native)\b")
+
+
+def _djinni_facts(page: str) -> dict:
+    text = html.unescape(re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", re.sub(r"<script.*?</script>", " ", page, flags=re.S | re.I))))
+    start = max(text.find("years of experience"), text.find("No experience"), text.find("Countries where we consider"))
+    if start < 0:
+        return {}
+    block = text[max(0, start - 80):start + 500]
+    end = block.find("Apply for the job")
+    block = block[:end] if end > 0 else block
+    facts = {}
+    years = re.search(r"\b(?:Only from|From)\s+(\d{1,2})\s+years? of experience", block)
+    if years:
+        facts["experience_years"] = float(years.group(1))
+    elif "No experience" in block or "Without experience" in block:
+        facts["experience_years"] = 0.0
+    languages = [{"language": name, "level": level, "evidence": f"Djinni lists: {name} {level}"}
+                 for name, level in _DJINNI_LANGUAGE.findall(block)]
+    if languages:
+        facts["languages"] = languages
+    if facts:
+        facts["source"] = "Djinni"
+    return facts
+
+
 def fetch_job_url(url: str) -> list[dict]:
     """Read JobPosting JSON-LD on one public page, observing robots rules.
 
@@ -688,8 +735,10 @@ def fetch_job_url(url: str) -> list[dict]:
             raise SourceError("Ashby did not list this job; it may have closed.")
         return matches
     _, _, body, final_url = _fetch(url, respect_robots=True)
+    page = body.decode("utf-8-sig", errors="replace")
     parser = _LinkedData()
-    parser.feed(body.decode("utf-8-sig", errors="replace"))
+    parser.feed(page)
+    site_facts = _djinni_facts(page) if (urlsplit(final_url).hostname or "").endswith("djinni.co") else {}
     jobs = []
     seen = set()
     for script in parser.scripts:
@@ -740,6 +789,14 @@ def fetch_job_url(url: str) -> list[dict]:
                     if isinstance(value, dict) and value.get("@type") == "Country":
                         rows.append((_name(value), value))
             _set_location_countries(job, rows)
+            # Requirements the site states as data rather than prose.
+            facts = dict(site_facts)
+            years = _experience_years(item.get("experienceRequirements"))
+            if years is not None and "experience_years" not in facts:
+                facts["experience_years"] = years
+                facts.setdefault("source", urlsplit(canonical).hostname or "the site")
+            if facts:
+                job["site_requirements"] = facts
             jobs.append(job)
     if not jobs:
         raise SourceError("No JobPosting structured data was found. Paste the vacancy text for manual import.")

@@ -37,15 +37,15 @@ _WORDS = {"zero": 0, "one": 1, "two": 2, "three": 3, "four": 4, "five": 5,
           "fem": 5, "ein": 1, "eine": 1, "zwei": 2, "drei": 3,
           "vier": 4, "fünf": 5, "sechs": 6, "sieben": 7, "acht": 8, "zehn": 10}
 _NUMBER = r"(?:\d{1,2}(?:[.,]\d+)?|" + "|".join(_WORDS) + r")"
-_YEAR_UNIT_TEXT = r"(?:years?|yrs?|år(?:s)?|jahre?n?|jährig(?:e|er|en)?|рок(?:и|ів)|рік)\b"
+_YEAR_UNIT_TEXT = r"(?:years?|yrs?|år(?:s)?|jahre?n?|jährig(?:e|er|en)?|рок(?:и|ів|у)|рік)\b"
 # These are necessary substrings of every unit above, not a separate grammar.
 # Casefold additionally covers IGNORECASE's dotted/dotless-I spellings.
 _YEAR_HINTS = ("year", "yr", "år", "jahr", "jähr", "рок", "рік")
 _YEARS = re.compile(rf"(?<![\w\d])(?P<low>{_NUMBER})(?:\s*\(\s*(?P<parenthetical>{_NUMBER})\s*\))?(?:\s*(?:[-–—]|to|bis|til)\s*(?P<high>{_NUMBER}))?\s*(?P<plus>\+|or more|or greater)?[\s-]*{_YEAR_UNIT_TEXT}", re.I)
 _EXPERIENCE = re.compile(r"\b(?:experience|experienced|erfaring|berufserfahrung|erfahrung|досвід\w*)\b", re.I)
 _AFTER_YEARS = re.compile(r"^.{0,70}?\b(?:experience|erfaring|berufserfahrung|erfahrung|досвід\w*)\b|^\s*(?:of\s+)?(?:working|building|developing|using|with\s+\w|(?:in\s+)?(?:data|software|engineering|machine learning|analytics|research|development)\b)", re.I)
-_PREFERRED = re.compile(r"\b(?:preferred|preferably|ideally|desirable|desired|nice[- ]to[- ]have|bonus|advantage|a plus|ønskelig|gjerne|wünschenswert|von vorteil|бажано)\b", re.I)
-_REQUIRED = re.compile(r"\b(?:required|require|requires|must|minimum|min\.?|at least|more than|essential|need|needs|you have|you bring|you will have|we expect|mindestens|erforderlich|voraussetzung|minst|må ha|kreves|не менше|від)\b", re.I)
+_PREFERRED = re.compile(r"\b(?:preferred|preferably|ideally|desirable|desired|nice[- ]to[- ]have|bonus|advantage|a plus|ønskelig|gjerne|en fordel|wünschenswert|von vorteil|idealerweise|бажано|перевагою|плюсом)\b", re.I)
+_REQUIRED = re.compile(r"\b(?:required|require|requires|must|minimum|min\.?|at least|more than|essential|need|needs|you have|you bring|you will have|we expect|mindestens|erforderlich|voraussetzung|minst|må ha|kreves|не менше|щонайменше|від)\b", re.I)
 _ALTERNATIVE = re.compile(r"\b(?:equivalent|equivalency|in lieu|alternatively|instead|combination of|gleichwertig|tilsvarende|еквівалент\w*)\b", re.I)
 _DEGREE = re.compile(r"\b(?:degree|bachelor|master|ph\.?d|bsc|msc|bs|ms|b\.s|m\.s|studium|abschluss|ступінь)\b", re.I)
 _COMPANY_HISTORY = re.compile(r"\b(?:our (?:company|team|business|firm|founder)|we have|we bring|founded|established|company has|company with)\b|\bour\s+(?:over\s+|more than\s+)?\d+\s+years", re.I)
@@ -55,6 +55,44 @@ _APPLICANT_SUBJECT = re.compile(r"\b(?:you|candidates?|applicants?)\b", re.I)
 _PREFERRED_HEADINGS = {"preferred", "preferred qualifications", "preferred experience", "nice to have", "nice-to-have", "bonus", "desired qualifications", "desirable", "wünschenswert", "ønskelige kvalifikasjoner"}
 _REQUIRED_HEADINGS = {"required", "requirements", "minimum qualifications", "required qualifications", "qualifications", "what you bring", "what you will bring", "what we need", "must have", "must-have", "krav", "kvalifikasjoner", "anforderungen", "вимоги"}
 _CLAUSE_SEPARATOR = re.compile(r"[\r\n;.!?]")
+# "5+ years in site reliability", "3+ years as a Business Analyst", "4+ роки на
+# позиції", "5+ Jahre E-Mail-Marketing": the field follows the years directly,
+# without the word "experience".
+_FIELD_AFTER = re.compile(
+    r"^\s*(?:\([^)]*\)\s*)?(?:of|in|as|at|on|within|with|doing|across|leading|у|в|на|з|als|im|i|som|med|"
+    r"erfahrung|erfaring|досвід\w*)\b|^\s*(?:\([^)]*\)\s*)?\w+ing\b|"
+    r"^\s*(?:hands-on|professional|industry|relevant|commercial|practical|production|full[- ]time)\b", re.I)
+# Minimum wording directly before the number: "від 1 року", "at least 3 years".
+_FROM_BEFORE = re.compile(r"(?:\bfrom|\bвід|\bminimum(?:\s+of)?|\bmin\.?|\bat least|\bmindestens|\bminst|"
+                          r"\bне менше|\bщонайменше)\s*$", re.I)
+_APPLICANT_BEFORE = re.compile(r"\b(?:you have|you bring|you've|with|have|has|bring|track record of|proven)\s*$", re.I)
+# Years of a company, a contract, a benefit or an age, not of a candidate.
+_NOT_APPLICANT_AFTER = re.compile(
+    r"^\s*(?:\+\s*)?(?:of\s+)?(?:old|ago|тому|alt|gammel|employment|service|tenure|heritage|history|impact|audio|age|"
+    r"operation|existence|experience in (?:the|our) (?:market|industry))\b|"
+    r"^\s*(?:on the market|in business|на ринку|у бізнесі|в бізнесі|на українському ринку)", re.I)
+_HISTORY_BEFORE = re.compile(r"(?:\b(?:for (?:over|more than|the past|the last)|over the (?:past|last)|in the (?:past|last)|"
+                             r"since|seit|siden|понад|вже|уже|протягом|already|over|for)|(?:^|\s)за)\s*$", re.I)
+# "5+ years of data work, of which at least 1.5 years as a lead": the second
+# number narrows the first, it is not an alternative route.
+_NARROWING = re.compile(r"\b(?:of which|including|incl\.?|with at least|at least|davon|hvorav|herav|з них|з яких|"
+                        r"зокрема|включно|у тому числі|в тому числі)\b|(?:^|\s)(?:з них|з яких)", re.I)
+_OR_WORD = re.compile(r"\b(?:or|oder|eller|або|чи)\b", re.I)
+_ASIDE_DASH = re.compile(r"\s[–—-]\s")
+
+
+def _without_asides(text: str, keep: str) -> str:
+    """Text without parentheses and dash asides that do not contain keep."""
+    text = re.sub(r"\([^()]*(?:\)|$)", lambda m: m.group(0) if keep in m.group(0) else " ", text)
+    parts = _ASIDE_DASH.split(text)
+    return next((part for part in parts if keep in part), text)
+# Experience asked for without a number.
+_UNSPECIFIED = re.compile(
+    r"\b(?:several|many|multiple|a few|a couple of|extensive|significant|substantial|considerable)\s+years?\b(?!\s+ago)|"
+    r"\b(?:flere|noen|mange)\s+års\b|\b(?:lang|langvarig)\s+(?:\w+\s+)?erfaring\b|"
+    r"\b(?:mehrjährig\w*|langjährig\w*|mehrere\s+jahre|einige\s+jahre|mehreren\s+jahren)\b|"
+    r"\berste\w*\s+(?:berufs|praxis)?erfahrung\b|"
+    r"\b(?:кілька|декілька|багато)\s+рок\w*|\bбагаторічн\w*|\bкількарічн\w*", re.I)
 
 
 def _local_context(clause, matches, index):
@@ -117,15 +155,20 @@ _requirement_cache_lock = threading.Lock()
 # Results also persist between app starts: parsing every stored advert again
 # made the first list after launch several times slower than later ones.
 # Bump the version whenever extraction rules change, so old results retire.
-_PERSIST_TABLE = "requirements_v1"
+_PERSIST_TABLE = "requirements_v2"
 _persist_path: Path | None = None
 _pending: dict[bytes, tuple[dict, ...]] = {}
 
 
 def attach_cache(path: Path) -> None:
-    """Load requirements saved by earlier runs; later results save to this file."""
+    """Load requirements saved by earlier runs; later results save to this file.
+
+    Language requirements share the same cache file.
+    """
     global _persist_path
     path = Path(path)
+    from .language_requirements import attach_cache as attach_languages
+    attach_languages(path)
     with _requirement_cache_lock:
         if _persist_path == path:
             return
@@ -147,6 +190,8 @@ def attach_cache(path: Path) -> None:
 
 def flush_cache() -> None:
     """Save requirements computed since the last flush."""
+    from .language_requirements import flush_cache as flush_languages
+    flush_languages()
     with _requirement_cache_lock:
         path, pending = _persist_path, dict(_pending)
         _pending.clear()
@@ -217,9 +262,14 @@ def _extract_experience_requirements(description):
         # 'BS or MS plus five years' keeps the same experience requirement.
         # 'BS plus five years or MS' is an alternative route needing review.
         alternative_joiners = list(re.finditer(r"\b(?:or|oder|eller|або)\b|/", clause, re.I))
+        # Two quantities are alternatives only when "or" joins them ("3 years
+        # with Python or 2 with Go"), not when an "or" elsewhere lists fields
+        # or the second narrows the first.
+        between = [re.sub(r"\([^()]*\)", " ", clause[matches[k].end():matches[k + 1].start()])
+                   for k in range(len(matches) - 1)]
         alternatives = bool(_ALTERNATIVE.search(clause) or any(
-            len(matches) > 1 or joiner.start() > matches[0].end() and _DEGREE.search(clause[joiner.end():])
-            for joiner in alternative_joiners))
+            _OR_WORD.search(gap) and not _NARROWING.search(gap) for gap in between) or any(
+            joiner.start() > matches[0].end() and _DEGREE.search(clause[joiner.end():]) for joiner in alternative_joiners))
         for index, match in enumerate(matches):
             local_end = matches[index + 1].start() if index + 1 < len(matches) else len(clause)
             before = clause[max(0, match.start() - 80):match.start()]
@@ -233,6 +283,16 @@ def _extract_experience_requirements(description):
             # than another fact somewhere in the same vacancy.
             direct = _AFTER_YEARS.search(after)
             prior_experience = _EXPERIENCE.search(before[-50:]) or experience_heading
+            if not direct and not prior_experience and not _NOT_APPLICANT_AFTER.match(after) \
+                    and not _HISTORY_BEFORE.search(before):
+                from_before = _FROM_BEFORE.search(before)
+                led = match.group("plus") or match.start() <= 5 or from_before or _APPLICANT_BEFORE.search(before)
+                # A list item opening with "5+ years ..." states a requirement
+                # whatever field follows ("8+ yrs AppSec"); otherwise the field
+                # must follow the years, or experience must lead the sentence.
+                if (match.group("plus") and match.start() <= 5) or (led and _FIELD_AFTER.match(after)) or \
+                        (from_before and _EXPERIENCE.search(clause[:match.start()])) or (match.group("plus") and from_before):
+                    direct = True
             if (not direct and not prior_experience) or re.match(r"^\s*(?:of\s+)?(?:old|ago|degree|contract|warranty|study|studies|(?:bachelor(?:'s)?|master(?:'s)?)\s+degree)\b", after, re.I):
                 continue
             if re.match(r"^\s*[-–—]?\s*(?:projects?|programs?|programmes?|roadmaps?|strateg(?:y|ies)|plans?)\b", after, re.I):
@@ -249,7 +309,7 @@ def _extract_experience_requirements(description):
                 continue
             if alternatives or _NOT_REQUIRED.search(local) or re.search(r"\b(?:up to|at most|maximum|bis zu)\b", before, re.I):
                 kind = "alternative"
-            elif _PREFERRED.search(local) or preferred_section:
+            elif _PREFERRED.search(_without_asides(local, match.group(0))) or preferred_section:
                 kind = "preferred"
             elif _REQUIRED.search(local) or match.group("plus") or match.start() <= 5 or prior_experience:
                 kind = "required"
@@ -260,6 +320,15 @@ def _extract_experience_requirements(description):
             if item not in result:
                 result.append(item)
         experience_heading = False
+    if not any(item["kind"] in {"required", "preferred"} for item in result):
+        # No number: keep up to two plain statements such as "flere års
+        # erfaring" or "mehrjährige Berufserfahrung" for review.
+        for clause in _clauses(str(description or "")):
+            if len(result) >= 2 or not _UNSPECIFIED.search(clause):
+                continue
+            if _EXPERIENCE.search(clause) or re.search(r"\byears?\s+(?:of|in|as)\b|\bjahre\b|\bрок\w*\s+досвід", clause, re.I):
+                if not _COMPANY_HISTORY.search(clause):
+                    result.append({"years": None, "evidence": clause[:600], "kind": "unspecified"})
     return result[:50]
 
 
@@ -273,6 +342,20 @@ _SENIORITY = (
 )
 
 
+def site_requirements(job) -> dict:
+    """Requirements the job site states as data (Djinni, level-filtered feeds)."""
+    raw = job.get("raw_json")
+    if isinstance(raw, str):
+        if "site_requirements" not in raw:
+            return {}
+        try:
+            raw = json.loads(raw)
+        except ValueError:
+            return {}
+    facts = raw.get("site_requirements") if isinstance(raw, dict) else None
+    return facts if isinstance(facts, dict) else {}
+
+
 def assess_experience(job, candidate_years=None):
     candidate_years = validate_experience_years(candidate_years)
     title = str(job.get("title") or "")
@@ -282,6 +365,14 @@ def assess_experience(job, candidate_years=None):
     level, title_match, guideline = found[0] if found else ("unknown", None, None)
     mixed_level = (len(found) > 1 and any(item[0] in {"entry", "mid"} for item in found)) or bool(re.search(r"\bmember of (?:the )?technical staff\b", title, re.I))
     requirements = experience_requirements(str(job.get("description") or ""))
+    facts = site_requirements(job)
+    stated = facts.get("experience_years")
+    if isinstance(stated, (int, float)) and not isinstance(stated, bool) and 0 <= stated <= 40:
+        # The employer's own entry in the site's experience field.
+        label = facts.get("experience_label") or (f"{stated:g} years of experience" if stated else "no experience")
+        requirements = [{"years": float(stated), "evidence": f"{facts.get('source') or 'The job site'} lists: {label}",
+                         "kind": "required"},
+                        *(item for item in requirements if item["kind"] != "unspecified")]
     required = [item["years"] for item in requirements if item["kind"] == "required"]
     minimum = max(required) if required else None
     reasons, mismatch, stretch = [], False, False
@@ -297,6 +388,8 @@ def assess_experience(job, candidate_years=None):
         reasons.append(f"The posting asks for at least {minimum:g} years of experience; you recorded {candidate_years:g}.")
     elif minimum is not None:
         reasons.append(f"Your {candidate_years:g} total years do not fall below the stated {minimum:g}-year minimum. Check the required field and skills separately.")
+    elif unspecified := [item for item in requirements if item["kind"] == "unspecified"]:
+        reasons.append(f"The advert asks for experience without a number: \u201c{unspecified[0]['evidence'][:160]}\u201d.")
     else:
         reasons.append("No unambiguous minimum experience was found; check the original requirements.")
     if title_match and guideline is not None:

@@ -119,14 +119,14 @@ class StoredMatchTests(Fixture):
             store.upsert_job({"title": "Softwareentwickler (m/w/d)", "company": "Alt GmbH", "source": "manual",
                               "source_id": "old", "source_url": "https://jobs.example/old", "description": "Linux"})
         with closing(sqlite3.connect(path)) as connection:
-            for name in ("jobs_fts_insert", "jobs_fts_delete", "jobs_fts_update", "job_matches_stale"):
+            for name in ("jobs_fts_insert", "jobs_fts_delete", "jobs_fts_update", "job_matches_stale_v2"):
                 connection.execute(f"DROP TRIGGER {name}")
             connection.execute("DROP TABLE jobs_fts")
             connection.execute("DROP TABLE job_matches")
             connection.execute("PRAGMA user_version = 3")
             connection.commit()
         with JobStore(path) as store:
-            self.assertEqual(store._connection.execute("PRAGMA user_version").fetchone()[0], 6)
+            self.assertEqual(store._connection.execute("PRAGMA user_version").fetchone()[0], 7)
             found = store._connection.execute("SELECT rowid FROM jobs_fts WHERE jobs_fts MATCH 'linux'").fetchall()
         self.assertEqual(len(found), 1)
 

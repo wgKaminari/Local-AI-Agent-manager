@@ -54,7 +54,7 @@ class ListingTests(unittest.TestCase):
     def test_list_rows_carry_only_card_match_fields(self):
         identifier = self.job("one")
         row = self.get("/api/jobs").get_json()["jobs"][0]
-        self.assertEqual(set(row["match"]), {"score", "track", "expired", "excluded_terms", "experience"})
+        self.assertEqual(set(row["match"]), {"score", "track", "expired", "excluded_terms", "experience", "language_gaps"})
         self.assertEqual(row["match"]["experience"], {"status": "no_conflict", "candidate_years": 2.5, "minimum_years": 2.0})
         detail = self.get(f"/api/jobs/{identifier}").get_json()["job"]["match"]
         self.assertIn("warnings", detail)

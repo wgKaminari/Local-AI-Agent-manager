@@ -61,7 +61,9 @@ def _list_match(match):
     experience = match.get("experience") or {}
     return {"score": match.get("score"), "track": match.get("track"), "expired": match.get("expired", False),
             "excluded_terms": match.get("excluded_terms", []),
-            "experience": {key: experience.get(key) for key in ("status", "candidate_years", "minimum_years")}}
+            "experience": {key: experience.get(key) for key in ("status", "candidate_years", "minimum_years")},
+            # Mandatory languages your profile does not meet, for a card badge.
+            "language_gaps": [gap.get("language") for gap in (match.get("languages") or {}).get("gaps", [])][:3]}
 
 
 # One-click stage buttons on every vacancy card, chosen in Settings.

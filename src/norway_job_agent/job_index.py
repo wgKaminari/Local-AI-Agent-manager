@@ -22,7 +22,7 @@ from datetime import date, datetime, timedelta, timezone
 from .storage import JobStore, search_terms
 
 # Bump when match_job, fingerprints or stored fields change meaning.
-MATCH_VERSION = "4"
+MATCH_VERSION = "5"
 RETENTION_DAYS = 30
 BOARD_SOURCES = ("arbeitsagentur", "arbeitnow", "djinni", "dou", "remotive", "remoteok", "himalayas", "hackernews", "adzuna",
                  "linkedin")

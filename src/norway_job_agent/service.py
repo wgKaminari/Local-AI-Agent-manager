@@ -531,6 +531,9 @@ def _collect(data_dir: Path, settings_override: dict | None = None, *, progress=
             # never touch the store and finish on their own.
             pool.shutdown(wait=False, cancel_futures=True)
         report["removed"] = _cleanup_and_match(data_dir, store, profile, progress, it_only=settings["market"].get("it_only", True))
+        report["details_loaded"] = _backfill_details(data_dir, store, settings, progress)
+        if report["details_loaded"]:
+            _cleanup_and_match(data_dir, store, profile, None, it_only=False)
     report["completed_at"] = datetime.now(timezone.utc).isoformat()
     return report
 
@@ -548,6 +551,64 @@ def save_adzuna_key(data_dir: Path, app_id: str, app_key: str) -> dict:
 def delete_adzuna_key(data_dir: Path) -> dict:
     from . import adzuna
     return adzuna.delete_key(Path(data_dir))
+
+
+# Stored vacancies in your roles whose site listed them without the advert
+# text (or, on Djinni, without the employer and its experience and language
+# fields): each refresh loads this many, newest first. The Bundesagentur's
+# search lists no text at all, and later refreshes read only new adverts, so
+# without this its older matches never got requirements to read.
+_BACKFILL = {"arbeitsagentur": 150, "djinni": 60}
+_BACKFILL_SECONDS = 150
+
+
+def _backfill_details(data_dir: Path, store: JobStore, settings: dict, progress=None) -> int:
+    import time
+    from . import market
+    from .sources import SourceError
+    enabled = settings.get("market", {}).get("enabled", {})
+    state = _market_state(data_dir)
+    deadline = time.monotonic() + _BACKFILL_SECONDS
+    loaded = 0
+    try:
+        for source, budget in _BACKFILL.items():
+            if not enabled.get(source):
+                continue
+            rows = store._connection.execute(
+                "SELECT j.* FROM jobs j JOIN job_matches m ON m.job_id = j.id "
+                "WHERE j.source = ? AND j.is_active = 1 AND m.track IN ('target', 'horizon') "
+                "AND (j.description = '' OR j.company = ?) "
+                "ORDER BY COALESCE(NULLIF(j.published_at, ''), j.discovered_at) DESC LIMIT ?",
+                (source, market.DJINNI_COMPANY, budget * 2)).fetchall()
+            done = failures = 0
+            for row in rows:
+                if done >= budget or failures >= 5 or time.monotonic() > deadline:
+                    break
+                job = store._job_dict(row)
+                if not market.needs_details(job):
+                    continue
+                try:
+                    raw = json.loads(job.get("raw_json") or "{}")
+                except ValueError:
+                    raw = {}
+                raw = raw if isinstance(raw, dict) else {}
+                try:
+                    details = market.fetch_details({**job, "raw_json": raw}, state)
+                except SourceError:
+                    failures += 1
+                    continue
+                update = {key: job[key] for key in ("source", "source_id", "source_url", "title", "company", "employment_type")}
+                update["raw_json"] = raw
+                store.upsert_job(market.apply_details(update, details))
+                done += 1
+                failures = 0
+                if progress is not None and done % 25 == 0:
+                    progress(f"Loading full adverts for your roles from {market.PROVIDERS[source].name}… {done}")
+                time.sleep(market.REQUEST_PAUSE)
+            loaded += done
+    finally:
+        _save_market_state(data_dir, state)
+    return loaded
 
 
 def _cleanup_and_match(data_dir: Path, store: JobStore, profile: dict, progress=None, *, it_only: bool = False) -> int:
