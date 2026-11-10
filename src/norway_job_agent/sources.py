@@ -336,8 +336,14 @@ def _plain(value) -> str:
         value = html.unescape(value)
     parser.feed(value)
     parser.close()
+    text = "".join(parser.parts)
+    # Some sites send plain text whose paragraphs and list items are joined by
+    # non-breaking spaces ("datavarehus&nbsp; Du har erfaring ..."). A
+    # non-breaking space beside ordinary whitespace is layout, not part of a
+    # phrase such as "3&nbsp;years", so it marks a line break.
+    text = re.sub(r"[ \t]*\u00a0[ \t\u00a0]*(?=\S)|[ \t]+\u00a0+", lambda m: "\n" if " " in m.group(0) or "\t" in m.group(0) else m.group(0), text)
     return "\n".join(
-        line for part in "".join(parser.parts).splitlines()
+        line for part in text.splitlines()
         if (line := " ".join(part.split()))
     ).strip()
 

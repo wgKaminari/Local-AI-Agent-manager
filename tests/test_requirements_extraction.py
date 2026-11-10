@@ -67,6 +67,28 @@ class ExperienceWordingTests(unittest.TestCase):
             with self.subTest(text=text):
                 self.assertEqual(years(text), [])
 
+    def test_run_on_lists_keep_their_requirement(self):
+        # A career page that joined its list items with non-breaking spaces.
+        flat = ("Hvem er du? Du har minimum 3–5 års erfaring innen Data Engineering, dataplattform eller datavarehus "
+                "Du har erfaring med Microsoft Fabric, Databricks, Snowflake eller tilsvarende plattformer Du har bygget "
+                "og videreutviklet datapipelines og datamodeller i skyplattformene Du er komfortabel med SQL og Python "
+                "Du forstår hvordan data skal struktureres, transformeres og tilgjengeliggjøres for analyse og innsikt")
+        self.assertEqual(years(flat), [(3, "required")])
+        self.assertEqual(sources._plain("datavarehus&nbsp; Du har erfaring med Snowflake&nbsp; Du er komfortabel med SQL"),
+                         "datavarehus\nDu har erfaring med Snowflake\nDu er komfortabel med SQL")
+        self.assertEqual(sources._plain("3&nbsp;years of Python"), "3 years of Python")
+
+    def test_or_routes(self):
+        tracks = ("Advanced degree and 4+ years of experience working in X\nor bachelor's degree and 6+ years of experience "
+                  "working in X\nor 10+ years of experience working in X")
+        self.assertEqual(years(tracks), [(4, "alternative"), (6, "alternative"), (10, "alternative")])
+        # Degree tracks only: the Bachelor track is what a Bachelor's holder must meet.
+        degrees = "A minimum of 8 years of related experience with a Bachelor's degree\nor 5 years with a Master's degree"
+        self.assertEqual(max(y for y, kind in years(degrees) if kind == "required"), 8)
+        self.assertEqual(years("Bachelor's degree in Computer Science and 3+ years of experience\nOR 5+ years of hands-on "
+                               "experience designing applications in lieu of a degree"), [(3, "required"), (5, "alternative")])
+        self.assertEqual(years("7+ years of experience or education in operations research"), [(7, "alternative")])
+
     def test_ideally_marks_years_as_preferred(self):
         self.assertEqual(years("Mehrjährige Erfahrung als Data Engineer (idealerweise 4+ Jahre)"), [(4, "preferred")])
 

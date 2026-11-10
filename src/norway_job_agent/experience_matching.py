@@ -46,7 +46,13 @@ _EXPERIENCE = re.compile(r"\b(?:experience|experienced|erfaring|berufserfahrung|
 _AFTER_YEARS = re.compile(r"^.{0,70}?\b(?:experience|erfaring|berufserfahrung|erfahrung|досвід\w*)\b|^\s*(?:of\s+)?(?:working|building|developing|using|with\s+\w|(?:in\s+)?(?:data|software|engineering|machine learning|analytics|research|development)\b)", re.I)
 _PREFERRED = re.compile(r"\b(?:preferred|preferably|ideally|desirable|desired|nice[- ]to[- ]have|bonus|advantage|a plus|ønskelig|gjerne|en fordel|wünschenswert|von vorteil|idealerweise|бажано|перевагою|плюсом)\b", re.I)
 _REQUIRED = re.compile(r"\b(?:required|require|requires|must|minimum|min\.?|at least|more than|essential|need|needs|you have|you bring|you will have|we expect|mindestens|erforderlich|voraussetzung|minst|må ha|kreves|не менше|щонайменше|від)\b", re.I)
-_ALTERNATIVE = re.compile(r"\b(?:equivalent|equivalency|in lieu|alternatively|instead|combination of|gleichwertig|tilsvarende|еквівалент\w*)\b", re.I)
+_ALTERNATIVE = re.compile(r"\b(?:equivalent|equivalency|in lieu|alternatively|instead|combination of|gleichwertig|tilsvarende|еквівалент\w*|"
+                          r"(?:experience|erfaring|erfahrung)\s+(?:or|eller|oder)\s+(?:education|studies|study|utdanning|ausbildung|studium))\b", re.I)
+# A line opening with "OR 5+ years ..." is a second route to the previous one.
+# Degree words that cannot be a product name ("MS Teams" is not a degree).
+_DEGREE_TRACK = re.compile(r"\b(?:degree|bachelor\w*|master'?s|masters|ph\.?\s?d|doctorate|bsc|msc|b\.\s?sc?\.?|m\.\s?sc?\.?|"
+                           r"diploma|abschluss|studium|ступінь)\b", re.I)
+_OR_ROUTE = re.compile(r"^\s*(?:or|oder|eller|або|alternatively)\b", re.I)
 _DEGREE = re.compile(r"\b(?:degree|bachelor|master|ph\.?d|bsc|msc|bs|ms|b\.s|m\.s|studium|abschluss|ступінь)\b", re.I)
 _COMPANY_HISTORY = re.compile(r"\b(?:our (?:company|team|business|firm|founder)|we have|we bring|founded|established|company has|company with)\b|\bour\s+(?:over\s+|more than\s+)?\d+\s+years", re.I)
 _NOT_REQUIRED = re.compile(r"\b(?:not required|not essential|no minimum|not necessary|no prior|no previous|not a requirement)\b", re.I)
@@ -155,7 +161,7 @@ _requirement_cache_lock = threading.Lock()
 # Results also persist between app starts: parsing every stored advert again
 # made the first list after launch several times slower than later ones.
 # Bump the version whenever extraction rules change, so old results retire.
-_PERSIST_TABLE = "requirements_v2"
+_PERSIST_TABLE = "requirements_v3"
 _persist_path: Path | None = None
 _pending: dict[bytes, tuple[dict, ...]] = {}
 
@@ -238,7 +244,10 @@ def _extract_experience_requirements(description):
     result = []
     experience_heading = False
     preferred_section = False
+    chain: list[dict] = []  # Items of consecutive lines joined by "OR".
+    plain_route = False
     for clause in _clauses(str(description or "")):
+        clause_start = len(result)
         heading = clause.strip(" :").casefold()
         if heading in _PREFERRED_HEADINGS:
             preferred_section = True
@@ -267,7 +276,7 @@ def _extract_experience_requirements(description):
         # or the second narrows the first.
         between = [re.sub(r"\([^()]*\)", " ", clause[matches[k].end():matches[k + 1].start()])
                    for k in range(len(matches) - 1)]
-        alternatives = bool(_ALTERNATIVE.search(clause) or any(
+        alternatives = bool(any(
             _OR_WORD.search(gap) and not _NARROWING.search(gap) for gap in between) or any(
             joiner.start() > matches[0].end() and _DEGREE.search(clause[joiner.end():]) for joiner in alternative_joiners))
         for index, match in enumerate(matches):
@@ -307,7 +316,11 @@ def _extract_experience_requirements(description):
                 lower = min(lower, _number(match.group("high")))
             if lower > 60:
                 continue
-            if alternatives or _NOT_REQUIRED.search(local) or re.search(r"\b(?:up to|at most|maximum|bis zu)\b", before, re.I):
+            # "or equivalent" applies within a normal sentence; in run-on text
+            # (a list whose line breaks were lost) only near the years, since
+            # "Snowflake eller tilsvarende plattformer" is about tools.
+            nearby = clause if len(clause) <= 250 else clause[max(0, match.start() - 100):min(len(clause), match.end() + 100)]
+            if alternatives or _ALTERNATIVE.search(nearby) or _NOT_REQUIRED.search(local) or re.search(r"\b(?:up to|at most|maximum|bis zu)\b", before, re.I):
                 kind = "alternative"
             elif _PREFERRED.search(_without_asides(local, match.group(0))) or preferred_section:
                 kind = "preferred"
@@ -319,6 +332,20 @@ def _extract_experience_requirements(description):
             item = {"years": lower, "evidence": clause[:600], "kind": kind}
             if item not in result:
                 result.append(item)
+        added = result[clause_start:]
+        if _OR_ROUTE.match(clause):
+            chain.extend(added)
+            # Degree tracks only ("8 years with a Bachelor's / or 5 with a
+            # Master's") keep the Bachelor track as stated: the route a
+            # Bachelor's holder must meet. A route without a degree ("OR 10+
+            # years") makes every route in the chain an alternative.
+            plain_route = plain_route or bool(added and not _DEGREE_TRACK.search(clause))
+            if plain_route:
+                for item in chain:
+                    if item["kind"] == "required":
+                        item["kind"] = "alternative"
+        elif heading not in _PREFERRED_HEADINGS | _REQUIRED_HEADINGS:
+            chain, plain_route = list(added), False
         experience_heading = False
     if not any(item["kind"] in {"required", "preferred"} for item in result):
         # No number: keep up to two plain statements such as "flere års
