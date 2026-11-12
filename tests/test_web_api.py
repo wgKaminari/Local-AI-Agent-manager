@@ -250,7 +250,7 @@ class LocalApiTests(unittest.TestCase):
         profile = (self.path / "profile.json").read_bytes()
         settings = (self.path / "sources.json").read_bytes()
         response = self.request("PUT", "/api/appearance", json={"theme": "dark"})
-        self.assertEqual(response.get_json(), {"theme": "dark", "sidebar_visible": False, "quick_marks": ["applied", "rejected"]})
+        self.assertEqual(response.get_json(), {"theme": "dark", "sidebar_visible": False, "quick_marks": ["applied", "rejected"], "sidebar": "auto", "list_width": None})
         self.assertEqual(self.request("GET", "/api/bootstrap").get_json()["appearance"], response.get_json())
         for value in ("unknown", [], None):
             self.assertEqual(self.request("PUT", "/api/appearance", json={"theme": value}).status_code, 400)
@@ -258,10 +258,21 @@ class LocalApiTests(unittest.TestCase):
         self.assertEqual((self.path / "profile.json").read_bytes(), profile)
         self.assertEqual((self.path / "sources.json").read_bytes(), settings)
 
+    def test_appearance_saves_side_panel_and_list_width(self):
+        self.request("PUT", "/api/appearance", json={"theme": "dark"})
+        response = self.request("PUT", "/api/appearance", json={"sidebar": "collapsed", "list_width": 600})
+        self.assertEqual(response.status_code, 200)
+        saved = self.request("GET", "/api/appearance").get_json()
+        self.assertEqual((saved["sidebar"], saved["list_width"], saved["theme"]), ("collapsed", 600, "dark"))
+        self.assertEqual(self.request("PUT", "/api/appearance", json={"list_width": None}).get_json()["list_width"], None)
+        for bad in ({"sidebar": "hidden"}, {"list_width": 10}, {"list_width": "600"}, {"list_width": True}):
+            self.assertEqual(self.request("PUT", "/api/appearance", json=bad).status_code, 400)
+        self.assertEqual(self.request("GET", "/api/appearance").get_json()["sidebar"], "collapsed")
+
     def test_corrupt_appearance_uses_usable_defaults(self):
         for content in ("broken json", "[]", '{"theme": "sepia", "sidebar_visible": "no"}'):
             (self.path / "appearance.json").write_text(content, encoding="utf-8")
-            self.assertEqual(self.request("GET", "/api/appearance").get_json(), {"theme": "light", "sidebar_visible": True, "quick_marks": ["applied", "rejected"]})
+            self.assertEqual(self.request("GET", "/api/appearance").get_json(), {"theme": "light", "sidebar_visible": True, "quick_marks": ["applied", "rejected"], "sidebar": "auto", "list_width": None})
 
     def test_for_you_excludes_unwanted_terms(self):
         profile = service.read_profile(self.path)

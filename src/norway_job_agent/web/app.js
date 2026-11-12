@@ -131,10 +131,28 @@ const local = {
 // Side panel: your choice wins; without one it folds to icons on narrow windows.
 const SIDEBAR_KEY = 'job-agent-sidebar';
 const LIST_WIDTH_KEY = 'job-agent-list-width';
+// The desktop window keeps no browser storage (private mode), so the PC saves
+// these with the theme; a paired phone keeps its own in browser storage.
+function layoutPref(key) {
+  if (REMOTE) {
+    const value = local.get(key === 'sidebar' ? SIDEBAR_KEY : LIST_WIDTH_KEY);
+    return key === 'list_width' ? (Number(value) || null) : (value || 'auto');
+  }
+  return S.boot?.appearance?.[key] ?? (key === 'sidebar' ? 'auto' : null);
+}
+function saveLayoutPref(key, value) {
+  if (REMOTE) {
+    local.set(key === 'sidebar' ? SIDEBAR_KEY : LIST_WIDTH_KEY, value == null ? null : String(value));
+    return;
+  }
+  if (S.boot) S.boot.appearance = {...S.boot.appearance, [key]: value};
+  api('/appearance', {method: 'PUT', body: {[key]: value}})
+    .catch(err => toast('Layout changed for this session. ' + err.message, true));
+}
 function sidebarCollapsed() {
   if (innerWidth <= 640) return false;  // phones use the top bar
-  const pref = local.get(SIDEBAR_KEY);
-  return pref ? pref === 'collapsed' : innerWidth <= 1200;
+  const pref = layoutPref('sidebar');
+  return pref === 'auto' ? innerWidth <= 1200 : pref === 'collapsed';
 }
 function applySidebar() {
   const shell = $('.shell');
@@ -149,12 +167,12 @@ function applySidebar() {
   }
 }
 function toggleSidebar() {
-  local.set(SIDEBAR_KEY, sidebarCollapsed() ? 'expanded' : 'collapsed');
+  saveLayoutPref('sidebar', sidebarCollapsed() ? 'expanded' : 'collapsed');
   applySidebar();
 }
 // The list/detail split is draggable; the width is remembered on this device.
 function listWidth() {
-  const saved = Number(local.get(LIST_WIDTH_KEY));
+  const saved = Number(layoutPref('list_width'));
   return saved >= 320 ? saved : null;
 }
 function applyListWidth(layout = $('.results-layout')) {
@@ -183,7 +201,7 @@ function startListResize(e) {
   const done = () => {
     handle.removeEventListener('pointermove', move);
     layout.classList.remove('resizing');
-    if (width) local.set(LIST_WIDTH_KEY, String(width));
+    if (width) saveLayoutPref('list_width', width);
   };
   handle.addEventListener('pointermove', move);
   handle.addEventListener('pointerup', done, {once: true});
@@ -194,7 +212,7 @@ document.addEventListener('pointerdown', e => {
 });
 document.addEventListener('dblclick', e => {
   if (!e.target.classList?.contains('list-resizer')) return;
-  local.set(LIST_WIDTH_KEY, null);  // double-click restores the default split
+  saveLayoutPref('list_width', null);  // double-click restores the default split
   applyListWidth(e.target.closest('.results-layout'));
 });
 window.addEventListener('resize', () => {

@@ -79,9 +79,18 @@ def _quick_marks(value):
     return [item for item in STATUS_ORDER if item in value]
 
 
+# The web workspace's side panel: "auto" folds it on narrow windows.
+SIDEBAR_MODES = ("auto", "collapsed", "expanded")
+
+
+def _list_width_ok(value):
+    return value is None or (isinstance(value, int) and not isinstance(value, bool) and 320 <= value <= 4000)
+
+
 def _appearance(data_dir):
     """Share the legacy desktop preference file without importing Tk widgets."""
-    result = {"theme": "light", "sidebar_visible": True, "quick_marks": list(DEFAULT_QUICK_MARKS)}
+    result = {"theme": "light", "sidebar_visible": True, "quick_marks": list(DEFAULT_QUICK_MARKS),
+              "sidebar": "auto", "list_width": None}
     try:
         saved = json.loads((data_dir / "appearance.json").read_text(encoding="utf-8"))
         if isinstance(saved, dict):
@@ -89,6 +98,10 @@ def _appearance(data_dir):
                 result["theme"] = saved["theme"]
             if isinstance(saved.get("sidebar_visible"), bool):
                 result["sidebar_visible"] = saved["sidebar_visible"]
+            if saved.get("sidebar") in SIDEBAR_MODES:
+                result["sidebar"] = saved["sidebar"]
+            if "list_width" in saved and _list_width_ok(saved["list_width"]):
+                result["list_width"] = saved["list_width"]
             try:
                 result["quick_marks"] = _quick_marks(saved.get("quick_marks", DEFAULT_QUICK_MARKS))
             except ValueError:
@@ -506,13 +519,22 @@ def create_app(data_dir: Path, token: str | None = None) -> Flask:
             if request.method == "PUT":
                 value = body()
                 theme = None
-                if "theme" in value or "quick_marks" not in value:
+                layout = {"quick_marks", "sidebar", "list_width"}
+                if "theme" in value or not layout & set(value):
                     theme = _text(value.get("theme"), "Theme", 10)
                     if theme not in {"light", "dark"}:
                         raise ValueError("Choose a light or dark theme.")
                     values["theme"] = theme
                 if "quick_marks" in value:
                     values["quick_marks"] = _quick_marks(value["quick_marks"])
+                if "sidebar" in value:
+                    if value["sidebar"] not in SIDEBAR_MODES:
+                        raise ValueError("Choose auto, collapsed or expanded for the side panel.")
+                    values["sidebar"] = value["sidebar"]
+                if "list_width" in value:
+                    if not _list_width_ok(value["list_width"]):
+                        raise ValueError("List width must be between 320 and 4000 pixels.")
+                    values["list_width"] = value["list_width"]
                 service._write_json(data_dir / "appearance.json", values)
                 hook = app.config.get("THEME_CHANGED")
                 if hook is not None and theme is not None:
