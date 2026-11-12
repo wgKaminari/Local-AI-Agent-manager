@@ -25,6 +25,7 @@ const paths = {
   arrow: 'M7 17 17 7 M7 7h10v10',
   chevron: 'm9 5 7 7-7 7',
   close: 'm6 6 12 12 M6 18 18 6',
+  sidebar: 'M4 4h16v16H4z M9 4v16',
   sun: 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8 M12 2v2 M12 20v2 M2 12h2 M20 12h2 M5 5l1 1 M18 18l1 1 M5 19l1-1 M18 6l1-1',
   help: 'M9 9a3 3 0 1 1 4 3c-1 1-1 2-1 2 M12 17h.01 M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0',
   check: 'm5 12 4 4L19 6',
@@ -127,6 +128,79 @@ const local = {
     try { value == null ? localStorage.removeItem(key) : localStorage.setItem(key, value); } catch { /* private mode: this visit only */ }
   }
 };
+// Side panel: your choice wins; without one it folds to icons on narrow windows.
+const SIDEBAR_KEY = 'job-agent-sidebar';
+const LIST_WIDTH_KEY = 'job-agent-list-width';
+function sidebarCollapsed() {
+  if (innerWidth <= 640) return false;  // phones use the top bar
+  const pref = local.get(SIDEBAR_KEY);
+  return pref ? pref === 'collapsed' : innerWidth <= 1200;
+}
+function applySidebar() {
+  const shell = $('.shell');
+  if (!shell) return;
+  const collapsed = sidebarCollapsed();
+  shell.classList.toggle('collapsed', collapsed);
+  const toggle = $('.sidebar-toggle');
+  if (toggle) {
+    const label = (collapsed ? 'Expand' : 'Collapse') + ' side panel';
+    toggle.setAttribute('aria-label', label);
+    toggle.title = label + ' (Ctrl B)';
+  }
+}
+function toggleSidebar() {
+  local.set(SIDEBAR_KEY, sidebarCollapsed() ? 'expanded' : 'collapsed');
+  applySidebar();
+}
+// The list/detail split is draggable; the width is remembered on this device.
+function listWidth() {
+  const saved = Number(local.get(LIST_WIDTH_KEY));
+  return saved >= 320 ? saved : null;
+}
+function applyListWidth(layout = $('.results-layout')) {
+  if (!layout) return;
+  const width = listWidth();
+  if (width) layout.style.setProperty('--list-width', clampListWidth(layout, width) + 'px');
+  else layout.style.removeProperty('--list-width');
+}
+function clampListWidth(layout, width) {
+  const max = Math.max(320, layout.getBoundingClientRect().width - 420);
+  return Math.round(Math.min(Math.max(width, 320), max));
+}
+function startListResize(e) {
+  const layout = e.target.closest('.results-layout');
+  if (!layout || e.button !== 0) return;
+  e.preventDefault();
+  const left = layout.getBoundingClientRect().left;
+  const handle = e.target;
+  handle.setPointerCapture?.(e.pointerId);
+  layout.classList.add('resizing');
+  let width = null;
+  const move = ev => {
+    width = clampListWidth(layout, ev.clientX - left);
+    layout.style.setProperty('--list-width', width + 'px');
+  };
+  const done = () => {
+    handle.removeEventListener('pointermove', move);
+    layout.classList.remove('resizing');
+    if (width) local.set(LIST_WIDTH_KEY, String(width));
+  };
+  handle.addEventListener('pointermove', move);
+  handle.addEventListener('pointerup', done, {once: true});
+  handle.addEventListener('pointercancel', done, {once: true});
+}
+document.addEventListener('pointerdown', e => {
+  if (e.target.classList?.contains('list-resizer')) startListResize(e);
+});
+document.addEventListener('dblclick', e => {
+  if (!e.target.classList?.contains('list-resizer')) return;
+  local.set(LIST_WIDTH_KEY, null);  // double-click restores the default split
+  applyListWidth(e.target.closest('.results-layout'));
+});
+window.addEventListener('resize', () => {
+  applySidebar();
+  applyListWidth();
+});
 let token = REMOTE ? (local.get(DEVICE_KEY) || '') : $('meta[name=session-token]').content;
 async function api(path, {
   method = 'GET',
@@ -359,7 +433,7 @@ function shell() {
     ['mail', 'Job alerts', 'mail'],
     ['settings', 'Settings & activity', 'settings']
   ];
-  $('#app').innerHTML = `<div class="shell ${REMOTE?'remote':''}"><aside class="sidebar"><div class="brand"><span class="brand-mark">J</span><span class="brand-copy">Job Agent</span>${button(icon('sun'),'theme','icon-only quiet','aria-label="Switch light or dark theme" title="Switch theme (Ctrl Shift L)"')}${button(icon('help'),'help','icon-only quiet','aria-label="Help and shortcuts" title="Help and shortcuts"')}</div>${button(icon('search')+'<span>Quick actions</span><kbd>Ctrl K</kbd>','commands','command-trigger','aria-label="Quick actions" title="Quick actions (Ctrl K)"')}<label class="country-control" title="Search country">${icon('globe')}<select id="country" aria-label="Search country" ${S.settingsBusy?'disabled':''}>${options(Object.entries(S.boot.countries),S.country,'All countries')}</select></label><nav aria-label="Main navigation">${nav.map(([id,label,i],n)=>`${n===5?'<div class="nav-label">You</div>':''}<button class="nav-item ${id===S.view?'active':''}" data-view="${id}" title="${label}" aria-label="${label}" ${id===S.view?'aria-current="page"':''}>${icon(i)}<span>${label}</span></button>`).join('')}<button class="nav-item nav-more ${['chat','profile','sources','mail','settings'].includes(S.view)?'active':''}" data-action="more-menu" title="More" aria-label="More">${icon('more')}<span>More</span></button></nav><div class="sidebar-bottom">${refreshCard()}</div></aside><div class="workspace"><main id="main" tabindex="-1" class="page ${isDiscovery()?'discovery':''} ${S.view==='chat'?'chat-view':''}"></main><footer class="statusbar"><div id="task-status" class="task-indicator" role="status" aria-live="polite"></div><div class="hints" aria-hidden="true"><span><kbd>J</kbd><kbd>K</kbd>move</span><span><kbd>/</kbd>search</span><span><kbd>Ctrl K</kbd>actions</span><span><kbd>Ctrl S</kbd>save</span></div><span class="right">${esc(aiShort())} · you review every application</span></footer></div></div>`;
+  $('#app').innerHTML = `<div class="shell ${REMOTE?'remote':''} ${sidebarCollapsed()?'collapsed':''}"><aside class="sidebar"><div class="brand"><span class="brand-mark">J</span><span class="brand-copy">Job Agent</span>${button(icon('sidebar'),'toggle-sidebar','icon-only quiet sidebar-toggle',`aria-label="${sidebarCollapsed()?'Expand':'Collapse'} side panel" title="${sidebarCollapsed()?'Expand':'Collapse'} side panel (Ctrl B)"`)}${button(icon('sun'),'theme','icon-only quiet','aria-label="Switch light or dark theme" title="Switch theme (Ctrl Shift L)"')}${button(icon('help'),'help','icon-only quiet','aria-label="Help and shortcuts" title="Help and shortcuts"')}</div>${button(icon('search')+'<span>Quick actions</span><kbd>Ctrl K</kbd>','commands','command-trigger','aria-label="Quick actions" title="Quick actions (Ctrl K)"')}<label class="country-control" title="Search country">${icon('globe')}<select id="country" aria-label="Search country" ${S.settingsBusy?'disabled':''}>${options(Object.entries(S.boot.countries),S.country,'All countries')}</select></label><nav aria-label="Main navigation">${nav.map(([id,label,i],n)=>`${n===5?'<div class="nav-label">You</div>':''}<button class="nav-item ${id===S.view?'active':''}" data-view="${id}" title="${label}" aria-label="${label}" ${id===S.view?'aria-current="page"':''}>${icon(i)}<span>${label}</span></button>`).join('')}<button class="nav-item nav-more ${['chat','profile','sources','mail','settings'].includes(S.view)?'active':''}" data-action="more-menu" title="More" aria-label="More">${icon('more')}<span>More</span></button></nav><div class="sidebar-bottom">${refreshCard()}</div></aside><div class="workspace"><main id="main" tabindex="-1" class="page ${isDiscovery()?'discovery':''} ${S.view==='chat'?'chat-view':''}"></main><footer class="statusbar"><div id="task-status" class="task-indicator" role="status" aria-live="polite"></div><div class="hints" aria-hidden="true"><span><kbd>J</kbd><kbd>K</kbd>move</span><span><kbd>/</kbd>search</span><span><kbd>Ctrl K</kbd>actions</span><span><kbd>Ctrl S</kbd>save</span></div><span class="right">${esc(aiShort())} · you review every application</span></footer></div></div>`;
   renderPage();
   updateStatus();
 }
@@ -474,7 +548,8 @@ function renderDiscovery() {
   const filtered = filtersOn();
   const active = activeFilters();
   const select = (id, label, items, value, on) => `<select id="${id}" aria-label="${label}" class="${on?'on':''}">${items}</select>`;
-  $('#main').insertAdjacentHTML('beforeend', `<div class="results-layout ${S.selected&&S.showDetail?'has-selection':''}"><section class="results-panel" aria-label="Opportunities"><div class="list-head"><div class="list-title"><h1>${titles[S.view][0]}</h1><span class="count">${listCount()}</span><div class="heading-actions">${button(icon('plus'),'add-job','icon-only quiet','aria-label="Add opportunity" title="Add an opportunity you found"')}</div></div><div class="filterbar"><div class="search">${icon('search')}<input id="job-search" type="search" aria-label="Search opportunities" placeholder="Search roles, companies, skills" value="${esc(S.query)}"><kbd>/</kbd></div>${button(icon('filter')+'Filters'+(active.length?` <span class="badge">${active.length}</span>`:''),'open-filters','filter-button button-icon'+(active.length?' on':''),'aria-haspopup="dialog"')}${select('sort','Sort opportunities',options(SORTS,S.sort),S.sort,S.sort!=='match')}${filtered?button('Reset','reset-filters','quiet'):''}</div>${active.length?`<div class="filter-chips" aria-label="Active filters">${active.map(f=>button(esc(f.label)+icon('close'),'remove-filter','chip',`data-filter="${esc(f.key)}" aria-label="Remove filter: ${esc(f.label)}" title="Remove this filter"`)).join('')}</div>`:''}</div>${coverageNotice()}<div id="job-results"></div></section><section id="job-detail" class="detail" aria-label="Opportunity details"></section></div>`);
+  $('#main').insertAdjacentHTML('beforeend', `<div class="results-layout ${S.selected&&S.showDetail?'has-selection':''}"><section class="results-panel" aria-label="Opportunities"><div class="list-head"><div class="list-title"><h1>${titles[S.view][0]}</h1><span class="count">${listCount()}</span><div class="heading-actions">${button(icon('plus'),'add-job','icon-only quiet','aria-label="Add opportunity" title="Add an opportunity you found"')}</div></div><div class="filterbar"><div class="search">${icon('search')}<input id="job-search" type="search" aria-label="Search opportunities" placeholder="Search roles, companies, skills" value="${esc(S.query)}"><kbd>/</kbd></div>${button(icon('filter')+'Filters'+(active.length?` <span class="badge">${active.length}</span>`:''),'open-filters','filter-button button-icon'+(active.length?' on':''),'aria-haspopup="dialog"')}${select('sort','Sort opportunities',options(SORTS,S.sort),S.sort,S.sort!=='match')}${filtered?button('Reset','reset-filters','quiet'):''}</div>${active.length?`<div class="filter-chips" aria-label="Active filters">${active.map(f=>button(esc(f.label)+icon('close'),'remove-filter','chip',`data-filter="${esc(f.key)}" aria-label="Remove filter: ${esc(f.label)}" title="Remove this filter"`)).join('')}</div>`:''}</div>${coverageNotice()}<div id="job-results"></div><div class="list-resizer" role="separator" aria-orientation="vertical" aria-label="Resize list" title="Drag to resize the list · double-click to reset"></div></section><section id="job-detail" class="detail" aria-label="Opportunity details"></section></div>`);
+  applyListWidth();
   renderCards();
   renderDetail();
 }
@@ -1642,7 +1717,7 @@ function commands() {
 }
 
 function help() {
-  modal('Keyboard shortcuts & help', `<p class="notice">Your country changes the search context; your profile and writing style stay shared.</p><div class="keyboard-help"><span>Next / previous opportunity</span><kbd>J / K</kbd><span>Move in the list</span><kbd>↓ / ↑</kbd><span>Search opportunities</span><kbd>/</kbd><span>Quick actions</span><kbd>Ctrl K</kbd><span>Save current editor</span><kbd>Ctrl S</kbd><span>Focus opportunity search</span><kbd>Ctrl F</kbd><span>Switch theme</span><kbd>Ctrl Shift L</kbd><span>Move through fields</span><kbd>Tab / Shift Tab</kbd><span>Close dialog</span><kbd>Escape</kbd></div><br><h3>Applications are always your decision</h3><p class="evidence">Drafts are editable and saved as versions. Review & send opens a complete review before one explicit send action. Complex employer forms still need manual completion.</p><h3>Working locally</h3><p class="evidence">Source collection and Gmail need internet access. Writing uses your installed Ollama model. Your desktop interface uses bundled assets and does not require hosting.</p>`);
+  modal('Keyboard shortcuts & help', `<p class="notice">Your country changes the search context; your profile and writing style stay shared.</p><div class="keyboard-help"><span>Next / previous opportunity</span><kbd>J / K</kbd><span>Move in the list</span><kbd>↓ / ↑</kbd><span>Search opportunities</span><kbd>/</kbd><span>Quick actions</span><kbd>Ctrl K</kbd><span>Save current editor</span><kbd>Ctrl S</kbd><span>Focus opportunity search</span><kbd>Ctrl F</kbd><span>Switch theme</span><kbd>Ctrl Shift L</kbd><span>Show or hide the side panel</span><kbd>Ctrl B</kbd><span>Move through fields</span><kbd>Tab / Shift Tab</kbd><span>Close dialog</span><kbd>Escape</kbd></div><br><h3>Applications are always your decision</h3><p class="evidence">Drafts are editable and saved as versions. Review & send opens a complete review before one explicit send action. Complex employer forms still need manual completion.</p><h3>Working locally</h3><p class="evidence">Source collection and Gmail need internet access. Writing uses your installed Ollama model. Your desktop interface uses bundled assets and does not require hosting.</p>`);
 }
 
 function ensureAnswers(payload) {
@@ -1753,6 +1828,10 @@ function toggleTheme() {
 async function action(name, el) {
   if (name === 'dismiss-toast') {
     $('#notifications').replaceChildren();
+    return;
+  }
+  if (name === 'toggle-sidebar') {
+    toggleSidebar();
     return;
   }
   if (name === 'more-menu') {
@@ -2630,9 +2709,12 @@ document.addEventListener('keydown', e => {
     const logicalKey = e.key.toLowerCase();
     // Non-Latin layouts change key, while code keeps the physical shortcut key.
     // Prefer a recognized logical shortcut for layouts such as Dvorak.
-    const physicalKey = {KeyK: 'k', KeyS: 's', KeyF: 'f', KeyL: 'l'}[e.code];
-    const key = ['k', 's', 'f', 'l'].includes(logicalKey) ? logicalKey : physicalKey;
-    if (key === 'k') {
+    const physicalKey = {KeyK: 'k', KeyS: 's', KeyF: 'f', KeyL: 'l', KeyB: 'b'}[e.code];
+    const key = ['k', 's', 'f', 'l', 'b'].includes(logicalKey) ? logicalKey : physicalKey;
+    if (key === 'b' && !e.shiftKey && !e.altKey && innerWidth > 640) {
+      e.preventDefault();
+      toggleSidebar();
+    } else if (key === 'k') {
       e.preventDefault();
       commands();
     } else if (key === 's') {
